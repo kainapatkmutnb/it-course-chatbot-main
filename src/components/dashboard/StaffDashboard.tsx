@@ -906,7 +906,7 @@ const StaffDashboard: React.FC = () => {
 
                     {/* Group by program */}
                     {programs.map((program) => {
-                      const programCourses = filteredCourses.filter(course => course.program === program.code);
+                      const programCourses = filteredCourses.filter(course => (course as any).program === program.code);
                       if (programCourses.length === 0) return null;
                       
                       return (
@@ -919,7 +919,7 @@ const StaffDashboard: React.FC = () => {
                           
                           <div className="grid gap-4">
                             {programCourses.map((course) => (
-                              <div key={`${course.program}-${course.code}`} className="p-4 border rounded-lg bg-secondary/5 hover:shadow-soft transition-shadow">
+                              <div key={`${(course as any).program}-${course.code}`} className="p-4 border rounded-lg bg-secondary/5 hover:shadow-soft transition-shadow">
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center space-x-3">
                                     <BookOpen className="w-5 h-5 text-primary" />
@@ -928,7 +928,7 @@ const StaffDashboard: React.FC = () => {
                                         {course.code} - {course.name}
                                       </h4>
                                       <p className="text-xs text-muted-foreground">
-                                        หลักสูตร {course.curriculumYear} • {course.credits} หน่วยกิต
+                                        หลักสูตร {(course as any).curriculumYear} • {course.credits} หน่วยกิต
                                       </p>
                                     </div>
                                   </div>
