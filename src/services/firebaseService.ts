@@ -656,6 +656,161 @@ class FirebaseService {
       return [];
     }
   }
+
+  // Instructor-specific functions
+  async getStudentsByInstructor(instructorId: string): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const students = Object.keys(usersData)
+          .map(key => ({
+            id: key,
+            ...usersData[key]
+          }))
+          .filter(user => 
+            user.role === 'student' && 
+            user.advisorId === instructorId &&
+            user.isActive !== false
+          );
+        
+        return students;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching students by instructor:', error);
+      return [];
+    }
+  }
+
+  async getAvailableStudents(instructorId: string): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const availableStudents = Object.keys(usersData)
+          .map(key => ({
+            id: key,
+            ...usersData[key]
+          }))
+          .filter(user => 
+            user.role === 'student' && 
+            (!user.advisorId || user.advisorId === '') &&
+            user.isActive !== false
+          );
+        
+        return availableStudents;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching available students:', error);
+      return [];
+    }
+  }
+
+  async getStudentGradeStatistics(studentIds: string[]): Promise<{
+    averageGPA: number;
+    totalCredits: number;
+    completedCredits: number;
+    studentsWithGPA: { studentId: string; gpa: number; credits: number }[];
+  }> {
+    try {
+      if (studentIds.length === 0) {
+        return {
+          averageGPA: 0,
+          totalCredits: 0,
+          completedCredits: 0,
+          studentsWithGPA: []
+        };
+      }
+
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        const relevantPlans = Object.keys(studyPlansData)
+          .map(key => ({
+            id: key,
+            ...studyPlansData[key]
+          }))
+          .filter(plan => studentIds.includes(plan.studentId));
+
+        let totalGPA = 0;
+        let totalCredits = 0;
+        let totalCompletedCredits = 0;
+        const studentsWithGPA: { studentId: string; gpa: number; credits: number }[] = [];
+
+        relevantPlans.forEach(plan => {
+          const gpa = plan.gpa || 0;
+          const credits = plan.totalCredits || 0;
+          const completedCredits = plan.completedCredits || 0;
+
+          totalGPA += gpa;
+          totalCredits += credits;
+          totalCompletedCredits += completedCredits;
+
+          studentsWithGPA.push({
+            studentId: plan.studentId,
+            gpa: gpa,
+            credits: credits
+          });
+        });
+
+        return {
+          averageGPA: relevantPlans.length > 0 ? totalGPA / relevantPlans.length : 0,
+          totalCredits: totalCredits,
+          completedCredits: totalCompletedCredits,
+          studentsWithGPA: studentsWithGPA
+        };
+      }
+
+      return {
+        averageGPA: 0,
+        totalCredits: 0,
+        completedCredits: 0,
+        studentsWithGPA: []
+      };
+    } catch (error) {
+      console.error('Error fetching student grade statistics:', error);
+      return {
+        averageGPA: 0,
+        totalCredits: 0,
+        completedCredits: 0,
+        studentsWithGPA: []
+      };
+    }
+  }
+
+  async getAllStudents(): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const students = Object.keys(usersData)
+          .map(key => ({
+            id: key,
+            ...usersData[key]
+          }))
+          .filter(user => 
+            user.role === 'student' &&
+            user.isActive !== false
+          );
+        
+        return students;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching all students:', error);
+      return [];
+    }
+  }
 }
 
 // Export singleton instance
