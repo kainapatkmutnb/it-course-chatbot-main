@@ -458,7 +458,7 @@ const CourseManagement: React.FC = () => {
                       เพิ่มรายวิชา
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>เพิ่มรายวิชาใหม่</DialogTitle>
                       <DialogDescription>
@@ -660,7 +660,7 @@ const CourseManagement: React.FC = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>แก้ไขรายวิชา</DialogTitle>
             <DialogDescription>
