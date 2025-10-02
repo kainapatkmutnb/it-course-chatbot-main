@@ -119,6 +119,76 @@ export const useStudyPlan = (studentId: string) => {
   return { studyPlan, loading, error, refreshStudyPlan };
 };
 
+// Hook for student's GPA and credits data from Firebase
+export const useStudentGPAAndCredits = (studentId: string) => {
+  const [data, setData] = useState<{ gpa: number; totalCredits: number; completedCredits: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!studentId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchGPAAndCredits = async () => {
+      try {
+        setLoading(true);
+        const gpaAndCreditsData = await firebaseService.getStudentGPAAndCredits(studentId);
+        setData(gpaAndCreditsData);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch GPA and credits');
+        console.error('Error fetching GPA and credits:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGPAAndCredits();
+  }, [studentId]);
+
+  const refreshGPAAndCredits = async () => {
+    if (!studentId) return;
+    
+    try {
+      const gpaAndCreditsData = await firebaseService.getStudentGPAAndCredits(studentId);
+      setData(gpaAndCreditsData);
+    } catch (err) {
+      setError('Failed to refresh GPA and credits');
+      console.error('Error refreshing GPA and credits:', err);
+    }
+  };
+
+  const updateGPAAndCredits = async (gpa: number, completedCredits: number) => {
+    if (!studentId) return false;
+    
+    try {
+      const success = await firebaseService.updateStudentGPAAndCredits(studentId, gpa, completedCredits);
+      if (success) {
+        // Refresh data after successful update
+        await refreshGPAAndCredits();
+      }
+      return success;
+    } catch (err) {
+      setError('Failed to update GPA and credits');
+      console.error('Error updating GPA and credits:', err);
+      return false;
+    }
+  };
+
+  return { 
+    data, 
+    loading, 
+    error, 
+    refreshGPAAndCredits, 
+    updateGPAAndCredits,
+    gpa: data?.gpa || 0,
+    totalCredits: data?.totalCredits || 0,
+    completedCredits: data?.completedCredits || 0
+  };
+};
+
 // Hook for departments data
 export const useDepartments = () => {
   const [departments, setDepartments] = useState<Department[]>([]);

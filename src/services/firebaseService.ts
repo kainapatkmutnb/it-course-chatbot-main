@@ -441,15 +441,62 @@ class FirebaseService {
   async updateStudyPlan(studyPlanId: string, updates: Partial<StudyPlan>): Promise<boolean> {
     try {
       const studyPlanRef = ref(database, `studyPlans/${studyPlanId}`);
-      const updatesWithTimestamp = {
+      await update(studyPlanRef, {
         ...updates,
         updatedAt: new Date().toISOString()
-      };
-      
-      await update(studyPlanRef, updatesWithTimestamp);
+      });
       return true;
     } catch (error) {
       console.error('Error updating study plan:', error);
+      return false;
+    }
+  }
+
+  // New method to get student's GPA and total credits from Firebase
+  async getStudentGPAAndCredits(studentId: string): Promise<{ gpa: number; totalCredits: number; completedCredits: number } | null> {
+    try {
+      const studyPlan = await this.getStudyPlanByStudentId(studentId);
+      if (!studyPlan) {
+        return null;
+      }
+
+      // Return the GPA and credits directly from Firebase StudyPlan
+      return {
+        gpa: studyPlan.gpa || 0,
+        totalCredits: studyPlan.totalCredits || 0,
+        completedCredits: studyPlan.completedCredits || 0
+      };
+    } catch (error) {
+      console.error('Error fetching student GPA and credits:', error);
+      return null;
+    }
+  }
+
+  // Method to update student's GPA and completed credits in Firebase
+  async updateStudentGPAAndCredits(studentId: string, gpa: number, completedCredits: number): Promise<boolean> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        const studyPlanKey = Object.keys(studyPlansData).find(
+          key => studyPlansData[key].studentId === studentId
+        );
+        
+        if (studyPlanKey) {
+          const studyPlanRef = ref(database, `studyPlans/${studyPlanKey}`);
+          await update(studyPlanRef, {
+            gpa: gpa,
+            completedCredits: completedCredits,
+            updatedAt: new Date().toISOString()
+          });
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Error updating student GPA and credits:', error);
       return false;
     }
   }

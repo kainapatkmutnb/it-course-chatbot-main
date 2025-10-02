@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { useStudyPlan } from '@/hooks/useFirebaseData';
+import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { getDepartments, extractDepartmentFromStudentInfo } from '@/services/departmentService';
 import { Department } from '@/types/course';
@@ -50,6 +50,15 @@ const StudentDashboard: React.FC = () => {
   
   // Use Firebase data instead of mock data
   const { studyPlan, loading: studyPlanLoading, error: studyPlanError } = useStudyPlan(user?.id);
+  
+  // Use new hook to get GPA and credits from Firebase
+  const { 
+    gpaData, 
+    loading: gpaLoading, 
+    error: gpaError, 
+    refreshGPAData, 
+    updateGPAData 
+  } = useStudentGPAAndCredits(user?.id);
 
   // Profile editing functions
   const handleEditProfile = () => {
@@ -104,8 +113,10 @@ const StudentDashboard: React.FC = () => {
   const inProgressCourses = studyPlan?.courses.filter(course => course.status === 'in_progress') || [];
   const plannedCourses = studyPlan?.courses.filter(course => course.status === 'planned') || [];
   
-  const completedCredits = completedCourses.reduce((sum, course) => sum + course.credits, 0);
-  const totalCredits = studyPlan?.totalCredits || 140;
+  // Use Firebase data for GPA and credits, fallback to calculated values
+  const completedCredits = gpaData?.completedCredits || completedCourses.reduce((sum, course) => sum + course.credits, 0);
+  const totalCredits = gpaData?.totalCredits || studyPlan?.totalCredits || 140;
+  const currentGPA = gpaData?.gpa || calculateGPA();
   const progressPercentage = (completedCredits / totalCredits) * 100;
 
   // Calculate GPA from completed courses
@@ -126,10 +137,8 @@ const StudentDashboard: React.FC = () => {
     return totalCreditsGraded > 0 ? totalPoints / totalCreditsGraded : 0;
   };
 
-  const currentGPA = calculateGPA();
-
-  // Update loading/error conditions to rely only on studyPlan
-  if (studyPlanLoading) {
+  // Update loading/error conditions to include GPA data
+  if (studyPlanLoading || gpaLoading) {
     return (
       <div className="min-h-screen p-6 gradient-subtle flex items-center justify-center">
         <div className="text-center">
@@ -140,15 +149,17 @@ const StudentDashboard: React.FC = () => {
     );
   }
 
-  if (studyPlanError) {
+  if (studyPlanError || gpaError) {
     return (
       <div className="min-h-screen p-6 gradient-subtle flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">เกิดข้อผิดพลาด</h2>
-            <p className="text-muted-foreground">{studyPlanError}</p>
-            <Button className="mt-4" onClick={() => window.location.reload()}>ลองใหม่</Button>
+            <p className="text-muted-foreground">{studyPlanError || gpaError}</p>
+            <Button className="mt-4" onClick={() => window.location.reload()}>
+              ลองใหม่
+            </Button>
           </CardContent>
         </Card>
       </div>
