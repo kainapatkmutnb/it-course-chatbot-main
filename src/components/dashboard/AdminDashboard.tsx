@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsers } from '@/hooks/useFirebaseData';
 import { getAllCourses, auditLogs } from '@/services/completeCurriculumData';
-import { firebaseService } from '@/services/firebaseService';
+import { firebaseService, AuditLog } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/auth';
 import CourseManagement from './CourseManagement';
@@ -42,6 +42,8 @@ const AdminDashboard: React.FC = () => {
   const { toast } = useToast();
   const { users: allUsers, loading: usersLoading, error: usersError } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditLogsLoading, setAuditLogsLoading] = useState(true);
   const [newCourse, setNewCourse] = useState({
     code: '',
     name: '',
@@ -394,7 +396,7 @@ const AdminDashboard: React.FC = () => {
                       <span>จัดการผู้ใช้</span>
                     </CardTitle>
                     <CardDescription>
-                      จัดการบัญชีผู้ใช้และบทบาท
+                      จัดการบัญชีผู้ใช้แะบทบาท
                     </CardDescription>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -606,15 +608,22 @@ const AdminDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {auditLogs.length > 0 ? (
-                    auditLogs.slice(0, 20).map((log) => (
+                  {auditLogsLoading ? (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-muted-foreground">กำลังโหลดข้อมูล Audit Log...</div>
+                    </div>
+                  ) : auditLogs.length > 0 ? (
+                    auditLogs.map((log) => (
                       <div key={log.id} className="flex items-start space-x-4 p-4 rounded-lg border">
                         <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
                         <div className="flex-1">
                           <div className="font-medium">{log.action}</div>
                           <div className="text-sm text-muted-foreground">{log.details}</div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            โดย: {log.userId} • {new Date(log.timestamp.seconds * 1000).toLocaleString('th-TH')}
+                            โดย: {log.userId} • {log.timestamp.toLocaleString('th-TH')} • IP: {log.ipAddress}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            หมวดหมู่: {log.category}
                           </div>
                         </div>
                       </div>
@@ -788,3 +797,25 @@ const AdminDashboard: React.FC = () => {
  };
  
  export default AdminDashboard;
+
+ // Load audit logs from Firebase
+ useEffect(() => {
+   const loadAuditLogs = async () => {
+     try {
+       setAuditLogsLoading(true);
+       const logs = await firebaseService.getAuditLogs(50);
+       setAuditLogs(logs);
+     } catch (error) {
+       console.error('Error loading audit logs:', error);
+       toast({
+         title: "ข้อผิดพลาด",
+         description: "ไม่สามารถโหลดข้อมูล Audit Log ได้",
+         variant: "destructive",
+       });
+     } finally {
+       setAuditLogsLoading(false);
+     }
+   };
+ 
+   loadAuditLogs();
+ }, [toast]);
