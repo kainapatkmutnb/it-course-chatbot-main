@@ -196,9 +196,10 @@ const InstructorDashboard: React.FC = () => {
   // Get individual student statistics
   const getStudentStatistics = (studentId: string) => {
     const studentPlan = studyPlans?.find(plan => plan.studentId === studentId);
-    if (!studentPlan || !courses) return { completed: 0, gpa: '0.00', totalCredits: 0 };
+    if (!studentPlan || !courses) return { completed: 0, inProgress: 0, gpa: '0.00', totalCredits: 0 };
 
     const completedCourses = studentPlan.courses?.filter(course => course.status === 'completed') || [];
+    const inProgressCourses = studentPlan.courses?.filter(course => course.status === 'in_progress') || [];
     
     const totalCredits = completedCourses.reduce((sum, cc) => {
       const course = courses.find(c => c.id === cc.courseId);
@@ -215,10 +216,14 @@ const InstructorDashboard: React.FC = () => {
 
     return {
       completed: completedCourses.length,
+      inProgress: inProgressCourses.length,
       gpa,
       totalCredits
     };
   };
+
+  // Alias for supervised students (same as studentsUnderCare)
+  const supervisedStudents = studentsUnderCare;
 
   const filteredStudents = studentsUnderCare.filter(student =>
     student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
