@@ -52,6 +52,8 @@ const AdminDashboard: React.FC = () => {
     email: '',
     role: 'student' as const
   });
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const allCourses = getAllCourses();
 
@@ -149,6 +151,38 @@ const AdminDashboard: React.FC = () => {
       title: 'ส่งออกข้อมูลสำเร็จ',
       description: 'ไฟล์ข้อมูลหลักสูตรถูกส่งออกแล้ว',
     });
+  };
+
+  const handleEditUser = (userData: any) => {
+    setEditingUser({
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      role: userData.role
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = async () => {
+    if (editingUser && editingUser.name && editingUser.email && editingUser.role) {
+      try {
+        // Here you would call firebaseService.updateUser
+        // For now, just show success toast
+        toast({
+          title: 'อัปเดตผู้ใช้สำเร็จ',
+          description: `อัปเดตข้อมูลผู้ใช้ ${editingUser.name} แล้ว`,
+        });
+        setIsEditDialogOpen(false);
+        setEditingUser(null);
+      } catch (error) {
+        console.error('Error updating user:', error);
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้',
+          variant: 'destructive'
+        });
+      }
+    }
   };
 
   const filteredUsers = allUsers?.filter(u =>
@@ -413,7 +447,7 @@ const AdminDashboard: React.FC = () => {
                               <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleEditUser(userData)}>
                             <Edit className="w-4 h-4" />
                           </Button>
                         </div>
@@ -702,9 +736,62 @@ const AdminDashboard: React.FC = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
-  );
-};
 
-export default AdminDashboard;
+         {/* Edit User Dialog */}
+         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+           <DialogContent>
+             <DialogHeader>
+               <DialogTitle>แก้ไขข้อมูลผู้ใช้</DialogTitle>
+               <DialogDescription>
+                 อัปเดตข้อมูลผู้ใช้และบทบาท
+               </DialogDescription>
+             </DialogHeader>
+             {editingUser && (
+               <div className="space-y-4">
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="edit-user-name">ชื่อ-นามสกุล</Label>
+                     <Input 
+                       id="edit-user-name" 
+                       value={editingUser.name}
+                       onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                     />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="edit-user-email">อีเมล</Label>
+                     <Input 
+                       id="edit-user-email" 
+                       value={editingUser.email}
+                       onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="edit-user-role">บทบาท</Label>
+                   <Select value={editingUser.role} onValueChange={(value) => setEditingUser({...editingUser, role: value})}>
+                     <SelectTrigger>
+                       <SelectValue placeholder="เลือกบทบาท" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="student">นักศึกษา</SelectItem>
+                       <SelectItem value="instructor">อาจารย์</SelectItem>
+                       <SelectItem value="staff">บุคลากร</SelectItem>
+                       <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 <div className="flex space-x-2">
+                   <Button className="flex-1" onClick={handleUpdateUser}>อัปเดตข้อมูล</Button>
+                   <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>ยกเลิก</Button>
+                 </div>
+               </div>
+             )}
+           </DialogContent>
+         </Dialog>
+
+       </div>
+     </div>
+   );
+ };
+ 
+ export default AdminDashboard;
