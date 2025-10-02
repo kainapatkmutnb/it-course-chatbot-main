@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role,
               profilePicture: firebaseUser.photoURL || undefined,
               isActive: true,
-              createdAt: new Date().toISOString(),
+              createdAt: new Date(),
               lastLogin: new Date()
             };
             
@@ -256,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         employeeId: userData.employeeId,
         department: userData.department,
         isActive: true,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
         lastLogin: new Date()
       };
       
