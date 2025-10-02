@@ -44,6 +44,10 @@ const AdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [auditLogsLoading, setAuditLogsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalLogs, setTotalLogs] = useState(0);
+  const logsPerPage = 10;
   const [newCourse, setNewCourse] = useState({
     code: '',
     name: '',
@@ -267,8 +271,10 @@ const AdminDashboard: React.FC = () => {
     const loadAuditLogs = async () => {
       try {
         setAuditLogsLoading(true);
-        const logs = await firebaseService.getAuditLogs(50);
-        setAuditLogs(logs);
+        const result = await firebaseService.getAuditLogs(logsPerPage, currentPage);
+        setAuditLogs(result.logs);
+        setTotalPages(result.totalPages);
+        setTotalLogs(result.totalCount);
       } catch (error) {
         console.error('Error loading audit logs:', error);
         toast({
@@ -282,7 +288,7 @@ const AdminDashboard: React.FC = () => {
     };
 
     loadAuditLogs();
-  }, [toast]);
+  }, [toast, currentPage, logsPerPage]);
 
   return (
     <div className="min-h-screen p-6 gradient-subtle">
@@ -556,6 +562,52 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   )}
                 </div>
+                
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      แสดง {((currentPage - 1) * logsPerPage) + 1}-{Math.min(currentPage * logsPerPage, totalLogs)} จาก {totalLogs} รายการ
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                      >
+                        หน้าแรก
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                      >
+                        ก่อนหน้า
+                      </Button>
+                      <span className="text-sm text-muted-foreground px-2">
+                        หน้า {currentPage} จาก {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                      >
+                        ถัดไป
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                      >
+                        หน้าสุดท้าย
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

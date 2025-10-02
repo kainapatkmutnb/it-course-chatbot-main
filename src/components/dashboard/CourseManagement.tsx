@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { 
@@ -50,6 +51,7 @@ interface CourseFormData {
 
 const CourseManagement: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedProgram, setSelectedProgram] = useState<string>('');
   const [selectedCurriculumYear, setSelectedCurriculumYear] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -245,6 +247,18 @@ const CourseManagement: React.FC = () => {
         newCourse
       );
 
+      // Add audit log for course creation
+      if (user) {
+        await firebaseService.createAuditLog({
+          action: 'เพิ่มรายวิชา',
+          details: `เพิ่มรายวิชา ${newCourse.code} ${newCourse.name} ในหลักสูตร ${selectedProgram} ปีหลักสูตร ${selectedCurriculumYear} ชั้นปีที่ ${selectedYear} เทอม ${selectedSemester}`,
+          userId: user.id,
+          userEmail: (user as any).email || '',
+
+          timestamp: new Date()
+        });
+      }
+
       setCourses([...courses, newCourse]);
       setIsAddDialogOpen(false);
       resetForm();
@@ -336,6 +350,17 @@ const CourseManagement: React.FC = () => {
         parseInt(selectedSemester),
         course.id
       );
+
+      // Add audit log for course deletion
+      if (user) {
+        await firebaseService.createAuditLog({
+          action: 'ลบรายวิชา',
+          details: `ลบรายวิชา ${course.code} ${course.name} ออกจากหลักสูตร ${selectedProgram} ปีหลักสูตร ${selectedCurriculumYear} ชั้นปีที่ ${selectedYear} เทอม ${selectedSemester}`,
+          userId: user.uid,
+          // userEmail field is not allowed in the AuditLog type, omit it
+          timestamp: new Date()
+        });
+      }
 
       setCourses(courses.filter(c => c.id !== course.id));
 

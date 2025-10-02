@@ -407,28 +407,33 @@ class FirebaseService {
   }
 
   // Audit Logs
-  async getAuditLogs(limit: number = 50): Promise<AuditLog[]> {
+  async getAuditLogs(limit: number = 50, page: number = 1): Promise<{ logs: AuditLog[], totalCount: number, totalPages: number }> {
     try {
       const auditLogsRef = ref(database, 'auditLogs');
       const snapshot = await get(auditLogsRef);
       
       if (snapshot.exists()) {
         const auditLogsData = snapshot.val();
-        const logs = Object.keys(auditLogsData)
+        const allLogs = Object.keys(auditLogsData)
           .map(key => ({
             id: key,
             ...auditLogsData[key],
             timestamp: new Date(auditLogsData[key].timestamp)
           }))
-          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-          .slice(0, limit);
+          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort newest first
         
-        return logs;
+        const totalCount = allLogs.length;
+        const totalPages = Math.ceil(totalCount / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const logs = allLogs.slice(startIndex, endIndex);
+        
+        return { logs, totalCount, totalPages };
       }
-      return [];
+      return { logs: [], totalCount: 0, totalPages: 0 };
     } catch (error) {
       console.error('Error fetching audit logs:', error);
-      return [];
+      return { logs: [], totalCount: 0, totalPages: 0 };
     }
   }
 
@@ -471,7 +476,7 @@ class FirebaseService {
         activeCourses,
         totalStudents,
         totalStudyPlans: studyPlans.length,
-        recentActivities: auditLogs.length
+        recentActivities: auditLogs.logs.length
       };
     } catch (error) {
       console.error('Error fetching system stats:', error);
