@@ -803,28 +803,6 @@ const StudyPlanManager: React.FC = () => {
               </Select>
             </div>
 
-            {/* Grade Selection - Show only when status is completed */}
-            {newCourse.status === 'completed' && (
-              <div className="space-y-2">
-                <Label htmlFor="grade">เกรด</Label>
-                <Select 
-                  value={newCourse.grade || ''} 
-                  onValueChange={(value) => setNewCourse(prev => ({ ...prev, grade: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกเกรด" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableGrades().map((grade) => (
-                      <SelectItem key={grade} value={grade}>
-                        {grade}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsAddCourseOpen(false)}>
                 ยกเลิก
