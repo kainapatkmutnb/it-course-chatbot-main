@@ -44,8 +44,11 @@ const StaffDashboard: React.FC = () => {
   const [corequisiteToAdd, setCorequisiteToAdd] = useState<string>('');
   const [courses, setCourses] = useState<any[]>([]);
   const [allCoursesInCurriculum, setAllCoursesInCurriculum] = useState<any[]>([]);
+  const [allCoursesOverview, setAllCoursesOverview] = useState<any[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [overviewSearchTerm, setOverviewSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [overviewLoading, setOverviewLoading] = useState(false);
 
   // Available programs and curriculum years
   const programs = [
@@ -413,6 +416,115 @@ const StaffDashboard: React.FC = () => {
     }
   };
 
+  // Load all courses for overview when component mounts
+  useEffect(() => {
+    loadAllCoursesForOverview();
+  }, []);
+
+  // Filter courses based on search term
+  useEffect(() => {
+    if (overviewSearchTerm.trim() === '') {
+      setFilteredCourses(allCoursesOverview);
+    } else {
+      const filtered = allCoursesOverview.filter(course =>
+        course.code.toLowerCase().includes(overviewSearchTerm.toLowerCase()) ||
+        course.name.toLowerCase().includes(overviewSearchTerm.toLowerCase()) ||
+        course.programName.toLowerCase().includes(overviewSearchTerm.toLowerCase())
+      );
+      setFilteredCourses(filtered);
+    }
+  }, [allCoursesOverview, overviewSearchTerm]);
+
+  const loadAllCoursesForOverview = async () => {
+    setOverviewLoading(true);
+    try {
+      const allCourses: any[] = [];
+      
+      // Loop through all programs and curriculum years
+      for (const program of programs) {
+        const programYears = curriculumYears[program.code as keyof typeof curriculumYears];
+        if (programYears) {
+          for (const year of programYears) {
+            // Get all courses for this program and curriculum year
+            const programCourses = getCoursesByProgram(program.code, year);
+            
+            // Get Firebase courses for all semesters and years
+            for (let studyYear = 1; studyYear <= 4; studyYear++) {
+              for (let semester = 1; semester <= 3; semester++) {
+                try {
+                  const firebaseCourses = await firebaseService.getCourses(
+                    program.code,
+                    year,
+                    studyYear,
+                    semester
+                  );
+                  
+                  if (firebaseCourses && firebaseCourses.length > 0) {
+                    firebaseCourses.forEach(fbCourse => {
+                      // Check if course already exists in allCourses
+                      const existingIndex = allCourses.findIndex(c => c.code === fbCourse.code);
+                      if (existingIndex >= 0) {
+                        // Update existing course with Firebase data
+                        allCourses[existingIndex] = {
+                          ...allCourses[existingIndex],
+                          ...fbCourse,
+                          program: program.code,
+                          programName: program.name,
+                          curriculumYear: year
+                        };
+                      } else {
+                        // Add new course
+                        allCourses.push({
+                          ...fbCourse,
+                          program: program.code,
+                          programName: program.name,
+                          curriculumYear: year
+                        });
+                      }
+                    });
+                  }
+                } catch (error) {
+                  // Continue if error occurs for specific program/year/semester
+                  console.warn(`Error loading courses for ${program.code} ${year} year ${studyYear} semester ${semester}:`, error);
+                }
+              }
+            }
+            
+            // Add curriculum courses that don't have Firebase overrides
+            programCourses.forEach(course => {
+              const existingIndex = allCourses.findIndex(c => c.code === course.code);
+              if (existingIndex === -1) {
+                allCourses.push({
+                  ...course,
+                  program: program.code,
+                  programName: program.name,
+                  curriculumYear: year
+                });
+              }
+            });
+          }
+        }
+      }
+      
+      // Filter courses that have prerequisites or corequisites
+      const coursesWithConditions = allCourses.filter(course => 
+        (course.prerequisites && course.prerequisites.length > 0) || 
+        (course.corequisites && course.corequisites.length > 0)
+      );
+      
+      setAllCoursesOverview(coursesWithConditions);
+    } catch (error) {
+      console.error('Error loading all courses for overview:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดภาพรวมรายวิชาได้",
+        variant: "destructive",
+      });
+    } finally {
+      setOverviewLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen p-6 gradient-subtle flex items-center justify-center">
@@ -733,85 +845,153 @@ const StaffDashboard: React.FC = () => {
                   <span>ภาพรวมเงื่อนไขรายวิชา</span>
                 </CardTitle>
                 <CardDescription>
-                  แสดงเงื่อนไขการเรียนทั้งหมดในหลักสูตร
+                  แสดงเงื่อนไขการเรียนทั้งหมดในทุกหลักสูตร
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {selectedProgram && selectedCurriculumYear && selectedYear && selectedSemester ? (
+                {overviewLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                      <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูล...</p>
+                    </div>
+                  </div>
+                ) : allCoursesOverview.length > 0 ? (
                   <div className="space-y-6">
-                    {courses.filter(course => 
-                      (course.prerequisites && course.prerequisites.length > 0) || 
-                      (course.corequisites && course.corequisites.length > 0)
-                    ).length > 0 ? (
-                      courses
-                        .filter(course => 
-                          (course.prerequisites && course.prerequisites.length > 0) || 
-                          (course.corequisites && course.corequisites.length > 0)
-                        )
-                        .map((course) => (
-                          <div key={course.id} className="p-4 border rounded-lg bg-secondary/5">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center space-x-3">
-                                <BookOpen className="w-5 h-5 text-primary" />
-                                <h3 className="font-medium">
-                                  {course.code} - {course.name}
-                                </h3>
-                              </div>
-                              <div className="flex gap-2">
-                                {course.prerequisites && course.prerequisites.length > 0 && (
-                                  <Badge variant="outline">
-                                    {course.prerequisites.length} เงื่อนไข
-                                  </Badge>
-                                )}
-                                {course.corequisites && course.corequisites.length > 0 && (
-                                  <Badge variant="outline" className="bg-blue/10">
-                                    {course.corequisites.length} วิชาพร้อมกัน
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {course.prerequisites && course.prerequisites.length > 0 && (
-                              <div className="space-y-2 mb-3">
-                                <p className="text-sm font-medium text-muted-foreground">วิชาที่ต้องเรียนมาก่อน:</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {course.prerequisites.map((prerequisite, index) => (
-                                    <Badge key={`${course.code}-pre-${prerequisite}`} variant="secondary" className="bg-success/10 text-success-foreground border-success/20">
-                                      {prerequisite}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                    {/* Search Bar */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="ค้นหารายวิชา หรือหลักสูตร..."
+                        value={overviewSearchTerm}
+                        onChange={(e) => setOverviewSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
 
-                            {course.corequisites && course.corequisites.length > 0 && (
-                              <div className="space-y-2">
-                                <p className="text-sm font-medium text-muted-foreground">วิชาที่ต้องเรียนพร้อมกัน:</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {course.corequisites.map((corequisite, index) => (
-                                    <Badge key={`${course.code}-co-${corequisite}`} variant="secondary" className="bg-blue/10 text-blue-foreground border-blue/20">
-                                      {corequisite}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <BookOpen className="w-5 h-5 text-primary" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">รายวิชาทั้งหมด</p>
+                            <p className="text-2xl font-bold">{filteredCourses.length}</p>
                           </div>
-                        ))
-                    ) : (
-                      <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                          ยังไม่มีการตั้งเงื่อนไขรายวิชาในหลักสูตรและภาคเรียนที่เลือก
-                        </AlertDescription>
-                      </Alert>
+                        </div>
+                      </Card>
+                      <Card className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <AlertCircle className="w-5 h-5 text-orange-600" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">มีเงื่อนไขก่อนเรียน</p>
+                            <p className="text-2xl font-bold text-orange-600">
+                              {filteredCourses.filter(c => c.prerequisites && c.prerequisites.length > 0).length}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                      <Card className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">มีวิชาเรียนพร้อมกัน</p>
+                            <p className="text-2xl font-bold text-blue-600">
+                              {filteredCourses.filter(c => c.corequisites && c.corequisites.length > 0).length}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+
+                    {/* Group by program */}
+                    {programs.map((program) => {
+                      const programCourses = filteredCourses.filter(course => course.program === program.code);
+                      if (programCourses.length === 0) return null;
+                      
+                      return (
+                        <div key={program.code} className="space-y-4">
+                          <div className="flex items-center space-x-2 pb-2 border-b">
+                            <Building className="w-4 h-4 text-primary" />
+                            <h3 className="font-semibold text-lg">{program.code} - {program.name}</h3>
+                            <Badge variant="secondary">{programCourses.length} วิชา</Badge>
+                          </div>
+                          
+                          <div className="grid gap-4">
+                            {programCourses.map((course) => (
+                              <div key={`${course.program}-${course.code}`} className="p-4 border rounded-lg bg-secondary/5 hover:shadow-soft transition-shadow">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-3">
+                                    <BookOpen className="w-5 h-5 text-primary" />
+                                    <div>
+                                      <h4 className="font-medium">
+                                        {course.code} - {course.name}
+                                      </h4>
+                                      <p className="text-xs text-muted-foreground">
+                                        หลักสูตร {course.curriculumYear} • {course.credits} หน่วยกิต
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    {course.prerequisites && course.prerequisites.length > 0 && (
+                                      <Badge variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
+                                        {course.prerequisites.length} เงื่อนไข
+                                      </Badge>
+                                    )}
+                                    {course.corequisites && course.corequisites.length > 0 && (
+                                      <Badge variant="outline" className="bg-blue/10 border-blue/20 text-blue-700">
+                                        {course.corequisites.length} วิชาพร้อมกัน
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {course.prerequisites && course.prerequisites.length > 0 && (
+                                  <div className="space-y-2 mb-3">
+                                    <p className="text-sm font-medium text-orange-600">วิชาที่ต้องเรียนมาก่อน:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {course.prerequisites.map((prerequisite, index) => (
+                                        <Badge key={`${course.code}-pre-${prerequisite}`} variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
+                                          {prerequisite}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {course.corequisites && course.corequisites.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-sm font-medium text-blue-600">วิชาที่ต้องเรียนพร้อมกัน:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {course.corequisites.map((corequisite, index) => (
+                                        <Badge key={`${course.code}-co-${corequisite}`} variant="outline" className="bg-blue/10 border-blue/20 text-blue-700">
+                                          {corequisite}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* No results message */}
+                    {filteredCourses.length === 0 && overviewSearchTerm.trim() !== '' && (
+                      <div className="text-center py-8">
+                        <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-lg font-medium text-muted-foreground">ไม่พบรายวิชาที่ค้นหา</p>
+                        <p className="text-sm text-muted-foreground">ลองใช้คำค้นหาอื่น หรือตรวจสอบการสะกดคำ</p>
+                      </div>
                     )}
                   </div>
                 ) : (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      กรุณาเลือกหลักสูตร ปีหลักสูตร ชั้นปี และภาคเรียนในแท็บ "จัดการเงื่อนไขวิชา" เพื่อดูภาพรวมเงื่อนไข
+                      ยังไม่มีการตั้งเงื่อนไขรายวิชาในระบบ
                     </AlertDescription>
                   </Alert>
                 )}
