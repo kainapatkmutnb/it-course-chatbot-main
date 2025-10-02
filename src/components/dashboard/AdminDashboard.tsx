@@ -1339,7 +1339,7 @@ const AdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          */
+          */}
         </Tabs>
 
          {/* Edit User Dialog */}
