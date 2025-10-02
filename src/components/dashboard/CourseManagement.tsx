@@ -85,12 +85,12 @@ const CourseManagement: React.FC = () => {
   ];
 
   const curriculumYears = {
-    'IT': ['62 สหกิจ', '67'],
-    'INE': ['62', '67'],
+    'IT': ['62 สหกิจ', '67 สหกิจ', '62', '67'],
+    'INE': ['62', '67', '62 สหกิจ', '67 สหกิจ'],
     'INE-COOP': ['62', '67'],
     'INET': ['62', '67'],
     'ITI': ['62', '67'],
-    'ITT': ['62', '67']
+    'ITT': ['61', '66', '67']
   };
 
   const mainCategories = [
