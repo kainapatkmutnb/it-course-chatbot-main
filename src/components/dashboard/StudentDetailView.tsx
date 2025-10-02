@@ -244,192 +244,11 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
         </CardContent>
       </Card>
 
-      {/* Course Details */}
-      <Tabs defaultValue="all-courses" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all-courses">วิชาทั้งหมด</TabsTrigger>
-          <TabsTrigger value="completed">ผ่านแล้ว</TabsTrigger>
-          <TabsTrigger value="in-progress">กำลังเรียน</TabsTrigger>
-          <TabsTrigger value="failed">ไม่ผ่าน</TabsTrigger>
+      {/* Course Details - Study Plan Only */}
+      <Tabs defaultValue="study-plan" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="study-plan">แผนการเรียน</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="all-courses" className="space-y-6">
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BookOpen className="w-5 h-5" />
-                <span>รายวิชาทั้งหมด</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {(() => {
-                  console.log('🔍 Debug - studentCourses in All Courses tab:', studentCourses);
-                  console.log('🔍 Debug - studentCourses length:', studentCourses.length);
-                  return null;
-                })()}
-                {studentCourses.map((studentCourse) => {
-                  const course = getCourseDetails(studentCourse.courseId);
-                  console.log('🔍 Debug - studentCourse:', studentCourse);
-                  console.log('🔍 Debug - course details:', course);
-                  if (!course) return null;
-                  
-                  return (
-                    <div key={studentCourse.courseId} className="flex items-center justify-between p-4 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        {getStatusIcon(studentCourse.status)}
-                        <div>
-                          <div className="font-medium">{course.code} - {course.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {course.credits} หน่วยกิต 
-                            {studentCourse.grade && ` • เกรด: ${studentCourse.grade}`}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge 
-                        className={
-                          studentCourse.status === 'completed' ? 'bg-success text-success-foreground' :
-                          studentCourse.status === 'in_progress' ? 'bg-warning text-warning-foreground' :
-                          studentCourse.status === 'failed' ? 'bg-destructive text-destructive-foreground' :
-                          ''
-                        }
-                      >
-                        {studentCourse.status === 'completed' ? 'ผ่านแล้ว' :
-                         studentCourse.status === 'in_progress' ? 'กำลังเรียน' :
-                         studentCourse.status === 'failed' ? 'ไม่ผ่าน' : 'ยังไม่ได้เรียน'}
-                      </Badge>
-                    </div>
-                  );
-                })}
-                {studentCourses.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    ไม่พบข้อมูลรายวิชา
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="completed" className="space-y-6">
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="w-5 h-5" />
-                <span>วิชาที่ผ่านแล้ว</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {studentCourses.filter(sc => sc.status === 'completed').map((studentCourse) => {
-                  const course = getCourseDetails(studentCourse.courseId);
-                  if (!course) return null;
-                  
-                  return (
-                    <div key={studentCourse.courseId} className="flex items-center justify-between p-4 rounded-lg border bg-success/5">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="w-6 h-6 text-success" />
-                        <div>
-                          <div className="font-medium">{course.code} - {course.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {course.credits} หน่วยกิต • เกรด: {studentCourse.grade}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge className="bg-success text-success-foreground">ผ่านแล้ว</Badge>
-                    </div>
-                  );
-                })}
-                {studentCourses.filter(sc => sc.status === 'completed').length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    ยังไม่มีรายวิชาที่ผ่านแล้ว
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="in-progress" className="space-y-6">
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Clock className="w-5 h-5" />
-                <span>วิชาที่กำลังเรียน</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {studentCourses.filter(sc => sc.status === 'in_progress').map((studentCourse) => {
-                  const course = getCourseDetails(studentCourse.courseId);
-                  if (!course) return null;
-                  
-                  return (
-                    <div key={studentCourse.courseId} className="flex items-center justify-between p-4 rounded-lg border bg-warning/5">
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-6 h-6 text-warning" />
-                        <div>
-                          <div className="font-medium">{course.code} - {course.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {course.credits} หน่วยกิต • อาจารย์: {course.instructor}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge className="bg-warning text-warning-foreground">กำลังเรียน</Badge>
-                    </div>
-                  );
-                })}
-                {studentCourses.filter(sc => sc.status === 'in_progress').length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    ยังไม่มีรายวิชาที่กำลังเรียน
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="failed" className="space-y-6">
-          <Card className="shadow-medium">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <AlertCircle className="w-5 h-5" />
-                <span>วิชาที่ไม่ผ่าน</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {studentCourses.filter(sc => sc.status === 'failed').length > 0 ? 
-                  studentCourses.filter(sc => sc.status === 'failed').map((studentCourse) => {
-                    const course = getCourseDetails(studentCourse.courseId);
-                    if (!course) return null;
-                    
-                    return (
-                      <div key={studentCourse.courseId} className="flex items-center justify-between p-4 rounded-lg border bg-destructive/5">
-                        <div className="flex items-center space-x-3">
-                          <AlertCircle className="w-6 h-6 text-destructive" />
-                          <div>
-                            <div className="font-medium">{course.code} - {course.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {course.credits} หน่วยกิต • เกรด: {studentCourse.grade}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge variant="destructive">ไม่ผ่าน</Badge>
-                      </div>
-                    );
-                  }) : (
-                    <div className="text-center p-8 text-muted-foreground">
-                      <CheckCircle className="w-12 h-12 mx-auto mb-4 text-success" />
-                      <p>นักศึกษาไม่มีวิชาที่ไม่ผ่าน</p>
-                    </div>
-                  )
-                }
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="study-plan" className="space-y-6">
           <Card className="shadow-medium">
@@ -450,24 +269,70 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                 </div>
               ) : studyPlan.length > 0 ? (
                 <div className="space-y-3">
-                  {studyPlan.map((course) => (
-                    <div key={course.id} className="flex items-center justify-between p-4 rounded-lg border bg-blue-50/50">
-                      <div className="flex items-center space-x-3">
-                        <BookOpen className="w-6 h-6 text-blue-600" />
-                        <div>
-                          <div className="font-medium">{course.code} - {course.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {course.credits} หน่วยกิต
-                            {course.type && ` • ประเภท: ${course.type}`}
-                            {course.status && ` • สถานะ: ${course.status}`}
+                  {studyPlan.map((course) => {
+                    // กำหนดสีตามสถานะของวิชา
+                    const getStatusColor = (status: string) => {
+                      switch (status) {
+                        case 'completed':
+                          return 'bg-green-50 border-green-200';
+                        case 'in_progress':
+                          return 'bg-yellow-50 border-yellow-200';
+                        case 'failed':
+                          return 'bg-red-50 border-red-200';
+                        case 'planned':
+                          return 'bg-blue-50 border-blue-200';
+                        default:
+                          return 'bg-gray-50 border-gray-200';
+                      }
+                    };
+
+                    const getStatusIcon = (status: string) => {
+                      switch (status) {
+                        case 'completed':
+                          return <CheckCircle className="w-6 h-6 text-green-600" />;
+                        case 'in_progress':
+                          return <Clock className="w-6 h-6 text-yellow-600" />;
+                        case 'failed':
+                          return <AlertCircle className="w-6 h-6 text-red-600" />;
+                        case 'planned':
+                          return <BookOpen className="w-6 h-6 text-blue-600" />;
+                        default:
+                          return <BookOpen className="w-6 h-6 text-gray-600" />;
+                      }
+                    };
+
+                    const getStatusBadge = (status: string) => {
+                      switch (status) {
+                        case 'completed':
+                          return <Badge className="bg-green-100 text-green-800 border-green-200">ผ่านแล้ว</Badge>;
+                        case 'in_progress':
+                          return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">กำลังเรียน</Badge>;
+                        case 'failed':
+                          return <Badge className="bg-red-100 text-red-800 border-red-200">ไม่ผ่าน</Badge>;
+                        case 'planned':
+                          return <Badge className="bg-blue-100 text-blue-800 border-blue-200">วางแผนไว้</Badge>;
+                        default:
+                          return <Badge className="bg-gray-100 text-gray-800 border-gray-200">ไม่ระบุ</Badge>;
+                      }
+                    };
+
+                    return (
+                      <div key={course.id} className={`flex items-center justify-between p-4 rounded-lg border ${getStatusColor(course.status)}`}>
+                        <div className="flex items-center space-x-3">
+                          {getStatusIcon(course.status)}
+                          <div>
+                            <div className="font-medium">{course.code} - {course.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {course.credits} หน่วยกิต
+                              {course.type && ` • ประเภท: ${course.type}`}
+                              {course.grade && ` • เกรด: ${course.grade}`}
+                            </div>
                           </div>
                         </div>
+                        {getStatusBadge(course.status)}
                       </div>
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                        วางแผนไว้
-                      </Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">รวมหน่วยกิตที่วางแผน:</span>
