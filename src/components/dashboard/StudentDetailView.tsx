@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User } from '@/types/auth';
 import { getAllCourses, studentCourses } from '@/services/completeCurriculumData';
+import { firebaseService } from '@/services/firebaseService';
 import { 
   GraduationCap, 
   BookOpen, 
@@ -18,8 +19,29 @@ import {
   ArrowLeft,
   Mail,
   Phone,
-  Calendar
+  Calendar,
+  FileText
 } from 'lucide-react';
+
+// Define CustomCourse interface locally
+interface CustomCourse {
+  id: string;
+  courseId?: string;
+  code: string;
+  name: string;
+  credits: number;
+  year: number;
+  semester: number;
+  status: 'planned' | 'in_progress' | 'completed' | 'failed';
+  grade?: string;
+  type: 'required' | 'elective' | 'general';
+  category?: string;
+  description?: string;
+  mainCategory?: string;
+  subCategory?: string;
+  prerequisites?: string[];
+  corequisites?: string[];
+}
 
 interface StudentDetailViewProps {
   student: User;
@@ -28,6 +50,29 @@ interface StudentDetailViewProps {
 
 const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }) => {
   const allCourses = getAllCourses();
+  const [studyPlan, setStudyPlan] = useState<CustomCourse[]>([]);
+  const [isLoadingStudyPlan, setIsLoadingStudyPlan] = useState(true);
+
+  // Fetch study plan data
+  useEffect(() => {
+    const fetchStudyPlan = async () => {
+      if (student.studentId) {
+        try {
+          setIsLoadingStudyPlan(true);
+          const studyPlanData = await firebaseService.getStudyPlanByStudentId(student.studentId);
+          if (studyPlanData && studyPlanData.courses) {
+            setStudyPlan(studyPlanData.courses);
+          }
+        } catch (error) {
+          console.error('Error fetching study plan:', error);
+        } finally {
+          setIsLoadingStudyPlan(false);
+        }
+      }
+    };
+
+    fetchStudyPlan();
+  }, [student.studentId]);
   
   const getStudentProgress = () => {
     const studentEnrollments = studentCourses.filter(sc => sc.studentId === student.id);
@@ -179,11 +224,12 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
 
       {/* Course Details */}
       <Tabs defaultValue="all-courses" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="all-courses">วิชาทั้งหมด</TabsTrigger>
           <TabsTrigger value="completed">ผ่านแล้ว</TabsTrigger>
           <TabsTrigger value="in-progress">กำลังเรียน</TabsTrigger>
           <TabsTrigger value="failed">ไม่ผ่าน</TabsTrigger>
+          <TabsTrigger value="study-plan">แผนการเรียน</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-courses" className="space-y-6">
@@ -337,6 +383,63 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
                   )
                 }
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="study-plan" className="space-y-6">
+          <Card className="shadow-medium">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="w-5 h-5" />
+                <span>แผนการเรียน</span>
+              </CardTitle>
+              <CardDescription>
+                รายวิชาที่นักศึกษาได้วางแผนการเรียนไว้
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStudyPlan ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <Clock className="w-12 h-12 mx-auto mb-4 animate-spin" />
+                  <p>กำลังโหลดแผนการเรียน...</p>
+                </div>
+              ) : studyPlan.length > 0 ? (
+                <div className="space-y-3">
+                  {studyPlan.map((course) => (
+                    <div key={course.id} className="flex items-center justify-between p-4 rounded-lg border bg-blue-50/50">
+                      <div className="flex items-center space-x-3">
+                        <BookOpen className="w-6 h-6 text-blue-600" />
+                        <div>
+                          <div className="font-medium">{course.code} - {course.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {course.credits} หน่วยกิต
+                            {course.type && ` • ประเภท: ${course.type}`}
+                            {course.status && ` • สถานะ: ${course.status}`}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                        วางแผนไว้
+                      </Badge>
+                    </div>
+                  ))}
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">รวมหน่วยกิตที่วางแผน:</span>
+                      <span className="font-bold text-blue-600">
+                        {studyPlan.reduce((total, course) => total + (course.credits || 0), 0)} หน่วยกิต
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center p-8 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <p>นักศึกษายังไม่ได้วางแผนการเรียน</p>
+                  <p className="text-sm mt-2">กรุณาติดต่อนักศึกษาให้ทำการวางแผนการเรียนในระบบ</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
