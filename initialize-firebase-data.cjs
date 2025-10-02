@@ -1,15 +1,16 @@
 const { initializeApp } = require('firebase/app');
 const { getDatabase, ref, set, push } = require('firebase/database');
+require('dotenv').config();
 
-// Firebase configuration
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyDidYbJ_Vbh3Gff9wnzT0qHP_zt6D2czSw",
-  authDomain: "it-chatbot-f663e.firebaseapp.com",
-  databaseURL: "https://it-chatbot-f663e-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  projectId: "it-chatbot-f663e",
-  storageBucket: "it-chatbot-f663e.firebasestorage.app",
-  messagingSenderId: "716692382053",
-  appId: "1:716692382053:web:299cbbd183bc6f773b018c"
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
