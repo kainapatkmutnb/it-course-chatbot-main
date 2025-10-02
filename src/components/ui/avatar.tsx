@@ -25,6 +25,13 @@ const AvatarImage = React.forwardRef<
   <AvatarPrimitive.Image
     ref={ref}
     className={cn("aspect-square h-full w-full", className)}
+    onError={(e) => {
+      // Fallback to default avatar when Google image fails to load
+      const target = e.target as HTMLImageElement;
+      if (target.src !== '/default-avatar.svg') {
+        target.src = '/default-avatar.svg';
+      }
+    }}
     {...props}
   />
 ))
