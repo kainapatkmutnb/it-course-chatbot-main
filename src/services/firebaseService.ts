@@ -817,6 +817,47 @@ class FirebaseService {
       return [];
     }
   }
+
+  // Get student courses/enrollments
+  async getStudentCourses(studentId: string): Promise<any[]> {
+    try {
+      console.log('🔍 Fetching student courses from Firebase for ID:', studentId);
+      
+      // First, try to get from study plan
+      const studyPlan = await this.getStudyPlanByStudentId(studentId);
+      if (studyPlan && studyPlan.courses) {
+        console.log('📚 Found courses in study plan:', studyPlan.courses.length);
+        return studyPlan.courses.map(course => ({
+          courseId: course.courseId || course.id,
+          studentId: studentId,
+          status: course.status,
+          grade: course.grade,
+          year: course.year,
+          semester: course.semester
+        }));
+      }
+
+      // If no study plan, check for student enrollments collection
+      const enrollmentsRef = ref(database, `studentEnrollments/${studentId}`);
+      const snapshot = await get(enrollmentsRef);
+      
+      if (snapshot.exists()) {
+        const enrollmentsData = snapshot.val();
+        console.log('📚 Found enrollments data:', enrollmentsData);
+        return Object.keys(enrollmentsData).map(key => ({
+          id: key,
+          studentId: studentId,
+          ...enrollmentsData[key]
+        }));
+      }
+
+      console.log('❌ No student courses found');
+      return [];
+    } catch (error) {
+      console.error('❌ Error fetching student courses:', error);
+      return [];
+    }
+  }
 }
 
 // Export singleton instance

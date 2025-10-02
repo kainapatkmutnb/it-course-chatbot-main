@@ -51,6 +51,8 @@ interface StudentDetailViewProps {
 const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack }) => {
   const [student, setStudent] = useState<User | null>(null);
   const [isLoadingStudent, setIsLoadingStudent] = useState(true);
+  const [studentCourses, setStudentCourses] = useState<any[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const allCourses = getAllCourses();
   const [studyPlan, setStudyPlan] = useState<CustomCourse[]>([]);
   const [isLoadingStudyPlan, setIsLoadingStudyPlan] = useState(true);
@@ -75,6 +77,28 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
     };
 
     fetchStudent();
+  }, [studentId]);
+
+  // Fetch student courses data
+  useEffect(() => {
+    const fetchStudentCourses = async () => {
+      if (studentId) {
+        try {
+          console.log('🔍 Fetching student courses for ID:', studentId);
+          setIsLoadingCourses(true);
+          const coursesData = await firebaseService.getStudentCourses(studentId);
+          console.log('📚 Student courses data received:', coursesData);
+          setStudentCourses(coursesData || []);
+        } catch (error) {
+          console.error('❌ Error fetching student courses:', error);
+          setStudentCourses([]);
+        } finally {
+          setIsLoadingCourses(false);
+        }
+      }
+    };
+
+    fetchStudentCourses();
   }, [studentId]);
 
   // Fetch study plan data
@@ -137,7 +161,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   };
 
   // Loading state
-  if (isLoadingStudent) {
+  if (isLoadingStudent || isLoadingCourses) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-center py-12">
