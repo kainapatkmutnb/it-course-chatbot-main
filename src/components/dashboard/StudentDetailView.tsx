@@ -79,7 +79,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
         <CardContent className="p-6">
           <div className="flex items-start space-x-6">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={student.avatar} alt={student.name} />
+              <AvatarImage src={(student as any).avatar} alt={student.name} />
               <AvatarFallback className="text-lg">
                 {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
@@ -96,15 +96,15 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
                 </div>
                 <div className="flex items-center space-x-2">
                   <GraduationCap className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{student.program}</span>
+                  <span className="text-sm">{(student as any).program}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">ปีที่ {student.year}</span>
+                  <span className="text-sm">ปีที่ {(student as any).year}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">เกรดเฉลี่ย: 3.25</span>
+                  <span className="text-sm">เกรดเฉลี่ย: {(student as any).gpa}</span>
                 </div>
               </div>
             </div>
