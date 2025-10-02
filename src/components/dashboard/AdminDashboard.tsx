@@ -148,6 +148,17 @@ const AdminDashboard: React.FC = () => {
         });
         
         if (userId) {
+          // Add audit log for user creation
+          if (user) {
+            await firebaseService.createAuditLog({
+              action: 'เพิ่มผู้ใช้',
+              details: `เพิ่มผู้ใช้ใหม่ ${newUser.name} (${newUser.email}) บทบาท: ${newUser.role}`,
+              userId: user.id,
+              ipAddress: 'localhost',
+              category: 'user'
+            });
+          }
+
           toast({
             title: 'สร้างผู้ใช้สำเร็จ',
             description: `สร้างบัญชีผู้ใช้ ${newUser.name} แล้ว`,
@@ -157,6 +168,11 @@ const AdminDashboard: React.FC = () => {
             email: '',
             role: 'student'
           });
+
+          // Auto refresh page after successful user creation
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         } else {
           toast({
             title: 'เกิดข้อผิดพลาด',
@@ -236,12 +252,28 @@ const AdminDashboard: React.FC = () => {
       try {
         const success = await firebaseService.deleteUser(userToDelete.id);
         if (success) {
+          // Add audit log for user deletion
+          if (user) {
+            await firebaseService.createAuditLog({
+              action: 'ลบผู้ใช้',
+              details: `ลบผู้ใช้ ${userToDelete.name} (${userToDelete.email}) บทบาท: ${userToDelete.role}`,
+              userId: user.id,
+              ipAddress: 'localhost',
+              category: 'user'
+            });
+          }
+
           toast({
             title: 'ลบผู้ใช้สำเร็จ',
             description: `ลบบัญชีผู้ใช้ ${userToDelete.name} แล้ว`,
           });
           setIsDeleteDialogOpen(false);
           setUserToDelete(null);
+
+          // Auto refresh page after successful user deletion
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         } else {
           toast({
             title: 'เกิดข้อผิดพลาด',

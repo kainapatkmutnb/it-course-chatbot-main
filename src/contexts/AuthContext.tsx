@@ -60,8 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role,
               profilePicture: firebaseUser.photoURL || undefined,
               isActive: true,
-              createdAt: new Date().toISOString(),
-              lastLoginAt: new Date().toISOString()
+              createdAt: new Date(),
+              lastLogin: new Date().toISOString()
             };
             
             await set(userRef, newUser);
@@ -196,6 +196,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     try {
+      // Log audit before signing out
+      if (user) {
+        const auditRef = push(ref(db, 'auditLogs'));
+        await set(auditRef, {
+          action: 'user_logout',
+          userId: user.id,
+          details: {
+            userEmail: user.email,
+            userName: user.name,
+            role: user.role
+          },
+          ipAddress: 'localhost',
+          category: 'authentication',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
       await signOut(auth);
       toast({
         title: 'ออกจากระบบสำเร็จ',
@@ -239,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         employeeId: userData.employeeId,
         department: userData.department,
         isActive: true,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
         lastLoginAt: new Date().toISOString()
       };
       

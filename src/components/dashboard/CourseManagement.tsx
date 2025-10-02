@@ -253,9 +253,8 @@ const CourseManagement: React.FC = () => {
           action: 'เพิ่มรายวิชา',
           details: `เพิ่มรายวิชา ${newCourse.code} ${newCourse.name} ในหลักสูตร ${selectedProgram} ปีหลักสูตร ${selectedCurriculumYear} ชั้นปีที่ ${selectedYear} เทอม ${selectedSemester}`,
           userId: user.id,
-          userEmail: (user as any).email || '',
-
-          timestamp: new Date()
+          ipAddress: 'localhost',
+          category: 'course'
         });
       }
 
@@ -356,9 +355,9 @@ const CourseManagement: React.FC = () => {
         await firebaseService.createAuditLog({
           action: 'ลบรายวิชา',
           details: `ลบรายวิชา ${course.code} ${course.name} ออกจากหลักสูตร ${selectedProgram} ปีหลักสูตร ${selectedCurriculumYear} ชั้นปีที่ ${selectedYear} เทอม ${selectedSemester}`,
-          userId: user.uid,
-          // userEmail field is not allowed in the AuditLog type, omit it
-          timestamp: new Date()
+          userId: user.id,
+          ipAddress: 'localhost',
+          category: 'course'
         });
       }
 
