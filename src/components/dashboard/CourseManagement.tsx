@@ -660,12 +660,12 @@ const CourseManagement: React.FC = () => {
                                 <span className="bg-gray-100 px-2 py-1 rounded">{course.subCategory}</span>
                               )}
                             </div>
-                            {(course.prerequisites.length > 0 || course.corequisites.length > 0) && (
+                            {((course.prerequisites && course.prerequisites.length > 0) || (course.corequisites && course.corequisites.length > 0)) && (
                               <div className="mt-2 text-xs text-gray-500">
-                                {course.prerequisites.length > 0 && (
+                                {course.prerequisites && course.prerequisites.length > 0 && (
                                   <div>วิชาที่ต้องเรียนมาก่อน: {course.prerequisites.join(', ')}</div>
                                 )}
-                                {course.corequisites.length > 0 && (
+                                {course.corequisites && course.corequisites.length > 0 && (
                                   <div>วิชาที่ต้องเรียนพร้อมกัน: {course.corequisites.join(', ')}</div>
                                 )}
                               </div>
