@@ -57,16 +57,26 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const [studyPlan, setStudyPlan] = useState<CustomCourse[]>([]);
   const [isLoadingStudyPlan, setIsLoadingStudyPlan] = useState(true);
   const [selectedYear, setSelectedYear] = useState<string>('');
+  const [originalYear, setOriginalYear] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Handle year change
-  const handleYearChange = async (year: string) => {
+  // Handle year change (just update local state)
+  const handleYearChange = (year: string) => {
     setSelectedYear(year);
-    if (student) {
+  };
+
+  // Handle save year
+  const handleSaveYear = async () => {
+    if (student && selectedYear !== originalYear) {
       try {
-        await firebaseService.updateUser(studentId, { studentYear: parseInt(year) } as Partial<User>);
-        setStudent({ ...student, year: parseInt(year) } as any);
+        setIsSaving(true);
+        await firebaseService.updateUser(student.uid, { year: parseInt(selectedYear) });
+        setStudent({ ...student, year: parseInt(selectedYear) } as any);
+        setOriginalYear(selectedYear);
       } catch (error) {
         console.error('❌ Error updating student year:', error);
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -81,7 +91,9 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
           const studentData = await firebaseService.getUserById(studentId);
           console.log('👤 Student data received:', studentData);
           setStudent(studentData);
-          setSelectedYear((studentData as any)?.year?.toString() || '');
+          const yearString = (studentData as any)?.year?.toString() || '';
+          setSelectedYear(yearString);
+          setOriginalYear(yearString);
         } catch (error) {
           console.error('❌ Error fetching student:', error);
           setStudent(null);
@@ -261,6 +273,16 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                         ))}
                       </SelectContent>
                     </Select>
+                    {selectedYear !== originalYear && (
+                      <Button 
+                        size="sm" 
+                        onClick={handleSaveYear}
+                        disabled={isSaving}
+                        className="h-8 px-3"
+                      >
+                        {isSaving ? 'กำลังบันทึก...' : 'บันทึก'}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
