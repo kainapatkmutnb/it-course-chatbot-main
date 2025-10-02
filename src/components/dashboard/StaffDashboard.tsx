@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/hooks/useFirebaseData';
 import { firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
+import CourseManagement from './CourseManagement';
 import { 
   Users, 
   Settings, 
@@ -272,8 +273,9 @@ const StaffDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="manage" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manage">จัดการเงื่อนไขวิชา</TabsTrigger>
+            <TabsTrigger value="courses">จัดการรายวิชา</TabsTrigger>
             <TabsTrigger value="overview">ภาพรวมเงื่อนไข</TabsTrigger>
           </TabsList>
 
@@ -404,6 +406,11 @@ const StaffDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Course Management Tab */}
+          <TabsContent value="courses" className="space-y-6">
+            <CourseManagement />
           </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
