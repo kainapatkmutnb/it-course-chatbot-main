@@ -3,7 +3,7 @@ const { getDatabase, ref, set, push } = require('firebase/database');
 require('dotenv').config();
 
 // Firebase configuration using environment variables
-const firebaseConfig = {
+const firebaseConfig = { 
   apiKey: process.env.VITE_FIREBASE_API_KEY,
   authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
   databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
@@ -12,7 +12,7 @@ const firebaseConfig = {
   messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.VITE_FIREBASE_APP_ID
 };
-
+//test
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
