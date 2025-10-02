@@ -14,6 +14,7 @@ import { useUsers } from '@/hooks/useFirebaseData';
 import { getAllCourses, auditLogs } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
+import { UserRole } from '@/types/auth';
 import { 
   Shield, 
   Users, 
@@ -83,7 +84,7 @@ const AdminDashboard: React.FC = () => {
   const stats = {
     totalUsers: allUsers?.length || 0,
     totalCourses: allCourses.length,
-    activeUsers: allUsers?.filter(u => u.lastLoginAt).length || 0,
+    activeUsers: allUsers?.filter(u => u.lastLogin).length || 0,
     activeCourses: allCourses.filter(c => c.isActive).length
   };
 
@@ -103,7 +104,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const changeUserRole = async (userId: string, newRole: string) => {
+  const changeUserRole = async (userId: string, newRole: UserRole) => {
     try {
       const success = await firebaseService.updateUser(userId, { role: newRole });
       if (success) {
@@ -488,11 +489,11 @@ const AdminDashboard: React.FC = () => {
                               <Badge variant={getRoleBadgeVariant(userData.role)}>
                                 {getRoleDisplayName(userData.role)}
                               </Badge>
-                              {userData.lastLoginAt && (
+                              {userData.lastLogin && (
                                 <span className="text-xs text-muted-foreground">
-                                  เข้าสู่ระบบล่าสุด: {userData.lastLoginAt instanceof Date 
-                                    ? userData.lastLoginAt.toLocaleDateString('th-TH')
-                                    : new Date((userData.lastLoginAt as any).seconds * 1000).toLocaleDateString('th-TH')
+                                  เข้าสู่ระบบล่าสุด: {userData.lastLogin instanceof Date 
+                                    ? userData.lastLogin.toLocaleDateString('th-TH')
+                                    : new Date((userData.lastLogin as any).seconds * 1000).toLocaleDateString('th-TH')
                                   }
                                 </span>
                               )}

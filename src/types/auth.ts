@@ -11,7 +11,7 @@ export interface User {
   department?: string;
   isActive: boolean;
   createdAt: Date;
-  lastLoginAt?: Date;
+  lastLogin?: Date;
 }
 
 export interface AuthContextType {
