@@ -87,6 +87,15 @@ const InstructorDashboard: React.FC = () => {
     return studyPlans.find(plan => plan.studentId === selectedStudentId);
   }, [selectedStudentId, studyPlans]);
 
+  // Helper function to convert grade to grade point
+  const getGradePoint = (grade: string): number => {
+    const gradeMap: { [key: string]: number } = {
+      'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 
+      'D+': 1.5, 'D': 1.0, 'F': 0.0
+    };
+    return gradeMap[grade] || 0.0;
+  };
+
   // Calculate statistics for selected student
   const studentStats = useMemo(() => {
     if (!selectedStudentPlan || !courses) return null;
@@ -181,14 +190,7 @@ const InstructorDashboard: React.FC = () => {
     };
   }, [studentsUnderCare, studyPlans, courses]);
 
-  // Helper function to convert grade to grade point
-  const getGradePoint = (grade: string): number => {
-    const gradeMap: { [key: string]: number } = {
-      'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 
-      'D+': 1.5, 'D': 1.0, 'F': 0.0
-    };
-    return gradeMap[grade] || 0.0;
-  };
+
 
   // Get individual student statistics
   const getStudentStatistics = (studentId: string) => {
