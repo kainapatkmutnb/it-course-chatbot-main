@@ -56,10 +56,10 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
   // Fetch study plan data
   useEffect(() => {
     const fetchStudyPlan = async () => {
-      if (student.studentId) {
+      if (student.id) {
         try {
           setIsLoadingStudyPlan(true);
-          const studyPlanData = await firebaseService.getStudyPlanByStudentId(student.studentId);
+          const studyPlanData = await firebaseService.getStudyPlanByStudentId(student.id);
           if (studyPlanData && studyPlanData.courses) {
             setStudyPlan(studyPlanData.courses);
           }
@@ -72,7 +72,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
     };
 
     fetchStudyPlan();
-  }, [student.studentId]);
+  }, [student.id]);
   
   const getStudentProgress = () => {
     const studentEnrollments = studentCourses.filter(sc => sc.studentId === student.id);
