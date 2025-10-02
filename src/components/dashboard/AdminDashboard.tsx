@@ -64,6 +64,8 @@ const AdminDashboard: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
 
   const allCourses = getAllCourses();
 
@@ -75,6 +77,207 @@ const AdminDashboard: React.FC = () => {
       case 'staff': return 'บุคลากร';
       case 'admin': return 'ผู้ดูแลระบบ';
       default: return role;
+    }
+  };
+
+  const importData = async () => {
+    if (!importFile) {
+      toast({
+        title: 'กรุณาเลือกไฟล์',
+        description: 'กรุณาเลือกไฟล์ JSON หรือ CSV ที่ต้องการนำเข้า',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const fileExtension = importFile.name.split('.').pop()?.toLowerCase();
+      
+      if (fileExtension !== 'json' && fileExtension !== 'csv') {
+        toast({
+          title: 'รูปแบบไฟล์ไม่ถูกต้อง',
+          description: 'กรุณาเลือกไฟล์ JSON หรือ CSV เท่านั้น',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const fileContent = await importFile.text();
+      let importedData: any;
+
+      if (fileExtension === 'json') {
+        try {
+          importedData = JSON.parse(fileContent);
+        } catch (error) {
+          toast({
+            title: 'ไฟล์ JSON ไม่ถูกต้อง',
+            description: 'ไม่สามารถอ่านไฟล์ JSON ได้ กรุณาตรวจสอบรูปแบบไฟล์',
+            variant: 'destructive',
+          });
+          return;
+        }
+      } else if (fileExtension === 'csv') {
+        // สำหรับ CSV ให้แปลงเป็น JSON format
+        const lines = fileContent.split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        const data = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          if (lines[i].trim()) {
+            const values = lines[i].split(',').map(v => v.trim());
+            const obj: any = {};
+            headers.forEach((header, index) => {
+              obj[header] = values[index] || '';
+            });
+            data.push(obj);
+          }
+        }
+        
+        importedData = { users: data }; // สมมติว่า CSV เป็นข้อมูลผู้ใช้
+      }
+
+      // ตรวจสอบโครงสร้างข้อมูล
+      if (!importedData || typeof importedData !== 'object') {
+        toast({
+          title: 'โครงสร้างข้อมูลไม่ถูกต้อง',
+          description: 'ไฟล์ที่นำเข้าต้องมีโครงสร้างข้อมูลที่ถูกต้อง',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      let importCount = 0;
+      let errorCount = 0;
+
+      // นำเข้าข้อมูลผู้ใช้
+      if (importedData.users && Array.isArray(importedData.users)) {
+        for (const userData of importedData.users) {
+          try {
+            if (userData.name && userData.email && userData.role) {
+              await firebaseService.createUser({
+                name: userData.name,
+                email: userData.email,
+                role: userData.role,
+                department: userData.department || '',
+                studentId: userData.studentId || '',
+                isActive: userData.isActive !== false
+              });
+              importCount++;
+            }
+          } catch (error) {
+            console.error('Error importing user:', error);
+            errorCount++;
+          }
+        }
+      }
+
+      // นำเข้าข้อมูลรายวิชา
+      if (importedData.courses && Array.isArray(importedData.courses)) {
+        for (const courseData of importedData.courses) {
+          try {
+            if (courseData.code && courseData.name) {
+              await firebaseService.addCourse(
+                courseData.program || 'default',
+                courseData.curriculumYear || '2567',
+                courseData.year || 1,
+                courseData.semester || 1,
+                {
+                  id: courseData.id || courseData.code,
+                  code: courseData.code,
+                  name: courseData.name,
+                  credits: courseData.credits || 3,
+                  description: courseData.description || '',
+                  category: courseData.category || 'core',
+                  mainCategory: courseData.mainCategory || '',
+                  subCategory: courseData.subCategory || '',
+                  prerequisites: courseData.prerequisites || [],
+                  corequisites: courseData.corequisites || [],
+                  isActive: courseData.isActive !== false,
+                  instructor: courseData.instructor || '',
+                  maxStudents: courseData.maxStudents || 0,
+                  currentStudents: courseData.currentStudents || 0
+                }
+              );
+              importCount++;
+            }
+          } catch (error) {
+            console.error('Error importing course:', error);
+            errorCount++;
+          }
+        }
+      }
+
+      // นำเข้าข้อมูลแผนการเรียน
+      if (importedData.studyPlans && Array.isArray(importedData.studyPlans)) {
+        for (const studyPlanData of importedData.studyPlans) {
+          try {
+            if (studyPlanData.studentId && studyPlanData.curriculum) {
+              await firebaseService.createStudyPlan({
+                studentId: studyPlanData.studentId,
+                curriculum: studyPlanData.curriculum,
+                totalCredits: studyPlanData.totalCredits || 0,
+                completedCredits: studyPlanData.completedCredits || 0,
+                gpa: studyPlanData.gpa || 0,
+                courses: studyPlanData.courses || []
+              });
+              importCount++;
+            }
+          } catch (error) {
+            console.error('Error importing study plan:', error);
+            errorCount++;
+          }
+        }
+      }
+
+      // แสดงผลลัพธ์
+      if (importCount > 0) {
+        toast({
+          title: 'นำเข้าข้อมูลสำเร็จ',
+          description: `นำเข้าข้อมูลสำเร็จ ${importCount} รายการ${errorCount > 0 ? ` (ข้อผิดพลาด ${errorCount} รายการ)` : ''}`,
+        });
+
+        // เพิ่ม audit log
+        if (user) {
+          await firebaseService.createAuditLog({
+            action: 'นำเข้าข้อมูลระบบ',
+            details: `นำเข้าข้อมูลจากไฟล์ ${importFile.name} สำเร็จ ${importCount} รายการ${errorCount > 0 ? ` (ข้อผิดพลาด ${errorCount} รายการ)` : ''}`,
+            userId: user.id,
+            ipAddress: 'localhost',
+            category: 'system'
+          });
+        }
+
+        // รีเซ็ตไฟล์
+        setImportFile(null);
+        
+        // รีเฟรชหน้า (อาจจะต้องเพิ่ม refresh functions)
+        window.location.reload();
+      } else {
+        toast({
+          title: 'ไม่พบข้อมูลที่สามารถนำเข้าได้',
+          description: 'กรุณาตรวจสอบรูปแบบข้อมูลในไฟล์',
+          variant: 'destructive',
+        });
+      }
+
+    } catch (error) {
+      console.error('Error importing data:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถนำเข้าข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImportFile(file);
     }
   };
 
@@ -191,11 +394,79 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const exportData = () => {
-    toast({
-      title: 'ส่งออกข้อมูลสำเร็จ',
-      description: 'ไฟล์ข้อมูลหลักสูตรถูกส่งออกแล้ว',
-    });
+  const exportData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // ดึงข้อมูลทั้งหมดจาก Firebase
+      const [users, courses, studyPlans, auditLogs, departments] = await Promise.all([
+         firebaseService.getUsers(),
+         firebaseService.getCourses(),
+         firebaseService.getStudyPlans(),
+         firebaseService.getAuditLogs(1000), // ดึง audit logs 1000 รายการล่าสุด
+         firebaseService.getDepartments()
+       ]);
+
+      // รวมข้อมูลทั้งหมด
+      const exportedData = {
+        exportInfo: {
+          timestamp: new Date().toISOString(),
+          version: '1.0',
+          description: 'ข้อมูลระบบทั้งหมดจาก IT Course Chatbot System'
+        },
+        users: users,
+        courses: courses,
+        studyPlans: studyPlans,
+        auditLogs: auditLogs.logs,
+        departments: departments,
+        statistics: {
+          totalUsers: users.length,
+          totalCourses: courses.length,
+          totalStudyPlans: Array.isArray(studyPlans) ? studyPlans.length : 0,
+          totalAuditLogs: auditLogs.totalCount,
+          totalDepartments: departments.length
+        }
+      };
+
+      // สร้างไฟล์ JSON และดาวน์โหลด
+      const dataStr = JSON.stringify(exportedData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `system-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: 'ส่งออกข้อมูลสำเร็จ',
+        description: `ส่งออกข้อมูลทั้งหมด ${users.length} ผู้ใช้, ${courses.length} รายวิชา, ${Array.isArray(studyPlans) ? studyPlans.length : 0} แผนการเรียน และข้อมูลอื่นๆ เรียบร้อยแล้ว`,
+      });
+
+      // เพิ่ม audit log
+      if (user) {
+        await firebaseService.createAuditLog({
+          action: 'ส่งออกข้อมูลระบบ',
+          details: `ส่งออกข้อมูลระบบทั้งหมด รวม ${users.length} ผู้ใช้, ${courses.length} รายวิชา, ${Array.isArray(studyPlans) ? studyPlans.length : 0} แผนการเรียน`,
+          userId: user.id,
+          ipAddress: 'localhost',
+          category: 'system'
+        });
+      }
+
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถส่งออกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditUser = (userData: any) => {
@@ -687,10 +958,34 @@ const AdminDashboard: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        <Input type="file" accept=".json,.csv" />
-                        <Button className="w-full" variant="outline">
-                          <Upload className="w-4 h-4 mr-2" />
-                          นำเข้าข้อมูล
+                        <Input 
+                          type="file" 
+                          accept=".json,.csv" 
+                          onChange={handleFileChange}
+                          disabled={isLoading}
+                        />
+                        {importFile && (
+                          <p className="text-sm text-gray-600">
+                            ไฟล์ที่เลือก: {importFile.name}
+                          </p>
+                        )}
+                        <Button 
+                          className="w-full" 
+                          variant="outline"
+                          onClick={importData}
+                          disabled={isLoading || !importFile}
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                              กำลังนำเข้า...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              นำเข้าข้อมูล
+                            </>
+                          )}
                         </Button>
                       </div>
                     </CardContent>

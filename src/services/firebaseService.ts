@@ -503,7 +503,7 @@ class FirebaseService {
     }
   }
 
-  private async getStudyPlans(): Promise<StudyPlan[]> {
+  async getStudyPlans(): Promise<StudyPlan[]> {
     try {
       const studyPlansRef = ref(database, 'studyPlans');
       const snapshot = await get(studyPlansRef);
