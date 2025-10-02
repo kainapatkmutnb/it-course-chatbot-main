@@ -455,6 +455,17 @@ class FirebaseService {
     }
   }
 
+  async deleteAuditLog(logId: string): Promise<boolean> {
+    try {
+      const auditLogRef = ref(database, `auditLogs/${logId}`);
+      await remove(auditLogRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting audit log:', error);
+      return false;
+    }
+  }
+
   // Statistics
   async getSystemStats() {
     try {
