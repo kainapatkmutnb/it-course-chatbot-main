@@ -273,7 +273,7 @@ const InstructorDashboard: React.FC = () => {
             <DialogHeader>
               <DialogTitle>เพิ่มนักศึกษาเข้าสู่การดูแล</DialogTitle>
               <DialogDescription>
-                เลือกนักศึกษาที่ยังไม่มีอาจารย์ที่ปรึกษา
+                เลือกนักศึกษาที่ต้องการเพิ่มเข้าสู่การดูแล
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -302,6 +302,17 @@ const InstructorDashboard: React.FC = () => {
                           <p className="text-sm text-muted-foreground">
                             {student.email}
                           </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            {student.advisorId ? (
+                              <Badge variant="secondary" className="text-xs">
+                                มีอาจารย์ที่ปรึกษาแล้ว
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                ยังไม่มีอาจารย์ที่ปรึกษา
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Button

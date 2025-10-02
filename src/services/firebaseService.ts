@@ -692,7 +692,7 @@ class FirebaseService {
       
       if (snapshot.exists()) {
         const usersData = snapshot.val();
-        const availableStudents = Object.keys(usersData)
+        const allStudents = Object.keys(usersData)
           .map(key => ({
             id: key,
             ...usersData[key]
@@ -702,19 +702,14 @@ class FirebaseService {
             const isStudent = user.role === 'student';
             const isActive = user.isActive !== false;
             
-            // Check if student doesn't have an advisor or has null/undefined/empty advisorId
-            const hasNoAdvisor = !user.advisorId || 
-                                user.advisorId === '' || 
-                                user.advisorId === null || 
-                                user.advisorId === undefined;
+            console.log(`Student ${user.name}: isStudent=${isStudent}, isActive=${isActive}, advisorId=${user.advisorId}`);
             
-            console.log(`Student ${user.name}: isStudent=${isStudent}, isActive=${isActive}, advisorId=${user.advisorId}, hasNoAdvisor=${hasNoAdvisor}`);
-            
-            return isStudent && isActive && hasNoAdvisor;
+            // Return all active students (both with and without advisors)
+            return isStudent && isActive;
           });
         
-        console.log('Available students found:', availableStudents.length);
-        return availableStudents;
+        console.log('All students found:', allStudents.length);
+        return allStudents;
       }
       return [];
     } catch (error) {
