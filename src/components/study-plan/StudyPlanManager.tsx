@@ -688,8 +688,8 @@ const StudyPlanManager: React.FC = () => {
                           </div>
                           {course.prerequisites && course.prerequisites.length > 0 && (
                             <div className="text-sm">
-                              <span className="font-medium">วิชาที่ต้องเรียนมาก่อน: </span>
-                              {course.prerequisites.join(', ')}
+                              <span className="font-medium text-orange-600">วิชาที่ต้องเรียนมาก่อน: </span>
+                              <span className="text-orange-700">{course.prerequisites.join(', ')}</span>
                             </div>
                           )}
                           {course.corequisites && course.corequisites.length > 0 && (
@@ -1064,10 +1064,10 @@ const StudyPlanManager: React.FC = () => {
                             <div className="mt-2 space-y-1">
                               {course.prerequisites && course.prerequisites.length > 0 && (
                                 <div className="flex items-center space-x-2">
-                                  <span className="text-xs font-medium text-warning">วิชาที่ต้องเรียนมาก่อน:</span>
+                                  <span className="text-xs font-medium text-orange-600">วิชาที่ต้องเรียนมาก่อน:</span>
                                   <div className="flex flex-wrap gap-1">
                                     {course.prerequisites.map((prereq, index) => (
-                                      <Badge key={`${course.id}-pre-${prereq}`} variant="outline" className="text-xs bg-warning/10 border-warning/20">
+                                      <Badge key={`${course.id}-pre-${prereq}`} variant="outline" className="text-xs bg-orange-50 border-orange-200 text-orange-700">
                                         {prereq}
                                       </Badge>
                                     ))}
