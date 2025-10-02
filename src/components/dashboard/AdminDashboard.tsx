@@ -635,21 +635,41 @@ const AdminDashboard: React.FC = () => {
                       <div className="text-muted-foreground">กำลังโหลดข้อมูล Audit Log...</div>
                     </div>
                   ) : auditLogs.length > 0 ? (
-                    auditLogs.map((log) => (
-                      <div key={log.id} className="flex items-start space-x-4 p-4 rounded-lg border">
-                        <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
-                        <div className="flex-1">
-                          <div className="font-medium">{log.action}</div>
-                          <div className="text-sm text-muted-foreground">{log.details}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            โดย: {log.userId} • {log.timestamp.toLocaleString('th-TH')} • IP: {log.ipAddress}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            หมวดหมู่: {log.category}
+                    auditLogs.map((log) => {
+                      // Safely convert details to string if it's an object
+                      const detailsText = typeof log.details === 'object' 
+                        ? JSON.stringify(log.details) 
+                        : String(log.details || '');
+                      
+                      // Safely convert other fields to strings
+                      const userIdText = typeof log.userId === 'object' 
+                        ? JSON.stringify(log.userId) 
+                        : String(log.userId || '');
+                      
+                      const categoryText = typeof log.category === 'object' 
+                        ? JSON.stringify(log.category) 
+                        : String(log.category || '');
+                      
+                      const ipAddressText = typeof log.ipAddress === 'object' 
+                        ? JSON.stringify(log.ipAddress) 
+                        : String(log.ipAddress || '');
+
+                      return (
+                        <div key={log.id} className="flex items-start space-x-4 p-4 rounded-lg border">
+                          <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
+                          <div className="flex-1">
+                            <div className="font-medium">{String(log.action || '')}</div>
+                            <div className="text-sm text-muted-foreground">{detailsText}</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              โดย: {userIdText} • {log.timestamp?.toLocaleString?.('th-TH') || String(log.timestamp)} • IP: {ipAddressText}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              หมวดหมู่: {categoryText}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <History className="w-12 h-12 mx-auto mb-2 opacity-50" />
