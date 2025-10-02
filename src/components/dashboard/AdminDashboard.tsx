@@ -898,12 +898,12 @@ const AdminDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">จัดการผู้ใช้</TabsTrigger>
             <TabsTrigger value="courses">จัดการรายวิชา</TabsTrigger>
             <TabsTrigger value="import-export">นำเข้า/ส่งออก</TabsTrigger>
             <TabsTrigger value="audit">Audit Log</TabsTrigger>
-            <TabsTrigger value="settings">ตั้งค่าระบบ</TabsTrigger>
+            {/* <TabsTrigger value="settings">ตั้งค่าระบบ</TabsTrigger> */}
           </TabsList>
 
           {/* Users Management */}
@@ -1262,7 +1262,8 @@ const AdminDashboard: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* System Settings */}
+          {/* System Settings - Commented out */}
+          {/* 
           <TabsContent value="settings" className="space-y-6">
             <Card className="shadow-medium">
               <CardHeader>
@@ -1338,6 +1339,7 @@ const AdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          */
         </Tabs>
 
          {/* Edit User Dialog */}
