@@ -238,6 +238,43 @@ export const useSystemStats = () => {
   return { stats, loading, error, refreshStats };
 };
 
+// Hook for all study plans
+export const useStudyPlans = () => {
+  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStudyPlans = async () => {
+      try {
+        setLoading(true);
+        const studyPlansData = await firebaseService.getStudyPlans();
+        setStudyPlans(studyPlansData);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch study plans');
+        console.error('Error fetching study plans:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudyPlans();
+  }, []);
+
+  const refreshStudyPlans = async () => {
+    try {
+      const studyPlansData = await firebaseService.getStudyPlans();
+      setStudyPlans(studyPlansData);
+    } catch (err) {
+      setError('Failed to refresh study plans');
+      console.error('Error refreshing study plans:', err);
+    }
+  };
+
+  return { studyPlans, loading, error, refreshStudyPlans };
+};
+
 // Hook for user by ID
 export const useUser = (userId: string) => {
   const [user, setUser] = useState<User | null>(null);
