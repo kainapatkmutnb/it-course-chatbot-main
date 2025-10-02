@@ -44,27 +44,59 @@ interface CustomCourse {
 }
 
 interface StudentDetailViewProps {
-  student: User;
-  onBack: () => void;
+  studentId: string;
+  onBack?: () => void;
 }
 
-const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }) => {
+const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack }) => {
+  const [student, setStudent] = useState<User | null>(null);
+  const [isLoadingStudent, setIsLoadingStudent] = useState(true);
   const allCourses = getAllCourses();
   const [studyPlan, setStudyPlan] = useState<CustomCourse[]>([]);
   const [isLoadingStudyPlan, setIsLoadingStudyPlan] = useState(true);
 
+  // Fetch student data
+  useEffect(() => {
+    const fetchStudent = async () => {
+      if (studentId) {
+        try {
+          console.log('🔍 Fetching student data for ID:', studentId);
+          setIsLoadingStudent(true);
+          const studentData = await firebaseService.getUserById(studentId);
+          console.log('👤 Student data received:', studentData);
+          setStudent(studentData);
+        } catch (error) {
+          console.error('❌ Error fetching student:', error);
+          setStudent(null);
+        } finally {
+          setIsLoadingStudent(false);
+        }
+      }
+    };
+
+    fetchStudent();
+  }, [studentId]);
+
   // Fetch study plan data
   useEffect(() => {
     const fetchStudyPlan = async () => {
-      if (student.id) {
+      if (studentId) {
         try {
+          console.log('🔍 Fetching study plan for student ID:', studentId);
           setIsLoadingStudyPlan(true);
-          const studyPlanData = await firebaseService.getStudyPlanByStudentId(student.id);
+          const studyPlanData = await firebaseService.getStudyPlanByStudentId(studentId);
+          console.log('📚 Study plan data received:', studyPlanData);
+          
           if (studyPlanData && studyPlanData.courses) {
+            console.log('✅ Setting study plan courses:', studyPlanData.courses);
             setStudyPlan(studyPlanData.courses);
+          } else {
+            console.log('❌ No study plan data or courses found');
+            setStudyPlan([]);
           }
         } catch (error) {
-          console.error('Error fetching study plan:', error);
+          console.error('❌ Error fetching study plan:', error);
+          setStudyPlan([]);
         } finally {
           setIsLoadingStudyPlan(false);
         }
@@ -72,9 +104,11 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
     };
 
     fetchStudyPlan();
-  }, [student.id]);
+  }, [studentId]);
   
   const getStudentProgress = () => {
+    if (!student) return { completed: 0, inProgress: 0, failed: 0, totalCredits: 0, progressPercentage: 0 };
+    
     const studentEnrollments = studentCourses.filter(sc => sc.studentId === student.id);
     const completed = studentEnrollments.filter(sc => sc.status === 'completed').length;
     const inProgress = studentEnrollments.filter(sc => sc.status === 'in_progress').length;
@@ -102,6 +136,35 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
     }
   };
 
+  // Loading state
+  if (isLoadingStudent) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">กำลังโหลดข้อมูลนักศึกษา...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (!student) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">ไม่พบข้อมูลนักศึกษา</h3>
+            <p className="text-muted-foreground">ไม่สามารถโหลดข้อมูลนักศึกษาได้</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const progress = getStudentProgress();
   const studentEnrollments = studentCourses.filter(sc => sc.studentId === student.id);
 
@@ -109,10 +172,12 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ student, onBack }
     <div className="space-y-6">
       {/* Header with Back Button */}
       <div className="flex items-center space-x-4">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          กลับ
-        </Button>
+        {onBack && (
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            กลับ
+          </Button>
+        )}
         <div>
           <h2 className="text-2xl font-bold">รายละเอียดนักศึกษา</h2>
           <p className="text-muted-foreground">ข้อมูลและผลการเรียนของนักศึกษา</p>

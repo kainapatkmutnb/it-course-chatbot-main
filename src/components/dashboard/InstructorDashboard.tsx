@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useAuth } from '@/contexts/AuthContext';
 import { firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
+import StudentDetailView from './StudentDetailView';
 import { 
   UserCheck, 
   GraduationCap, 
@@ -576,9 +577,7 @@ const InstructorDashboard: React.FC = () => {
               <DialogTitle>รายละเอียดนักศึกษา</DialogTitle>
             </DialogHeader>
             <div className="mt-4">
-              {/* This would be a detailed student view component */}
-              <p>รายละเอียดของนักศึกษา ID: {selectedStudentId}</p>
-              {/* You can implement a detailed view here */}
+              <StudentDetailView studentId={selectedStudentId} />
             </div>
           </DialogContent>
         </Dialog>
