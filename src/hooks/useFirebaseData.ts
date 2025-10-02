@@ -167,7 +167,7 @@ export const useAuditLogs = (limit: number = 50) => {
       try {
         setLoading(true);
         const auditLogsData = await firebaseService.getAuditLogs(limit);
-        setAuditLogs(auditLogsData);
+        setAuditLogs(auditLogsData.logs);
         setError(null);
       } catch (err) {
         setError('Failed to fetch audit logs');
@@ -183,7 +183,7 @@ export const useAuditLogs = (limit: number = 50) => {
   const refreshAuditLogs = async () => {
     try {
       const auditLogsData = await firebaseService.getAuditLogs(limit);
-      setAuditLogs(auditLogsData);
+      setAuditLogs(auditLogsData.logs);
     } catch (err) {
       setError('Failed to refresh audit logs');
       console.error('Error refreshing audit logs:', err);

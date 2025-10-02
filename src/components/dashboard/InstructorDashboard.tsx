@@ -24,7 +24,10 @@ import {
   Building,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Eye,
+  Phone,
+  MapPin
 } from 'lucide-react';
 
 const InstructorDashboard: React.FC = () => {
@@ -36,6 +39,7 @@ const InstructorDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Filter students under instructor's care
   const studentsUnderCare = useMemo(() => {
@@ -111,6 +115,51 @@ const InstructorDashboard: React.FC = () => {
     };
   }, [selectedStudentPlan, courses]);
 
+  // Calculate overall statistics for all students
+  const overallStats = useMemo(() => {
+    if (!studentsUnderCare || !studyPlans || !courses) return null;
+
+    let totalStudents = studentsUnderCare.length;
+    let totalCompletedCourses = 0;
+    let totalCredits = 0;
+    let totalGradePoints = 0;
+    let studentsWithGPA = 0;
+
+    studentsUnderCare.forEach(student => {
+      const studentPlan = studyPlans.find(plan => plan.studentId === student.id);
+      if (studentPlan?.completedCourses) {
+        const completed = studentPlan.completedCourses;
+        totalCompletedCourses += completed.length;
+
+        const studentCredits = completed.reduce((sum, cc) => {
+          const course = courses.find(c => c.id === cc.courseId);
+          return sum + (course?.credits || 0);
+        }, 0);
+
+        const studentGradePoints = completed.reduce((sum, cc) => {
+          const course = courses.find(c => c.id === cc.courseId);
+          const gradePoint = getGradePoint(cc.grade);
+          return sum + (gradePoint * (course?.credits || 0));
+        }, 0);
+
+        if (studentCredits > 0) {
+          totalCredits += studentCredits;
+          totalGradePoints += studentGradePoints;
+          studentsWithGPA++;
+        }
+      }
+    });
+
+    const averageGPA = studentsWithGPA > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
+
+    return {
+      totalStudents,
+      totalCompletedCourses,
+      averageGPA,
+      totalCredits
+    };
+  }, [studentsUnderCare, studyPlans, courses]);
+
   // Helper function to convert grade to grade point
   const getGradePoint = (grade: string): number => {
     const gradeMap: { [key: string]: number } = {
@@ -120,10 +169,31 @@ const InstructorDashboard: React.FC = () => {
     return gradeMap[grade] || 0.0;
   };
 
-  const getStudentStats = (studentId: string) => {
-    // For now, return default stats since we need to implement proper study plan fetching
-    // This would need to be updated to use useStudyPlan(studentId) for each student
-    return { completed: 0, total: 0, gpa: '0.00' };
+  // Get individual student statistics
+  const getStudentStatistics = (studentId: string) => {
+    const studentPlan = studyPlans?.find(plan => plan.studentId === studentId);
+    if (!studentPlan || !courses) return { completed: 0, gpa: '0.00', totalCredits: 0 };
+
+    const completedCourses = studentPlan.completedCourses || [];
+    
+    const totalCredits = completedCourses.reduce((sum, cc) => {
+      const course = courses.find(c => c.id === cc.courseId);
+      return sum + (course?.credits || 0);
+    }, 0);
+
+    const totalGradePoints = completedCourses.reduce((sum, cc) => {
+      const course = courses.find(c => c.id === cc.courseId);
+      const gradePoint = getGradePoint(cc.grade);
+      return sum + (gradePoint * (course?.credits || 0));
+    }, 0);
+
+    const gpa = totalCredits > 0 ? (totalGradePoints / totalCredits).toFixed(2) : '0.00';
+
+    return {
+      completed: completedCourses.length,
+      gpa,
+      totalCredits
+    };
   };
 
   const filteredStudents = studentsUnderCare.filter(student =>
@@ -190,257 +260,459 @@ const InstructorDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Student Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              เลือกนักศึกษาที่ต้องการดู
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 items-center">
-              <div className="flex-1">
-                <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกนักศึกษา..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {studentsUnderCare.map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {student.displayName} ({student.studentId}) - {student.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {selectedStudentId && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => setSelectedStudentId('')}
-                >
-                  ล้างการเลือก
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              ภาพรวม
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              นักศึกษาที่ดูแล
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Student Statistics */}
-        {selectedStudentId && studentStats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">ยังไม่ผ่าน</p>
-                    <p className="text-2xl font-bold text-red-600">{studentStats.notTaken}</p>
-                  </div>
-                  <XCircle className="h-8 w-8 text-red-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">วางแผนเรียน</p>
-                    <p className="text-2xl font-bold text-blue-600">{studentStats.planned}</p>
-                  </div>
-                  <Calendar className="h-8 w-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">กำลังเรียน</p>
-                    <p className="text-2xl font-bold text-orange-600">{studentStats.inProgress}</p>
-                  </div>
-                  <Clock className="h-8 w-8 text-orange-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">เรียนจบแล้ว</p>
-                    <p className="text-2xl font-bold text-green-600">{studentStats.completed}</p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* GPA and Credits */}
-        {selectedStudentId && studentStats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  เกรดเฉลี่ย (GPA)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-blue-600">{studentStats.gpa}</p>
-                  <p className="text-gray-600 mt-2">จาก 4.00</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  หน่วยกิตรวม
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-green-600">{studentStats.totalCredits}</p>
-                  <p className="text-gray-600 mt-2">หน่วยกิต</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Course Details */}
-        {selectedStudentId && selectedStudentPlan && (
-          <Tabs defaultValue="completed" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="completed">เรียนจบแล้ว</TabsTrigger>
-              <TabsTrigger value="inprogress">กำลังเรียน</TabsTrigger>
-              <TabsTrigger value="planned">วางแผนเรียน</TabsTrigger>
-              <TabsTrigger value="nottaken">ยังไม่ผ่าน</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="completed" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>รายวิชาที่เรียนจบแล้ว</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {selectedStudentPlan.completedCourses?.map((completedCourse) => {
-                      const course = courses.find(c => c.id === completedCourse.courseId);
-                      return (
-                        <div key={completedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{course?.code} - {course?.name}</p>
-                            <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต</p>
-                          </div>
-                          <Badge variant={completedCourse.grade === 'A' ? 'default' : 
-                                        completedCourse.grade === 'F' ? 'destructive' : 'secondary'}>
-                            {completedCourse.grade}
-                          </Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="inprogress" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>รายวิชาที่กำลังเรียน</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {selectedStudentPlan.plannedCourses?.filter(pc => 
-                      pc.semester === 'current' && 
-                      !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === pc.courseId)
-                    ).map((plannedCourse) => {
-                      const course = courses.find(c => c.id === plannedCourse.courseId);
-                      return (
-                        <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{course?.code} - {course?.name}</p>
-                            <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต</p>
-                          </div>
-                          <Badge variant="outline">กำลังเรียน</Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="planned" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>รายวิชาที่วางแผนเรียน</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {selectedStudentPlan.plannedCourses?.filter(pc => 
-                      pc.semester !== 'current' && 
-                      !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === pc.courseId)
-                    ).map((plannedCourse) => {
-                      const course = courses.find(c => c.id === plannedCourse.courseId);
-                      return (
-                        <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{course?.code} - {course?.name}</p>
-                            <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต • เทอม {plannedCourse.semester}</p>
-                          </div>
-                          <Badge variant="secondary">วางแผน</Badge>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="nottaken" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>รายวิชาที่ยังไม่ผ่าน</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {courses.filter(course => 
-                      !selectedStudentPlan.plannedCourses?.some(pc => pc.courseId === course.id) &&
-                      !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === course.id)
-                    ).map((course) => (
-                      <div key={course.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{course.code} - {course.name}</p>
-                          <p className="text-sm text-gray-600">{course.credits} หน่วยกิต</p>
-                        </div>
-                        <Badge variant="destructive">ยังไม่ผ่าน</Badge>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Overall Statistics */}
+            {overallStats && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">นักศึกษาทั้งหมด</p>
+                        <p className="text-2xl font-bold text-blue-600">{overallStats.totalStudents}</p>
                       </div>
-                    ))}
+                      <Users className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">วิชาที่ผ่านรวม</p>
+                        <p className="text-2xl font-bold text-green-600">{overallStats.totalCompletedCourses}</p>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">เกรดเฉลี่ยรวม</p>
+                        <p className="text-2xl font-bold text-purple-600">{overallStats.averageGPA}</p>
+                      </div>
+                      <Award className="h-8 w-8 text-purple-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">หน่วยกิตรวม</p>
+                        <p className="text-2xl font-bold text-orange-600">{overallStats.totalCredits}</p>
+                      </div>
+                      <BookOpen className="h-8 w-8 text-orange-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Quick Student Selection for Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  ดูรายละเอียดนักศึกษา
+                </CardTitle>
+                <CardDescription>
+                  เลือกนักศึกษาเพื่อดูข้อมูลและผลการเรียนแบบละเอียด
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4 items-center">
+                  <div className="flex-1">
+                    <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="เลือกนักศึกษา..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {studentsUnderCare.map((student) => (
+                          <SelectItem key={student.id} value={student.id}>
+                            {student.displayName} ({student.studentId}) - {student.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                  {selectedStudentId && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectedStudentId('')}
+                    >
+                      ล้างการเลือก
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Student Statistics when selected */}
+            {selectedStudentId && studentStats && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">ยังไม่ผ่าน</p>
+                          <p className="text-2xl font-bold text-red-600">{studentStats.notTaken}</p>
+                        </div>
+                        <XCircle className="h-8 w-8 text-red-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">วางแผนเรียน</p>
+                          <p className="text-2xl font-bold text-blue-600">{studentStats.planned}</p>
+                        </div>
+                        <Calendar className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">กำลังเรียน</p>
+                          <p className="text-2xl font-bold text-orange-600">{studentStats.inProgress}</p>
+                        </div>
+                        <Clock className="h-8 w-8 text-orange-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">เรียนจบแล้ว</p>
+                          <p className="text-2xl font-bold text-green-600">{studentStats.completed}</p>
+                        </div>
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* GPA and Credits */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        เกรดเฉลี่ย (GPA)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center">
+                        <p className="text-4xl font-bold text-blue-600">{studentStats.gpa}</p>
+                        <p className="text-gray-600 mt-2">จาก 4.00</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BookOpen className="h-5 w-5" />
+                        หน่วยกิตรวม
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center">
+                        <p className="text-4xl font-bold text-green-600">{studentStats.totalCredits}</p>
+                        <p className="text-gray-600 mt-2">หน่วยกิต</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Course Details */}
+                <Tabs defaultValue="completed" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="completed">เรียนจบแล้ว</TabsTrigger>
+                    <TabsTrigger value="inprogress">กำลังเรียน</TabsTrigger>
+                    <TabsTrigger value="planned">วางแผนเรียน</TabsTrigger>
+                    <TabsTrigger value="nottaken">ยังไม่ผ่าน</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="completed" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>รายวิชาที่เรียนจบแล้ว</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {selectedStudentPlan.completedCourses?.map((completedCourse) => {
+                            const course = courses.find(c => c.id === completedCourse.courseId);
+                            return (
+                              <div key={completedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                  <p className="font-medium">{course?.code} - {course?.name}</p>
+                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต</p>
+                                </div>
+                                <Badge variant={completedCourse.grade === 'A' ? 'default' : 
+                                              completedCourse.grade === 'F' ? 'destructive' : 'secondary'}>
+                                  {completedCourse.grade}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="inprogress" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>รายวิชาที่กำลังเรียน</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {selectedStudentPlan.plannedCourses?.filter(pc => 
+                            pc.semester === 'current' && 
+                            !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === pc.courseId)
+                          ).map((plannedCourse) => {
+                            const course = courses.find(c => c.id === plannedCourse.courseId);
+                            return (
+                              <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                  <p className="font-medium">{course?.code} - {course?.name}</p>
+                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต</p>
+                                </div>
+                                <Badge variant="outline">กำลังเรียน</Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="planned" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>รายวิชาที่วางแผนเรียน</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {selectedStudentPlan.plannedCourses?.filter(pc => 
+                            pc.semester !== 'current' && 
+                            !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === pc.courseId)
+                          ).map((plannedCourse) => {
+                            const course = courses.find(c => c.id === plannedCourse.courseId);
+                            return (
+                              <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                  <p className="font-medium">{course?.code} - {course?.name}</p>
+                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต • เทอม {plannedCourse.semester}</p>
+                                </div>
+                                <Badge variant="secondary">วางแผน</Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="nottaken" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>รายวิชาที่ยังไม่ผ่าน</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {courses.filter(course => 
+                            !selectedStudentPlan.plannedCourses?.some(pc => pc.courseId === course.id) &&
+                            !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === course.id)
+                          ).map((course) => (
+                            <div key={course.id} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div>
+                                <p className="font-medium">{course.code} - {course.name}</p>
+                                <p className="text-sm text-gray-600">{course.credits} หน่วยกิต</p>
+                              </div>
+                              <Badge variant="destructive">ยังไม่ผ่าน</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+
+            {/* No student selected message */}
+            {!selectedStudentId && (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">เลือกนักศึกษาเพื่อดูข้อมูล</h3>
+                  <p className="text-gray-600">กรุณาเลือกนักศึกษาจากรายการด้านบนเพื่อดูสถิติและรายละเอียดการเรียน</p>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        )}
+            )}
+          </TabsContent>
 
-        {/* No student selected message */}
-        {!selectedStudentId && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">เลือกนักศึกษาเพื่อดูข้อมูล</h3>
-              <p className="text-gray-600">กรุณาเลือกนักศึกษาจากรายการด้านบนเพื่อดูสถิติและรายละเอียดการเรียน</p>
-            </CardContent>
-          </Card>
-        )}
+          {/* Students Tab */}
+          <TabsContent value="students" className="space-y-6">
+            {/* Search Bar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  ค้นหานักศึกษา
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="ค้นหาด้วยชื่อ, อีเมล, หรือรหัสนักศึกษา..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Students Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredStudents.map((student) => {
+                const stats = getStudentStatistics(student.id);
+                return (
+                  <Card key={student.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={student.photoURL || ''} />
+                          <AvatarFallback>
+                            {student.displayName?.charAt(0) || student.email?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {student.displayName || 'ไม่ระบุชื่อ'}
+                          </CardTitle>
+                          <CardDescription className="truncate">
+                            {student.studentId}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Contact Info */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Mail className="h-4 w-4" />
+                          <span className="truncate">{student.email}</span>
+                        </div>
+                        {student.phone && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Phone className="h-4 w-4" />
+                            <span>{student.phone}</span>
+                          </div>
+                        )}
+                        {student.department && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Building className="h-4 w-4" />
+                            <span>{student.department}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Academic Stats */}
+                      <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                          <p className="text-xs text-gray-600">วิชาที่ผ่าน</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-blue-600">{stats.gpa}</p>
+                          <p className="text-xs text-gray-600">เกรดเฉลี่ย</p>
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-orange-600">{stats.totalCredits}</p>
+                        <p className="text-xs text-gray-600">หน่วยกิตรวม</p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => setSelectedStudentId(student.id)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          ดูรายละเอียด
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* No students found */}
+            {filteredStudents.length === 0 && (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {searchTerm ? 'ไม่พบนักศึกษาที่ค้นหา' : 'ไม่มีนักศึกษาที่ดูแล'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {searchTerm 
+                      ? 'ลองเปลี่ยนคำค้นหาหรือตรวจสอบการสะกดคำ' 
+                      : 'ยังไม่มีนักศึกษาที่ได้รับมอบหมายให้คุณดูแล'
+                    }
+                  </p>
+                  {searchTerm && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setSearchTerm('')}
+                    >
+                      ล้างการค้นหา
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
