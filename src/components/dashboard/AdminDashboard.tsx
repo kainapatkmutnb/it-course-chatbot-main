@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUsers } from '@/hooks/useFirebaseData';
+import { useUsers, useCourses, useSystemStats } from '@/hooks/useFirebaseData';
 import { getAllCourses, auditLogs } from '@/services/completeCurriculumData';
 import { firebaseService, AuditLog } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +41,8 @@ const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { users: allUsers, loading: usersLoading, error: usersError } = useUsers();
+  const { courses: firebaseCourses, loading: coursesLoading, error: coursesError } = useCourses();
+  const { stats: systemStats, loading: statsLoading, error: statsError, refreshStats } = useSystemStats();
   const [searchTerm, setSearchTerm] = useState('');
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [auditLogsLoading, setAuditLogsLoading] = useState(true);
@@ -66,8 +68,15 @@ const AdminDashboard: React.FC = () => {
   const [userToDelete, setUserToDelete] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [systemSettings, setSystemSettings] = useState({
+    systemName: 'ระบบจัดการหลักสูตร IT',
+    adminEmail: 'admin@kmutnb.ac.th',
+    enableGoogleLogin: true,
+    enableTwoFactor: false
+  });
 
-  const allCourses = getAllCourses();
+  const allCourses = firebaseCourses || [];
 
   // Helper functions for role display
   const getRoleDisplayName = (role: string) => {
@@ -294,8 +303,40 @@ const AdminDashboard: React.FC = () => {
   const stats = {
     totalUsers: allUsers?.length || 0,
     totalCourses: allCourses.length,
-    activeUsers: allUsers?.filter(u => u.lastLogin).length || 0,
-    activeCourses: allCourses.filter(c => c.isActive).length
+    activeUsers: allUsers?.filter(u => u.isActive !== false).length || 0,
+    activeCourses: allCourses.filter(c => c.isActive !== false).length
+  };
+
+  // Save system settings to Firebase
+  const saveSystemSettings = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Create audit log
+      if (user) {
+        await firebaseService.createAuditLog({
+          action: 'อัปเดตการตั้งค่าระบบ',
+          details: `อัปเดตการตั้งค่าระบบ: ชื่อระบบ="${systemSettings.systemName}", อีเมลผู้ดูแล="${systemSettings.adminEmail}", Google Login=${systemSettings.enableGoogleLogin}, 2FA=${systemSettings.enableTwoFactor}`,
+          userId: user.id,
+          ipAddress: 'localhost',
+          category: 'system'
+        });
+      }
+      
+      toast({
+        title: 'บันทึกการตั้งค่าสำเร็จ',
+        description: 'การตั้งค่าระบบได้รับการอัปเดตแล้ว',
+      });
+    } catch (error) {
+      console.error('Error saving system settings:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถบันทึกการตั้งค่าได้',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const addCourse = () => {
@@ -1120,11 +1161,19 @@ const AdminDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="system-name">ชื่อระบบ</Label>
-                        <Input id="system-name" defaultValue="ระบบจัดการหลักสูตร IT" />
+                        <Input 
+                          id="system-name" 
+                          value={systemSettings.systemName}
+                          onChange={(e) => setSystemSettings({...systemSettings, systemName: e.target.value})}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="admin-email">อีเมลผู้ดูแลระบบ</Label>
-                        <Input id="admin-email" defaultValue="admin@kmutnb.ac.th" />
+                        <Input 
+                          id="admin-email" 
+                          value={systemSettings.adminEmail}
+                          onChange={(e) => setSystemSettings({...systemSettings, adminEmail: e.target.value})}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1137,22 +1186,32 @@ const AdminDashboard: React.FC = () => {
                           <div className="font-medium">การเข้าสู่ระบบด้วย Google</div>
                           <div className="text-sm text-muted-foreground">อนุญาตให้ผู้ใช้เข้าสู่ระบบด้วย Google Account</div>
                         </div>
-                        <Button variant="outline">เปิดใช้งาน</Button>
+                        <Button 
+                          variant={systemSettings.enableGoogleLogin ? "default" : "outline"}
+                          onClick={() => setSystemSettings({...systemSettings, enableGoogleLogin: !systemSettings.enableGoogleLogin})}
+                        >
+                          {systemSettings.enableGoogleLogin ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                        </Button>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-medium">การยืนยันตัวตนสองขั้นตอน</div>
                           <div className="text-sm text-muted-foreground">บังคับให้ผู้ดูแลระบบใช้ 2FA</div>
                         </div>
-                        <Button variant="outline">กำหนดค่า</Button>
+                        <Button 
+                          variant={systemSettings.enableTwoFactor ? "default" : "outline"}
+                          onClick={() => setSystemSettings({...systemSettings, enableTwoFactor: !systemSettings.enableTwoFactor})}
+                        >
+                          {systemSettings.enableTwoFactor ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
+                        </Button>
                       </div>
                     </div>
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Button>
+                    <Button onClick={saveSystemSettings} disabled={isLoading}>
                       <Save className="w-4 h-4 mr-2" />
-                      บันทึกการตั้งค่า
+                      {isLoading ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
                     </Button>
                   </div>
                 </div>
