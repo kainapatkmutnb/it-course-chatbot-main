@@ -5,11 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User } from '@/types/auth';
 import { getAllCourses, studentCourses } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { 
-  GraduationCap, 
   BookOpen, 
   CheckCircle, 
   Clock, 
@@ -56,6 +56,20 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const allCourses = getAllCourses();
   const [studyPlan, setStudyPlan] = useState<CustomCourse[]>([]);
   const [isLoadingStudyPlan, setIsLoadingStudyPlan] = useState(true);
+  const [selectedYear, setSelectedYear] = useState<string>('');
+
+  // Handle year change
+  const handleYearChange = async (year: string) => {
+    setSelectedYear(year);
+    if (student) {
+      try {
+        await firebaseService.updateUser(student.uid, { year: parseInt(year) });
+        setStudent({ ...student, year: parseInt(year) } as any);
+      } catch (error) {
+        console.error('❌ Error updating student year:', error);
+      }
+    }
+  };
 
   // Fetch student data
   useEffect(() => {
@@ -67,6 +81,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
           const studentData = await firebaseService.getUserById(studentId);
           console.log('👤 Student data received:', studentData);
           setStudent(studentData);
+          setSelectedYear((studentData as any)?.year?.toString() || '');
         } catch (error) {
           console.error('❌ Error fetching student:', error);
           setStudent(null);
@@ -227,12 +242,26 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                   <span className="text-sm">{student.email}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                  <BookOpen className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{(student as any).program}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">ปีที่ {(student as any).year || 'ไม่ระบุ'}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">ปีที่</span>
+                    <Select value={selectedYear} onValueChange={handleYearChange}>
+                      <SelectTrigger className="w-20 h-8">
+                        <SelectValue placeholder="เลือก" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
