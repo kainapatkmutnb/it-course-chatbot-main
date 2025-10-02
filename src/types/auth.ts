@@ -9,6 +9,7 @@ export interface User {
   studentId?: string; // For students
   employeeId?: string; // For staff/instructors
   department?: string;
+  advisorId?: string; // ID of the instructor supervising this student
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;

@@ -11,6 +11,7 @@ export interface User {
   profilePicture?: string;
   department?: string;
   studentId?: string;
+  advisorId?: string; // ID of the instructor supervising this student
   createdAt: Date;
   lastLogin?: Date;
   isActive: boolean;

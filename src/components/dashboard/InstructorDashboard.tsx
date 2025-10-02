@@ -54,7 +54,7 @@ const InstructorDashboard: React.FC = () => {
     if (!users || !user) return [];
     return users.filter(u => 
       u.role === 'student' && 
-      u.advisorId === user.uid
+      u.advisorId === user.id
     );
   }, [users, user]);
 
@@ -69,7 +69,7 @@ const InstructorDashboard: React.FC = () => {
     if (!users || !user) return [];
     return users.filter(u => 
       u.role === 'student' && 
-      u.advisorId !== user.uid
+      u.advisorId !== user.id
     );
   }, [users, user]);
 
@@ -77,7 +77,7 @@ const InstructorDashboard: React.FC = () => {
   const instructorCourses = useMemo(() => {
     if (!courses || !user) return [];
     return courses.filter(course => 
-      course.instructorId === user.uid
+      course.instructor === user.id
     );
   }, [courses, user]);
 
@@ -91,25 +91,23 @@ const InstructorDashboard: React.FC = () => {
   const studentStats = useMemo(() => {
     if (!selectedStudentPlan || !courses) return null;
 
-    const plannedCourses = selectedStudentPlan.plannedCourses || [];
-    const completedCourses = selectedStudentPlan.completedCourses || [];
+    const plannedCourses = selectedStudentPlan.courses.filter(course => course.status === 'planned') || [];
+    const completedCourses = selectedStudentPlan.courses.filter(course => course.status === 'completed') || [];
     
     // Get course details
     const allCourses = courses;
     
     // Calculate course statuses
     const notTaken = allCourses.filter(course => 
-      !plannedCourses.some(pc => pc.courseId === course.id) &&
-      !completedCourses.some(cc => cc.courseId === course.id)
+      !selectedStudentPlan.courses.some(pc => pc.courseId === course.id)
     );
     
     const planned = plannedCourses.filter(pc => 
       !completedCourses.some(cc => cc.courseId === pc.courseId)
     );
     
-    const inProgress = plannedCourses.filter(pc => 
-      pc.semester === 'current' && 
-      !completedCourses.some(cc => cc.courseId === pc.courseId)
+    const inProgress = selectedStudentPlan.courses.filter(course => 
+      course.status === 'in_progress'
     );
     
     const completed = completedCourses;
@@ -150,8 +148,8 @@ const InstructorDashboard: React.FC = () => {
 
     studentsUnderCare.forEach(student => {
       const studentPlan = studyPlans.find(plan => plan.studentId === student.id);
-      if (studentPlan?.completedCourses) {
-        const completed = studentPlan.completedCourses;
+      if (studentPlan?.courses) {
+        const completed = studentPlan.courses.filter(course => course.status === 'completed');
         totalCompletedCourses += completed.length;
 
         const studentCredits = completed.reduce((sum, cc) => {
@@ -197,7 +195,7 @@ const InstructorDashboard: React.FC = () => {
     const studentPlan = studyPlans?.find(plan => plan.studentId === studentId);
     if (!studentPlan || !courses) return { completed: 0, gpa: '0.00', totalCredits: 0 };
 
-    const completedCourses = studentPlan.completedCourses || [];
+    const completedCourses = studentPlan.courses?.filter(course => course.status === 'completed') || [];
     
     const totalCredits = completedCourses.reduce((sum, cc) => {
       const course = courses.find(c => c.id === cc.courseId);
@@ -220,14 +218,14 @@ const InstructorDashboard: React.FC = () => {
   };
 
   const filteredStudents = studentsUnderCare.filter(student =>
-    student.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.studentId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Filter all students for the new tab
   const filteredAllStudents = allStudents.filter(student =>
-    student.displayName?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase()) ||
+    student.name?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase()) ||
     student.email?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase()) ||
     student.studentId?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase())
   );
@@ -447,7 +445,7 @@ const InstructorDashboard: React.FC = () => {
                       <SelectContent>
                         {studentsUnderCare.map((student) => (
                           <SelectItem key={student.id} value={student.id}>
-                            {student.displayName} ({student.studentId}) - {student.email}
+                            {student.name} ({student.studentId}) - {student.email}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -567,7 +565,7 @@ const InstructorDashboard: React.FC = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          {selectedStudentPlan.completedCourses?.map((completedCourse) => {
+                          {selectedStudentPlan.courses?.filter(course => course.status === 'completed').map((completedCourse) => {
                             const course = courses.find(c => c.id === completedCourse.courseId);
                             return (
                               <div key={completedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
@@ -594,10 +592,7 @@ const InstructorDashboard: React.FC = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          {selectedStudentPlan.plannedCourses?.filter(pc => 
-                            pc.semester === 'current' && 
-                            !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === pc.courseId)
-                          ).map((plannedCourse) => {
+                          {selectedStudentPlan.courses?.filter(course => course.status === 'in_progress').map((plannedCourse) => {
                             const course = courses.find(c => c.id === plannedCourse.courseId);
                             return (
                               <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
@@ -621,16 +616,13 @@ const InstructorDashboard: React.FC = () => {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          {selectedStudentPlan.plannedCourses?.filter(pc => 
-                            pc.semester !== 'current' && 
-                            !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === pc.courseId)
-                          ).map((plannedCourse) => {
+                          {selectedStudentPlan.courses?.filter(course => course.status === 'planned').map((plannedCourse) => {
                             const course = courses.find(c => c.id === plannedCourse.courseId);
                             return (
                               <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
                                 <div>
                                   <p className="font-medium">{course?.code} - {course?.name}</p>
-                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต • เทอม {plannedCourse.semester}</p>
+                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต • ปี {plannedCourse.year} เทอม {plannedCourse.semester}</p>
                                 </div>
                                 <Badge variant="secondary">วางแผน</Badge>
                               </div>
@@ -649,8 +641,7 @@ const InstructorDashboard: React.FC = () => {
                       <CardContent>
                         <div className="space-y-2">
                           {courses.filter(course => 
-                            !selectedStudentPlan.plannedCourses?.some(pc => pc.courseId === course.id) &&
-                            !selectedStudentPlan.completedCourses?.some(cc => cc.courseId === course.id)
+                            !selectedStudentPlan.courses?.some(pc => pc.courseId === course.id)
                           ).map((course) => (
                             <div key={course.id} className="flex items-center justify-between p-3 border rounded-lg">
                               <div>
@@ -712,14 +703,14 @@ const InstructorDashboard: React.FC = () => {
                     <CardHeader className="pb-3">
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={student.photoURL || ''} />
+                          <AvatarImage src={student.profilePicture || ''} />
                           <AvatarFallback>
-                            {student.displayName?.charAt(0) || student.email?.charAt(0) || 'U'}
+                            {student.name?.charAt(0) || student.email?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-lg truncate">
-                            {student.displayName || 'ไม่ระบุชื่อ'}
+                            {student.name || 'ไม่ระบุชื่อ'}
                           </CardTitle>
                           <CardDescription className="truncate">
                             {student.studentId}
@@ -859,14 +850,14 @@ const InstructorDashboard: React.FC = () => {
                     <CardHeader className="pb-3">
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={student.photoURL || ''} />
+                          <AvatarImage src={student.profilePicture || ''} />
                           <AvatarFallback>
-                            {student.displayName?.charAt(0) || student.email?.charAt(0) || 'U'}
+                            {student.name?.charAt(0) || student.email?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-lg truncate">
-                            {student.displayName || 'ไม่ระบุชื่อ'}
+                            {student.name || 'ไม่ระบุชื่อ'}
                           </CardTitle>
                           <CardDescription className="truncate">
                             {student.studentId}
