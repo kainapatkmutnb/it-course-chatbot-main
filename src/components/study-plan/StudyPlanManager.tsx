@@ -692,6 +692,12 @@ const StudyPlanManager: React.FC = () => {
                               {course.prerequisites.join(', ')}
                             </div>
                           )}
+                          {course.corequisites && course.corequisites.length > 0 && (
+                            <div className="text-sm">
+                              <span className="font-medium">วิชาที่ต้องเรียนพร้อมกัน: </span>
+                              {course.corequisites.join(', ')}
+                            </div>
+                          )}
                         </div>
                       ) : null;
                     })()}
@@ -1050,6 +1056,37 @@ const StudyPlanManager: React.FC = () => {
                           <p className="text-sm text-muted-foreground">{course.code}</p>
                           {course.description && (
                             <p className="text-sm text-muted-foreground mt-1">{course.description}</p>
+                          )}
+                          
+                          {/* Prerequisites and Corequisites Display */}
+                          {((course.prerequisites && course.prerequisites.length > 0) || 
+                            (course.corequisites && course.corequisites.length > 0)) && (
+                            <div className="mt-2 space-y-1">
+                              {course.prerequisites && course.prerequisites.length > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs font-medium text-warning">วิชาที่ต้องเรียนมาก่อน:</span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {course.prerequisites.map((prereq, index) => (
+                                      <Badge key={`${course.id}-pre-${prereq}`} variant="outline" className="text-xs bg-warning/10 border-warning/20">
+                                        {prereq}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {course.corequisites && course.corequisites.length > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-xs font-medium text-blue-600">วิชาที่ต้องเรียนพร้อมกัน:</span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {course.corequisites.map((coreq, index) => (
+                                      <Badge key={`${course.id}-co-${coreq}`} variant="outline" className="text-xs bg-blue/10 border-blue/20">
+                                        {coreq}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                         <div className="flex items-center space-x-2">

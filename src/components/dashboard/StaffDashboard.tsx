@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/hooks/useFirebaseData';
 import { Course, firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
+import { getCoursesByProgram } from '@/services/courseService';
 import CourseManagement from './CourseManagement';
 import { 
   Users, 
@@ -40,7 +41,9 @@ const StaffDashboard: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState<string>('');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [prerequisiteToAdd, setPrerequisiteToAdd] = useState<string>('');
+  const [corequisiteToAdd, setCorequisiteToAdd] = useState<string>('');
   const [courses, setCourses] = useState<any[]>([]);
+  const [allCoursesInCurriculum, setAllCoursesInCurriculum] = useState<any[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +68,9 @@ const StaffDashboard: React.FC = () => {
   useEffect(() => {
     if (selectedProgram && selectedCurriculumYear && selectedYear && selectedSemester) {
       loadCourses();
+    }
+    if (selectedProgram && selectedCurriculumYear) {
+      loadAllCoursesInCurriculum();
     }
   }, [selectedProgram, selectedCurriculumYear, selectedYear, selectedSemester]);
 
@@ -139,6 +145,21 @@ const StaffDashboard: React.FC = () => {
     }
   };
 
+  const loadAllCoursesInCurriculum = async () => {
+    try {
+      // Get all courses for the selected program and curriculum year
+      const allCourses = getCoursesByProgram(selectedProgram, selectedCurriculumYear);
+      setAllCoursesInCurriculum(allCourses);
+    } catch (error) {
+      console.error('Error loading all courses in curriculum:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดรายวิชาทั้งหมดในหลักสูตรได้",
+        variant: "destructive",
+      });
+    }
+  };
+
   const addPrerequisite = async () => {
     if (selectedCourse && prerequisiteToAdd && selectedCourse !== prerequisiteToAdd) {
       try {
@@ -186,6 +207,59 @@ const StaffDashboard: React.FC = () => {
         toast({
           title: 'เกิดข้อผิดพลาด',
           description: 'ไม่สามารถเพิ่มเงื่อนไขได้',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  const addCorequisite = async () => {
+    if (selectedCourse && corequisiteToAdd && selectedCourse !== corequisiteToAdd) {
+      try {
+        // Find the course to update
+        const courseToUpdate = courses.find(c => c.code === selectedCourse);
+        if (!courseToUpdate) return;
+
+        // Update corequisites
+        const updatedCorequisites = [...(courseToUpdate.corequisites || []), corequisiteToAdd];
+        const updatedCourse = {
+          ...courseToUpdate,
+          corequisites: updatedCorequisites
+        };
+
+        // Update in Firebase
+        await firebaseService.updateCourse(
+          selectedProgram,
+          selectedCurriculumYear,
+          parseInt(selectedYear),
+          parseInt(selectedSemester),
+          updatedCourse
+        );
+
+        // Update local state
+        setCourses(courses.map(c => c.code === selectedCourse ? updatedCourse : c));
+        
+        setCorequisiteToAdd('');
+        
+        // Create audit log
+        if (user) {
+          await firebaseService.createAuditLog({
+            action: 'เพิ่มวิชาที่ต้องเรียนพร้อมกัน',
+            details: `เพิ่มวิชาที่ต้องเรียนพร้อมกัน ${corequisiteToAdd} สำหรับ ${selectedCourse}`,
+            userId: user.id,
+            ipAddress: 'localhost',
+            category: 'course'
+          });
+        }
+        
+        toast({
+          title: 'เพิ่มวิชาที่ต้องเรียนพร้อมกันสำเร็จ',
+          description: `เพิ่มวิชาที่ต้องเรียนพร้อมกัน ${corequisiteToAdd} สำหรับ ${selectedCourse}`,
+        });
+      } catch (error) {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถเพิ่มวิชาที่ต้องเรียนพร้อมกันได้',
           variant: 'destructive'
         });
       }
@@ -505,7 +579,7 @@ const StaffDashboard: React.FC = () => {
                             <SelectValue placeholder="เลือกวิชาเงื่อนไข" />
                           </SelectTrigger>
                           <SelectContent>
-                            {courses
+                            {allCoursesInCurriculum
                               .filter(course => course.code !== selectedCourse)
                               .map((course) => (
                                 <SelectItem key={course.id} value={course.code}>
@@ -524,6 +598,38 @@ const StaffDashboard: React.FC = () => {
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           เพิ่มเงื่อนไข
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Add Corequisite Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue/5 border border-blue/20 rounded-lg">
+                      <div>
+                        <Label htmlFor="corequisite-course">เลือกวิชาที่ต้องเรียนพร้อมกัน</Label>
+                        <Select value={corequisiteToAdd} onValueChange={setCorequisiteToAdd}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="เลือกวิชาที่ต้องเรียนพร้อมกัน" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allCoursesInCurriculum
+                              .filter(course => course.code !== selectedCourse)
+                              .map((course) => (
+                                <SelectItem key={course.id} value={course.code}>
+                                  {course.code} - {course.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex items-end">
+                        <Button 
+                          onClick={addCorequisite}
+                          disabled={!selectedCourse || !corequisiteToAdd}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          เพิ่มวิชาที่ต้องเรียนพร้อมกัน
                         </Button>
                       </div>
                     </div>
