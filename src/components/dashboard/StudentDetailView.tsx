@@ -133,11 +133,10 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const getStudentProgress = () => {
     if (!student) return { completed: 0, inProgress: 0, failed: 0, totalCredits: 0, progressPercentage: 0 };
     
-    const studentEnrollments = studentCourses.filter(sc => sc.studentId === student.id);
-    const completed = studentEnrollments.filter(sc => sc.status === 'completed').length;
-    const inProgress = studentEnrollments.filter(sc => sc.status === 'in_progress').length;
-    const failed = studentEnrollments.filter(sc => sc.status === 'failed').length;
-    const totalCredits = studentEnrollments
+    const completed = studentCourses.filter(sc => sc.status === 'completed').length;
+    const inProgress = studentCourses.filter(sc => sc.status === 'in_progress').length;
+    const failed = studentCourses.filter(sc => sc.status === 'failed').length;
+    const totalCredits = studentCourses
       .filter(sc => sc.status === 'completed')
       .reduce((sum, sc) => {
         const course = allCourses.find(c => c.id === sc.courseId);
@@ -190,7 +189,6 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   }
 
   const progress = getStudentProgress();
-  const studentEnrollments = studentCourses.filter(sc => sc.studentId === student.id);
 
   return (
     <div className="space-y-6">
@@ -266,7 +264,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {studentEnrollments.map((studentCourse) => {
+                {studentCourses.map((studentCourse) => {
                   const course = getCourseDetails(studentCourse.courseId);
                   if (!course) return null;
                   
@@ -297,6 +295,11 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                     </div>
                   );
                 })}
+                {studentCourses.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    ไม่พบข้อมูลรายวิชา
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -312,7 +315,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {studentEnrollments.filter(sc => sc.status === 'completed').map((studentCourse) => {
+                {studentCourses.filter(sc => sc.status === 'completed').map((studentCourse) => {
                   const course = getCourseDetails(studentCourse.courseId);
                   if (!course) return null;
                   
@@ -331,6 +334,11 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                     </div>
                   );
                 })}
+                {studentCourses.filter(sc => sc.status === 'completed').length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    ยังไม่มีรายวิชาที่ผ่านแล้ว
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -346,7 +354,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {studentEnrollments.filter(sc => sc.status === 'in_progress').map((studentCourse) => {
+                {studentCourses.filter(sc => sc.status === 'in_progress').map((studentCourse) => {
                   const course = getCourseDetails(studentCourse.courseId);
                   if (!course) return null;
                   
@@ -365,6 +373,11 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                     </div>
                   );
                 })}
+                {studentCourses.filter(sc => sc.status === 'in_progress').length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    ยังไม่มีรายวิชาที่กำลังเรียน
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -380,8 +393,8 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {studentEnrollments.filter(sc => sc.status === 'failed').length > 0 ? 
-                  studentEnrollments.filter(sc => sc.status === 'failed').map((studentCourse) => {
+                {studentCourses.filter(sc => sc.status === 'failed').length > 0 ? 
+                  studentCourses.filter(sc => sc.status === 'failed').map((studentCourse) => {
                     const course = getCourseDetails(studentCourse.courseId);
                     if (!course) return null;
                     
