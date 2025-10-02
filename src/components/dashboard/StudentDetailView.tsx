@@ -316,7 +316,16 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                 </div>
               ) : studyPlan.length > 0 ? (
                 <div className="space-y-3">
-                  {studyPlan.map((course) => {
+                  {studyPlan
+                    .sort((a, b) => {
+                      // เรียงตามปีก่อน (น้อยไปมาก)
+                      if (a.year !== b.year) {
+                        return (a.year || 0) - (b.year || 0);
+                      }
+                      // ถ้าปีเท่ากัน เรียงตามเทอม (น้อยไปมาก)
+                      return (a.semester || 0) - (b.semester || 0);
+                    })
+                    .map((course) => {
                     // กำหนดสีตามสถานะของวิชา
                     const getStatusColor = (status: string) => {
                       switch (status) {
