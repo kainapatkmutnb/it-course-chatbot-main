@@ -230,14 +230,6 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                   <GraduationCap className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{(student as any).program}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">ปีที่ {(student as any).year}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">เกรดเฉลี่ย: {(student as any).gpa}</span>
-                </div>
               </div>
             </div>
           </div>
