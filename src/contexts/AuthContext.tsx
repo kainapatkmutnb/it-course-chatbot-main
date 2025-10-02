@@ -108,6 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const result = await signInWithEmailAndPassword(auth, email, password);
       
+      // Get user role from database after successful login
+      const userRef = ref(db, `users/${result.user.uid}`);
+      const userSnapshot = await get(userRef);
+      const userData = userSnapshot.exists() ? userSnapshot.val() : null;
+      
       // Log successful login
       const auditRef = push(ref(db, 'auditLogs'));
       await set(auditRef, {
@@ -120,6 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         category: 'authentication',
         details: {
           success: true,
+          userRole: userData?.role || 'unknown',
+          userName: userData?.name || result.user.displayName || 'Unknown User',
           userAgent: navigator.userAgent
         }
       });
@@ -217,6 +224,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Log successful Google login
+      // Get user role from database after successful login
+      const userRef = ref(db, `users/${result.user.uid}`);
+      const userSnapshot = await get(userRef);
+      const userData = userSnapshot.exists() ? userSnapshot.val() : null;
+      
       const auditRef = push(ref(db, 'auditLogs'));
       await set(auditRef, {
         action: 'user_login',
@@ -228,6 +240,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         category: 'authentication',
         details: {
           success: true,
+          userRole: userData?.role || 'unknown',
+          userName: userData?.name || result.user.displayName || 'Unknown User',
           userAgent: navigator.userAgent
         }
       });
