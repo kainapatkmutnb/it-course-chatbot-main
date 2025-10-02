@@ -25,7 +25,7 @@ export interface Course {
   category: 'general' | 'core' | 'elective' | 'major' | 'free';
   mainCategory: string;
   subCategory: string;
-  prerequisites?: string[];
+  prerequisites: string[];
   corequisites?: string[];
   semester?: number;
   year?: number;
