@@ -16,6 +16,7 @@ import { firebaseService, AuditLog } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/auth';
 import CourseManagement from './CourseManagement';
+import { getCoursesByProgram } from '@/services/courseService';
 import { 
   Shield, 
   Users, 
@@ -75,8 +76,127 @@ const AdminDashboard: React.FC = () => {
     enableGoogleLogin: true,
     enableTwoFactor: false
   });
+  const [allCoursesFromBothSources, setAllCoursesFromBothSources] = useState<any[]>([]);
+  const [coursesLoading2, setCoursesLoading2] = useState(true);
+
+  // Available programs and curriculum years (same as StaffDashboard)
+  const programs = [
+    { code: 'IT', name: 'เทคโนโลยีสารสนเทุศ' },
+    { code: 'INE', name: 'วิศวกรรมสารสนเทุศและเครือข่าย' },
+    { code: 'INET', name: 'เทคโนโลยีสารสนเทุศและเครือข่าย' },
+    { code: 'ITI', name: 'เทคโนโลยีสารสนเทุศอุตสาหกรรม' },
+    { code: 'ITT', name: 'เทคโนโลยีสารสนเทุศและการสื่อสาร' }
+  ];
+
+  const curriculumYears = {
+    'IT': ['62 สหกิจ', '67 สหกิจ', '62', '67'],
+    'INE': ['62', '67', '62 สหกิจ', '67 สหกิจ'],
+    'INET': ['62', '67'],
+    'ITI': ['62', '67'],
+    'ITT': ['67']
+  };
+
+  // Load all courses from both Firebase and completeCurriculumData
+  const loadAllCoursesFromBothSources = async () => {
+    setCoursesLoading2(true);
+    try {
+      const allCourses: any[] = [];
+      
+      // Loop through all programs and curriculum years
+      for (const program of programs) {
+        const programYears = curriculumYears[program.code as keyof typeof curriculumYears];
+        if (programYears) {
+          for (const year of programYears) {
+            // Get all courses for this program and curriculum year from completeCurriculumData
+            const programCourses = getCoursesByProgram(program.code, year);
+            
+            // Get Firebase courses for all semesters and years
+            for (let studyYear = 1; studyYear <= 4; studyYear++) {
+              for (let semester = 1; semester <= 3; semester++) {
+                try {
+                  const firebaseCourses = await firebaseService.getCourses(
+                    program.code,
+                    year,
+                    studyYear,
+                    semester
+                  );
+                  
+                  if (firebaseCourses && firebaseCourses.length > 0) {
+                    firebaseCourses.forEach(fbCourse => {
+                      // Check if course already exists in allCourses
+                      const existingIndex = allCourses.findIndex(c => c.code === fbCourse.code);
+                      if (existingIndex >= 0) {
+                        // Update existing course with Firebase data (Firebase takes precedence)
+                        allCourses[existingIndex] = {
+                          ...allCourses[existingIndex],
+                          ...fbCourse,
+                          program: program.code,
+                          programName: program.name,
+                          curriculumYear: year,
+                          source: 'firebase'
+                        };
+                      } else {
+                        // Add new course from Firebase
+                        allCourses.push({
+                          ...fbCourse,
+                          program: program.code,
+                          programName: program.name,
+                          curriculumYear: year,
+                          source: 'firebase'
+                        });
+                      }
+                    });
+                  }
+                } catch (error) {
+                  // Continue if error occurs for specific program/year/semester
+                  console.warn(`Error loading courses for ${program.code} ${year} year ${studyYear} semester ${semester}:`, error);
+                }
+              }
+            }
+            
+            // Add curriculum courses that don't have Firebase overrides
+            programCourses.forEach(course => {
+              const existingIndex = allCourses.findIndex(c => c.code === course.code);
+              if (existingIndex === -1) {
+                allCourses.push({
+                  ...course,
+                  program: program.code,
+                  programName: program.name,
+                  curriculumYear: year,
+                  source: 'curriculum'
+                });
+              }
+            });
+          }
+        }
+      }
+      
+      setAllCoursesFromBothSources(allCourses);
+    } catch (error) {
+      console.error('Error loading all courses from both sources:', error);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถโหลดข้อมูลรายวิชาได้",
+        variant: "destructive",
+      });
+    } finally {
+      setCoursesLoading2(false);
+    }
+  };
+
+  // Load courses from both sources on component mount
+  useEffect(() => {
+    loadAllCoursesFromBothSources();
+  }, []);
 
   const allCourses = firebaseCourses || [];
+  const stats = systemStats;
+
+  // Calculate combined statistics
+  const combinedStats = {
+    totalCourses: allCoursesFromBothSources.length,
+    activeCourses: allCoursesFromBothSources.filter(c => c.isActive !== false).length
+  };
 
   // Helper functions for role display
   const getRoleDisplayName = (role: string) => {
@@ -300,7 +420,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const stats = {
+  const localStats = {
     totalUsers: allUsers?.length || 0,
     totalCourses: allCourses.length,
     activeUsers: allUsers?.filter(u => u.isActive !== false).length || 0,
@@ -728,7 +848,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <Users className="w-8 h-8 text-primary" />
-                <span className="text-2xl font-bold">{stats?.totalUsers}</span>
+                <span className="text-2xl font-bold">{localStats?.totalUsers}</span>
               </div>
             </CardContent>
           </Card>
@@ -742,7 +862,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <BookOpen className="w-8 h-8 text-secondary" />
-                <span className="text-2xl font-bold">{stats?.totalCourses || allCourses.length}</span>
+                <span className="text-2xl font-bold">{combinedStats.totalCourses}</span>
               </div>
             </CardContent>
           </Card>
@@ -756,7 +876,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <Users className="w-8 h-8 text-success" />
-                <span className="text-2xl font-bold">{stats?.activeUsers}</span>
+                <span className="text-2xl font-bold">{localStats?.activeUsers}</span>
               </div>
             </CardContent>
           </Card>
@@ -770,7 +890,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <BookOpen className="w-8 h-8 text-warning" />
-                <span className="text-2xl font-bold">{stats?.activeCourses || allCourses.filter(c => c.isActive).length}</span>
+                <span className="text-2xl font-bold">{combinedStats.activeCourses}</span>
               </div>
             </CardContent>
           </Card>
