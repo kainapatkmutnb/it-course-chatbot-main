@@ -230,6 +230,10 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                   <GraduationCap className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{(student as any).program}</span>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">ปีที่ {(student as any).year || 'ไม่ระบุ'}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -316,6 +320,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                             <div className="font-medium">{course.code} - {course.name}</div>
                             <div className="text-sm text-muted-foreground">
                               {course.credits} หน่วยกิต
+                              {course.year && course.semester && ` • ปีที่ ${course.year} เทอม ${course.semester}`}
                               {course.type && ` • ประเภท: ${course.type}`}
                               {course.grade && ` • เกรด: ${course.grade}`}
                             </div>
