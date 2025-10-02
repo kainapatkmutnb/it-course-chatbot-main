@@ -725,10 +725,10 @@ const InstructorDashboard: React.FC = () => {
                           <Mail className="h-4 w-4" />
                           <span className="truncate">{student.email}</span>
                         </div>
-                        {student.phone && (
+                        {(student as any).phone && (
                           <div className="flex items-center gap-2 text-gray-600">
                             <Phone className="h-4 w-4" />
-                            <span>{student.phone}</span>
+                            <span>{(student as any).phone}</span>
                           </div>
                         )}
                         {student.department && (
@@ -877,10 +877,10 @@ const InstructorDashboard: React.FC = () => {
                           <Mail className="h-4 w-4" />
                           <span className="truncate">{student.email}</span>
                         </div>
-                        {student.phone && (
+                        {(student as any).phone && (
                           <div className="flex items-center gap-2 text-gray-600">
                             <Phone className="h-4 w-4" />
-                            <span>{student.phone}</span>
+                            <span>{(student as any).phone}</span>
                           </div>
                         )}
                         {student.department && (
