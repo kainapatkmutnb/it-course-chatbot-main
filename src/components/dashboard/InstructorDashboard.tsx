@@ -63,6 +63,7 @@ const InstructorDashboard: React.FC = () => {
 
         // Load available students (not assigned to any instructor)
         const available = await firebaseService.getAvailableStudents(user.id);
+        console.log('Available students:', available);
         setAvailableStudents(available);
 
         // Load grade statistics for supervised students
@@ -204,11 +205,22 @@ const InstructorDashboard: React.FC = () => {
 
   // Filter available students for adding
   const filteredAvailableStudents = useMemo(() => {
-    return availableStudents.filter(student =>
+    console.log('Available students before filter:', availableStudents);
+    console.log('Search term:', searchTerm);
+    
+    if (!searchTerm) {
+      console.log('No search term, returning all available students:', availableStudents);
+      return availableStudents;
+    }
+    
+    const filtered = availableStudents.filter(student =>
       student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.studentId?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    console.log('Filtered available students:', filtered);
+    return filtered;
   }, [availableStudents, searchTerm]);
 
   // Calculate student statistics for display
@@ -272,6 +284,7 @@ const InstructorDashboard: React.FC = () => {
                 className="w-full"
               />
               <div className="max-h-96 overflow-y-auto space-y-2">
+                {/* {console.log('Rendering available students:', filteredAvailableStudents)} */}
                 {filteredAvailableStudents.map((student) => (
                   <Card key={student.id} className="p-4">
                     <div className="flex items-center justify-between">

@@ -697,12 +697,23 @@ class FirebaseService {
             id: key,
             ...usersData[key]
           }))
-          .filter(user => 
-            user.role === 'student' && 
-            (!user.advisorId || user.advisorId === '') &&
-            user.isActive !== false
-          );
+          .filter(user => {
+            // Check if user is a student and active
+            const isStudent = user.role === 'student';
+            const isActive = user.isActive !== false;
+            
+            // Check if student doesn't have an advisor or has null/undefined/empty advisorId
+            const hasNoAdvisor = !user.advisorId || 
+                                user.advisorId === '' || 
+                                user.advisorId === null || 
+                                user.advisorId === undefined;
+            
+            console.log(`Student ${user.name}: isStudent=${isStudent}, isActive=${isActive}, advisorId=${user.advisorId}, hasNoAdvisor=${hasNoAdvisor}`);
+            
+            return isStudent && isActive && hasNoAdvisor;
+          });
         
+        console.log('Available students found:', availableStudents.length);
         return availableStudents;
       }
       return [];
