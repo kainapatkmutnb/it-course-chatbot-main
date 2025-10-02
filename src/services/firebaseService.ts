@@ -21,7 +21,7 @@ export interface Course {
   code: string;
   name: string;
   credits: number;
-  description?: string;
+  description: string;
   category: 'general' | 'core' | 'elective' | 'major' | 'free';
   mainCategory: string;
   subCategory: string;
@@ -181,25 +181,6 @@ class FirebaseService {
   }
 
   // Courses
-  async getCourses(): Promise<Course[]> {
-    try {
-      const coursesRef = ref(database, 'courses');
-      const snapshot = await get(coursesRef);
-      
-      if (snapshot.exists()) {
-        const coursesData = snapshot.val();
-        return Object.keys(coursesData).map(key => ({
-          id: key,
-          ...coursesData[key]
-        }));
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-      return [];
-    }
-  }
-
   async getCourseById(courseId: string): Promise<Course | null> {
     try {
       const courseRef = ref(database, `courses/${courseId}`);
@@ -228,28 +209,6 @@ class FirebaseService {
     } catch (error) {
       console.error('Error creating course:', error);
       return null;
-    }
-  }
-
-  async updateCourse(courseId: string, updates: Partial<Course>): Promise<boolean> {
-    try {
-      const courseRef = ref(database, `courses/${courseId}`);
-      await update(courseRef, updates);
-      return true;
-    } catch (error) {
-      console.error('Error updating course:', error);
-      return false;
-    }
-  }
-
-  async deleteCourse(courseId: string): Promise<boolean> {
-    try {
-      const courseRef = ref(database, `courses/${courseId}`);
-      await remove(courseRef);
-      return true;
-    } catch (error) {
-      console.error('Error deleting course:', error);
-      return false;
     }
   }
 
