@@ -10,7 +10,7 @@ import { User } from '@/types/auth';
 import { getAllCourses, studentCourses } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { ref, update } from 'firebase/database';
-import { db } from '@/config/firebase';
+import { db as database } from '@/config/firebase';
 import { 
   BookOpen, 
   CheckCircle, 
@@ -77,7 +77,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
       try {
         setIsSaving(true);
         // Update user data in Firebase - we'll store year as a custom field
-        const userRef = ref(db, `users/${student.id}`);
+        const userRef = ref(database, `users/${student.id}`);
         await update(userRef, { year: parseInt(selectedYear) });
         setStudent({ ...student, year: parseInt(selectedYear) } as any);
         setOriginalYear(selectedYear);
