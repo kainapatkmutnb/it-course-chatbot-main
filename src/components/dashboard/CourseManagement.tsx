@@ -78,7 +78,6 @@ const CourseManagement: React.FC = () => {
   const programs = [
     { code: 'IT', name: 'เทคโนโลยีสารสนเทศ' },
     { code: 'INE', name: 'วิศวกรรมสารสนเทศและเครือข่าย' },
-    { code: 'INE-COOP', name: 'วิศวกรรมสารสนเทศและเครือข่าย (สหกิจ)' },
     { code: 'INET', name: 'เทคโนโลยีสารสนเทศและเครือข่าย' },
     { code: 'ITI', name: 'เทคโนโลยีสารสนเทศอุตสาหกรรม' },
     { code: 'ITT', name: 'เทคโนโลยีสารสนเทศและการสื่อสาร' }
@@ -87,10 +86,9 @@ const CourseManagement: React.FC = () => {
   const curriculumYears = {
     'IT': ['62 สหกิจ', '67 สหกิจ', '62', '67'],
     'INE': ['62', '67', '62 สหกิจ', '67 สหกิจ'],
-    'INE-COOP': ['62', '67'],
     'INET': ['62', '67'],
     'ITI': ['62', '67'],
-    'ITT': ['61', '66', '67']
+    'ITT': ['67']
   };
 
   const mainCategories = [
