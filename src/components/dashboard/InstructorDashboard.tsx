@@ -46,7 +46,7 @@ const InstructorDashboard: React.FC = () => {
   const [allStudentsSearchTerm, setAllStudentsSearchTerm] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('students');
   const [isAssigning, setIsAssigning] = useState<string | null>(null);
 
   // Filter students under instructor's care
@@ -356,322 +356,16 @@ const InstructorDashboard: React.FC = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              ภาพรวม
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="students" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               นักศึกษาที่ดูแล
             </TabsTrigger>
-            <TabsTrigger value="all-students" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              นักศึกษาทั้งหมด
+            <TabsTrigger value="grade-stats" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              สถิติเกรด
             </TabsTrigger>
           </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            {/* Overall Statistics */}
-            {overallStats && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">นักศึกษาทั้งหมด</p>
-                        <p className="text-2xl font-bold text-blue-600">{overallStats.totalStudents}</p>
-                      </div>
-                      <Users className="h-8 w-8 text-blue-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">วิชาที่ผ่านรวม</p>
-                        <p className="text-2xl font-bold text-green-600">{overallStats.totalCompletedCourses}</p>
-                      </div>
-                      <CheckCircle className="h-8 w-8 text-green-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">เกรดเฉลี่ยรวม</p>
-                        <p className="text-2xl font-bold text-purple-600">{overallStats.averageGPA}</p>
-                      </div>
-                      <Award className="h-8 w-8 text-purple-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">หน่วยกิตรวม</p>
-                        <p className="text-2xl font-bold text-orange-600">{overallStats.totalCredits}</p>
-                      </div>
-                      <BookOpen className="h-8 w-8 text-orange-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Quick Student Selection for Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  ดูรายละเอียดนักศึกษา
-                </CardTitle>
-                <CardDescription>
-                  เลือกนักศึกษาเพื่อดูข้อมูลแกะละเอียด
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4 items-center">
-                  <div className="flex-1">
-                    <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกนักศึกษา..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {studentsUnderCare.map((student) => (
-                          <SelectItem key={student.id} value={student.id}>
-                            {student.name} ({student.studentId}) - {student.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {selectedStudentId && (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setSelectedStudentId('')}
-                    >
-                      ล้างการเลือก
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Student Statistics when selected */}
-            {selectedStudentId && studentStats && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">ยังไม่ผ่าน</p>
-                          <p className="text-2xl font-bold text-red-600">{studentStats.notTaken}</p>
-                        </div>
-                        <XCircle className="h-8 w-8 text-red-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">วางแผนเรียน</p>
-                          <p className="text-2xl font-bold text-blue-600">{studentStats.planned}</p>
-                        </div>
-                        <Calendar className="h-8 w-8 text-blue-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">กำลังเรียน</p>
-                          <p className="text-2xl font-bold text-orange-600">{studentStats.inProgress}</p>
-                        </div>
-                        <Clock className="h-8 w-8 text-orange-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">เรียนจบแล้ว</p>
-                          <p className="text-2xl font-bold text-green-600">{studentStats.completed}</p>
-                        </div>
-                        <CheckCircle className="h-8 w-8 text-green-600" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* GPA and Credits */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        เกรดเฉลี่ย (GPA)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center">
-                        <p className="text-4xl font-bold text-blue-600">{studentStats.gpa}</p>
-                        <p className="text-gray-600 mt-2">จาก 4.00</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BookOpen className="h-5 w-5" />
-                        หน่วยกิตรวม
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center">
-                        <p className="text-4xl font-bold text-green-600">{studentStats.totalCredits}</p>
-                        <p className="text-gray-600 mt-2">หน่วยกิต</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Course Details */}
-                <Tabs defaultValue="completed" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="completed">เรียนจบแล้ว</TabsTrigger>
-                    <TabsTrigger value="inprogress">กำลังเรียน</TabsTrigger>
-                    <TabsTrigger value="planned">วางแผนเรียน</TabsTrigger>
-                    <TabsTrigger value="nottaken">ยังไม่ผ่าน</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="completed" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>รายวิชาที่เรียนจบแล้ว</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {selectedStudentPlan.courses?.filter(course => course.status === 'completed').map((completedCourse) => {
-                            const course = courses.find(c => c.id === completedCourse.courseId);
-                            return (
-                              <div key={completedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
-                                  <p className="font-medium">{course?.code} - {course?.name}</p>
-                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต</p>
-                                </div>
-                                <Badge variant={completedCourse.grade === 'A' ? 'default' : 
-                                              completedCourse.grade === 'F' ? 'destructive' : 'secondary'}>
-                                  {completedCourse.grade}
-                                </Badge>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="inprogress" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>รายวิชาที่กำลังเรียน</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {selectedStudentPlan.courses?.filter(course => course.status === 'in_progress').map((plannedCourse) => {
-                            const course = courses.find(c => c.id === plannedCourse.courseId);
-                            return (
-                              <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
-                                  <p className="font-medium">{course?.code} - {course?.name}</p>
-                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต</p>
-                                </div>
-                                <Badge variant="outline">กำลังเรียน</Badge>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="planned" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>รายวิชาที่วางแผนเรียน</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {selectedStudentPlan.courses?.filter(course => course.status === 'planned').map((plannedCourse) => {
-                            const course = courses.find(c => c.id === plannedCourse.courseId);
-                            return (
-                              <div key={plannedCourse.courseId} className="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
-                                  <p className="font-medium">{course?.code} - {course?.name}</p>
-                                  <p className="text-sm text-gray-600">{course?.credits} หน่วยกิต • ปี {plannedCourse.year} เทอม {plannedCourse.semester}</p>
-                                </div>
-                                <Badge variant="secondary">วางแผน</Badge>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="nottaken" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>รายวิชาที่ยังไม่ผ่าน</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {courses.filter(course => 
-                            !selectedStudentPlan.courses?.some(pc => pc.courseId === course.id)
-                          ).map((course) => (
-                            <div key={course.id} className="flex items-center justify-between p-3 border rounded-lg">
-                              <div>
-                                <p className="font-medium">{course.code} - {course.name}</p>
-                                <p className="text-sm text-gray-600">{course.credits} หน่วยกิต</p>
-                              </div>
-                              <Badge variant="destructive">ยังไม่ผ่าน</Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </>
-            )}
-
-            {/* No student selected message */}
-            {!selectedStudentId && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">เลือกนักศึกษาเพื่อดูข้อมูล</h3>
-                  <p className="text-gray-600">กรุณาเลือกนักศึกษาจากรายการด้านบนเพื่อดูสถิติและรายละเอียดการเรียน</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
 
           {/* Students Tab */}
           <TabsContent value="students" className="space-y-6">
@@ -816,171 +510,127 @@ const InstructorDashboard: React.FC = () => {
             )}
           </TabsContent>
 
-          {/* All Students Tab */}
-          <TabsContent value="all-students" className="space-y-6">
-            {/* Search Bar */}
+          {/* Grade Statistics Tab */}
+          <TabsContent value="grade-stats" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Search className="h-5 w-5" />
-                  ค้นหานักศึกษาทั้งหมด
+                  <BarChart3 className="h-5 w-5" />
+                  สถิติเกรดนักศึกษาที่ดูแล
                 </CardTitle>
                 <CardDescription>
-                  เลือกนักศึกษาเพื่อเพิ่มเข้าสู่รายการที่ดูแล
+                  ภาพรวมสถิติเกรดและผลการเรียนของนักศึกษาที่อยู่ในการดูแล
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="ค้นหาด้วยชื่อ, อีเมล, หรือรหัสนักศึกษา..."
-                    value={allStudentsSearchTerm}
-                    onChange={(e) => setAllStudentsSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+                {supervisedStudents.length > 0 ? (
+                  <div className="space-y-6">
+                    {/* Overall Statistics */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <p className="text-2xl font-bold text-blue-600">
+                            {supervisedStudents.length}
+                          </p>
+                          <p className="text-sm text-gray-600">นักศึกษาทั้งหมด</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <p className="text-2xl font-bold text-green-600">
+                            {(supervisedStudents.reduce((sum, student) => {
+                              const stats = getStudentStatistics(student.id);
+                              return sum + parseFloat(stats.gpa);
+                            }, 0) / supervisedStudents.length).toFixed(2)}
+                          </p>
+                          <p className="text-sm text-gray-600">เกรดเฉลี่ยรวม</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <p className="text-2xl font-bold text-orange-600">
+                            {Math.round(supervisedStudents.reduce((sum, student) => {
+                              const stats = getStudentStatistics(student.id);
+                              return sum + stats.totalCredits;
+                            }, 0) / supervisedStudents.length)}
+                          </p>
+                          <p className="text-sm text-gray-600">หน่วยกิตเฉลี่ย</p>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <p className="text-2xl font-bold text-purple-600">
+                            {Math.round(supervisedStudents.reduce((sum, student) => {
+                              const stats = getStudentStatistics(student.id);
+                              return sum + stats.completed;
+                            }, 0) / supervisedStudents.length)}
+                          </p>
+                          <p className="text-sm text-gray-600">วิชาที่ผ่านเฉลี่ย</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Individual Student Statistics */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">รายละเอียดแต่ละคน</h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {supervisedStudents.map((student) => {
+                          const stats = getStudentStatistics(student.id);
+                          return (
+                            <Card key={student.id}>
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    <Avatar className="h-10 w-10">
+                                      <AvatarImage src={student.profilePicture || ''} />
+                                      <AvatarFallback>
+                                        {student.name?.charAt(0) || student.email?.charAt(0) || 'U'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="font-medium">{student.name || 'ไม่ระบุชื่อ'}</p>
+                                      <p className="text-sm text-gray-600">{student.studentId}</p>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-4 text-center">
+                                    <div>
+                                      <p className="text-lg font-bold text-green-600">{stats.completed}</p>
+                                      <p className="text-xs text-gray-600">ผ่าน</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-lg font-bold text-blue-600">{stats.inProgress}</p>
+                                      <p className="text-xs text-gray-600">กำลังเรียน</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-lg font-bold text-blue-600">{stats.gpa}</p>
+                                      <p className="text-xs text-gray-600">เกรดเฉลี่ย</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-lg font-bold text-orange-600">{stats.totalCredits}</p>
+                                      <p className="text-xs text-gray-600">หน่วยกิต</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      ยังไม่มีนักศึกษาที่ดูแล
+                    </h3>
+                    <p className="text-gray-600">
+                      เมื่อมีนักศึกษาที่อยู่ในการดูแล สถิติเกรดจะแสดงที่นี่
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
-            {/* All Students Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAllStudents.map((student) => {
-                const stats = getStudentStatistics(student.id);
-                const isUnderCare = student.advisorId === user?.id;
-                return (
-                  <Card key={student.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={student.profilePicture || ''} />
-                          <AvatarFallback>
-                            {student.name?.charAt(0) || student.email?.charAt(0) || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate">
-                            {student.name || 'ไม่ระบุชื่อ'}
-                          </CardTitle>
-                          <CardDescription className="truncate">
-                            {student.studentId}
-                          </CardDescription>
-                          {isUnderCare && (
-                            <Badge variant="default" className="mt-1">
-                              ดูแลแล้ว
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Contact Info */}
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Mail className="h-4 w-4" />
-                          <span className="truncate">{student.email}</span>
-                        </div>
-                        {(student as any).phone && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Phone className="h-4 w-4" />
-                            <span>{(student as any).phone}</span>
-                          </div>
-                        )}
-                        {student.department && (
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Building className="h-4 w-4" />
-                            <span>{student.department}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Academic Stats */}
-                      <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-                          <p className="text-xs text-gray-600">วิชาที่ผ่าน</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-blue-600">{stats.gpa}</p>
-                          <p className="text-xs text-gray-600">เกรดเฉลี่ย</p>
-                        </div>
-                      </div>
-
-                      <div className="text-center">
-                        <p className="text-lg font-semibold text-orange-600">{stats.totalCredits}</p>
-                        <p className="text-xs text-gray-600">หน่วยกิตรวม</p>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 pt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => setSelectedStudentId(student.id)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          ดูรายละเอียด
-                        </Button>
-                        {isUnderCare ? (
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => handleRemoveStudent(student.id)}
-                            disabled={isAssigning === student.id}
-                          >
-                            {isAssigning === student.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                              <UserMinus className="h-4 w-4" />
-                            )}
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="default" 
-                            size="sm"
-                            onClick={() => handleAssignStudent(student.id)}
-                            disabled={isAssigning === student.id}
-                          >
-                            {isAssigning === student.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                              <Plus className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {/* No students found */}
-            {filteredAllStudents.length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {allStudentsSearchTerm ? 'ไม่พบนักศึกษาที่ค้นหา' : 'ไม่มีนักศึกษาในระบบ'}
-                  </h3>
-                  <p className="text-gray-600">
-                    {allStudentsSearchTerm 
-                      ? 'ลองเปลี่ยนคำค้นหาหรือตรวจสอบการสะกดคำ' 
-                      : 'ยังไม่มีนักศึกษาที่ลงทะเบียนในระบบ'
-                    }
-                  </p>
-                  {allStudentsSearchTerm && (
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => setAllStudentsSearchTerm('')}
-                    >
-                      ล้างการค้นหา
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
         </Tabs>
       </div>
