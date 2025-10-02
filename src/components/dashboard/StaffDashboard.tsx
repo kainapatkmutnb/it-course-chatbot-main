@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/hooks/useFirebaseData';
-import { firebaseService } from '@/services/firebaseService';
+import { Course, firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import CourseManagement from './CourseManagement';
 import { 
@@ -28,6 +28,7 @@ import {
   User,
   Building
 } from 'lucide-react';
+import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 
 const StaffDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -39,7 +40,7 @@ const StaffDashboard: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState<string>('');
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [prerequisiteToAdd, setPrerequisiteToAdd] = useState<string>('');
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
 
