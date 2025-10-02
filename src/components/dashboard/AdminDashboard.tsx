@@ -503,7 +503,7 @@ const AdminDashboard: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <Select
                             value={userData.role}
-                            onValueChange={(newRole) => changeUserRole(userData.id, newRole)}
+                            onValueChange={(newRole) => changeUserRole(userData.id, newRole as UserRole)}
                           >
                             <SelectTrigger className="w-32">
                               <SelectValue />
