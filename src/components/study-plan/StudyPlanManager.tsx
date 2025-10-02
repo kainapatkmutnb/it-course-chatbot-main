@@ -249,7 +249,7 @@ const StudyPlanManager: React.FC = () => {
   // Save study plan to Firebase whenever customPlan changes
   useEffect(() => {
     const saveStudyPlan = async () => {
-      if (!user?.id || !customPlan.id || customPlan.courses.length === 0) return;
+      if (!user?.id || !customPlan.id) return;
       
       try {
         const studyPlanData = {
