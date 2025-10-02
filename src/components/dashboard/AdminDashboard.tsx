@@ -15,6 +15,7 @@ import { getAllCourses, auditLogs } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/auth';
+import CourseManagement from './CourseManagement';
 import { 
   Shield, 
   Users, 
@@ -537,126 +538,7 @@ const AdminDashboard: React.FC = () => {
 
           {/* Courses Management */}
           <TabsContent value="courses" className="space-y-6">
-            <Card className="shadow-medium">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center space-x-2">
-                      <BookOpen className="w-5 h-5" />
-                      <span>จัดการรายวิชา</span>
-                    </CardTitle>
-                    <CardDescription>
-                      เพิ่ม แก้ไข และจัดการรายวิชา
-                    </CardDescription>
-                  </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="w-4 h-4 mr-2" />
-                        เพิ่มรายวิชา
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>เพิ่มรายวิชาใหม่</DialogTitle>
-                        <DialogDescription>
-                          สร้างรายวิชาใหม่ในระบบ
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="course-code">รหัสวิชา</Label>
-                            <Input 
-                              id="course-code" 
-                              placeholder="CS101" 
-                              value={newCourse.code}
-                              onChange={(e) => setNewCourse({...newCourse, code: e.target.value})}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="course-credits">หน่วยกิต</Label>
-                            <Input 
-                              id="course-credits" 
-                              type="number" 
-                              value={newCourse.credits}
-                              onChange={(e) => setNewCourse({...newCourse, credits: parseInt(e.target.value)})}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="course-name">ชื่อวิชา</Label>
-                          <Input 
-                            id="course-name" 
-                            placeholder="การเขียนโปรแกรมเบื้องต้น" 
-                            value={newCourse.name}
-                            onChange={(e) => setNewCourse({...newCourse, name: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="course-category">หมวดหมู่</Label>
-                          <Select value={newCourse.category} onValueChange={(value) => setNewCourse({...newCourse, category: value as any})}>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="core">วิชาแกน</SelectItem>
-                              <SelectItem value="general">ศึกษาทั่วไป</SelectItem>
-                              <SelectItem value="elective">วิชาเลือก</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="course-description">คำอธิบายรายวิชา</Label>
-                          <Textarea 
-                            id="course-description" 
-                            placeholder="อธิบายเนื้อหาและวัตถุประสงค์ของรายวิชา"
-                            value={newCourse.description}
-                            onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
-                          />
-                        </div>
-                        <Button className="w-full" onClick={addCourse}>เพิ่มรายวิชา</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {allCourses.length > 0 ? (
-                    allCourses.map((course) => (
-                      <div key={course.id} className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="flex-1">
-                          <div className="font-medium">{course.name}</div>
-                          <div className="text-sm text-muted-foreground">{course.code}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {course.credits} หน่วยกิต • {course.category === 'core' ? 'วิชาแกน' : course.category === 'general' ? 'ศึกษาทั่วไป' : 'วิชาเลือก'}
-                          </div>
-                          {course.description && (
-                            <div className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                              {course.description}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={course.isActive ? 'default' : 'secondary'}>
-                            {course.isActive ? 'เปิดสอน' : 'ปิดสอน'}
-                          </Badge>
-                          <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p>ยังไม่มีรายวิชาในระบบ</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <CourseManagement />
           </TabsContent>
 
           {/* Import/Export */}

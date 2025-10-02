@@ -241,6 +241,109 @@ class FirebaseService {
     }
   }
 
+  async deleteCourse(courseId: string): Promise<boolean> {
+    try {
+      const courseRef = ref(database, `courses/${courseId}`);
+      await remove(courseRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      return false;
+    }
+  }
+
+  // Curriculum-specific course management
+  async getCourses(program?: string, curriculumYear?: string, year?: number, semester?: number): Promise<Course[]> {
+    try {
+      let coursesRef;
+      
+      if (program && curriculumYear && year && semester) {
+        // Get courses for specific curriculum path
+        coursesRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses`);
+      } else {
+        // Get all courses
+        coursesRef = ref(database, 'courses');
+      }
+      
+      const snapshot = await get(coursesRef);
+      
+      if (snapshot.exists()) {
+        const coursesData = snapshot.val();
+        return Object.keys(coursesData).map(key => ({
+          id: key,
+          ...coursesData[key]
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      return [];
+    }
+  }
+
+  async addCourse(program: string, curriculumYear: string, year: number, semester: number, course: Course): Promise<boolean> {
+    try {
+      // Add to curriculum-specific path
+      const curriculumCourseRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${course.id}`);
+      await set(curriculumCourseRef, course);
+      
+      // Also add to general courses collection for global access
+      const generalCourseRef = ref(database, `courses/${course.id}`);
+      await set(generalCourseRef, {
+        ...course,
+        program,
+        curriculumYear,
+        year,
+        semester
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error adding course:', error);
+      return false;
+    }
+  }
+
+  async updateCourse(program: string, curriculumYear: string, year: number, semester: number, course: Course): Promise<boolean> {
+    try {
+      // Update in curriculum-specific path
+      const curriculumCourseRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${course.id}`);
+      await update(curriculumCourseRef, course);
+      
+      // Update in general courses collection
+      const generalCourseRef = ref(database, `courses/${course.id}`);
+      await update(generalCourseRef, {
+        ...course,
+        program,
+        curriculumYear,
+        year,
+        semester
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating course:', error);
+      return false;
+    }
+  }
+
+  async deleteCourse(program: string, curriculumYear: string, year: number, semester: number, courseId: string): Promise<boolean> {
+    try {
+      // Remove from curriculum-specific path
+      const curriculumCourseRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${courseId}`);
+      await remove(curriculumCourseRef);
+      
+      // Remove from general courses collection
+      const generalCourseRef = ref(database, `courses/${courseId}`);
+      await remove(generalCourseRef);
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      return false;
+    }
+  }
+
   // Study Plans
   async getStudyPlanByStudentId(studentId: string): Promise<StudyPlan | null> {
     try {
