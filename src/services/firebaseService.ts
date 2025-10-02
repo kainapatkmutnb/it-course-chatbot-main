@@ -215,6 +215,56 @@ class FirebaseService {
     }
   }
 
+  // Assign student to instructor
+  async assignStudentToInstructor(studentId: string, instructorId: string): Promise<boolean> {
+    try {
+      const studentRef = ref(database, `users/${studentId}`);
+      await update(studentRef, { 
+        advisorId: instructorId,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Create audit log for student assignment
+      await this.createAuditLog({
+        action: 'มอบหมายนักศึกษา',
+        details: `มอบหมายนักศึกษา ID: ${studentId} ให้อาจารย์ ID: ${instructorId}`,
+        userId: instructorId,
+        ipAddress: 'localhost',
+        category: 'user'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error assigning student to instructor:', error);
+      return false;
+    }
+  }
+
+  // Remove student from instructor
+  async removeStudentFromInstructor(studentId: string, instructorId: string): Promise<boolean> {
+    try {
+      const studentRef = ref(database, `users/${studentId}`);
+      await update(studentRef, { 
+        advisorId: null,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Create audit log for student removal
+      await this.createAuditLog({
+        action: 'ยกเลิกการมอบหมายนักศึกษา',
+        details: `ยกเลิกการมอบหมายนักศึกษา ID: ${studentId} จากอาจารย์ ID: ${instructorId}`,
+        userId: instructorId,
+        ipAddress: 'localhost',
+        category: 'user'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error removing student from instructor:', error);
+      return false;
+    }
+  }
+
   // Courses
   async getCourseById(courseId: string): Promise<Course | null> {
     try {

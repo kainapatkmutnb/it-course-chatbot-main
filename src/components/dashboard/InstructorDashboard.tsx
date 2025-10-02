@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsers, useCourses, useStudyPlans } from '@/hooks/useFirebaseData';
+import { firebaseService } from '@/services/firebaseService';
+import { useToast } from '@/hooks/use-toast';
 import StudentDetailView from './StudentDetailView';
 import { 
   UserCheck, 
@@ -27,19 +29,25 @@ import {
   XCircle,
   Eye,
   Phone,
-  MapPin
+  MapPin,
+  Plus,
+  UserPlus,
+  UserMinus
 } from 'lucide-react';
 
 const InstructorDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { users, loading: usersLoading, error: usersError } = useUsers();
+  const { users, loading: usersLoading, error: usersError, refreshUsers } = useUsers();
   const { courses, loading: coursesLoading, error: coursesError } = useCourses();
   const { studyPlans, loading: studyPlansLoading, error: studyPlansError } = useStudyPlans();
+  const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [allStudentsSearchTerm, setAllStudentsSearchTerm] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isAssigning, setIsAssigning] = useState<string | null>(null);
 
   // Filter students under instructor's care
   const studentsUnderCare = useMemo(() => {
@@ -47,6 +55,21 @@ const InstructorDashboard: React.FC = () => {
     return users.filter(u => 
       u.role === 'student' && 
       u.advisorId === user.uid
+    );
+  }, [users, user]);
+
+  // Filter all students (not under care)
+  const allStudents = useMemo(() => {
+    if (!users || !user) return [];
+    return users.filter(u => u.role === 'student');
+  }, [users, user]);
+
+  // Filter students not under instructor's care
+  const studentsNotUnderCare = useMemo(() => {
+    if (!users || !user) return [];
+    return users.filter(u => 
+      u.role === 'student' && 
+      u.advisorId !== user.uid
     );
   }, [users, user]);
 
@@ -202,6 +225,77 @@ const InstructorDashboard: React.FC = () => {
     student.studentId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Filter all students for the new tab
+  const filteredAllStudents = allStudents.filter(student =>
+    student.displayName?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase()) ||
+    student.email?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase()) ||
+    student.studentId?.toLowerCase().includes(allStudentsSearchTerm.toLowerCase())
+  );
+
+  // Handle assigning student to instructor
+  const handleAssignStudent = async (studentId: string) => {
+    if (!user) return;
+    
+    setIsAssigning(studentId);
+    try {
+      const success = await firebaseService.assignStudentToInstructor(studentId, user.uid);
+      if (success) {
+        toast({
+          title: 'สำเร็จ',
+          description: 'เพิ่มนักศึกษาเข้าสู่รายการที่ดูแลแล้ว',
+        });
+        await refreshUsers(); // Refresh the users list
+      } else {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถเพิ่มนักศึกษาได้',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning student:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถเพิ่มนักศึกษาได้',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsAssigning(null);
+    }
+  };
+
+  // Handle removing student from instructor
+  const handleRemoveStudent = async (studentId: string) => {
+    if (!user) return;
+    
+    setIsAssigning(studentId);
+    try {
+      const success = await firebaseService.removeStudentFromInstructor(studentId, user.uid);
+      if (success) {
+        toast({
+          title: 'สำเร็จ',
+          description: 'ลบนักศึกษาออกจากรายการที่ดูแลแล้ว',
+        });
+        await refreshUsers(); // Refresh the users list
+      } else {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถลบนักศึกษาได้',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error removing student:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถลบนักศึกษาได้',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsAssigning(null);
+    }
+  };
+
   // If a student is selected, show their detail view
   if (selectedStudentId) {
     const selectedStudent = users.find(u => u.id === selectedStudentId);
@@ -262,7 +356,7 @@ const InstructorDashboard: React.FC = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               ภาพรวม
@@ -270,6 +364,10 @@ const InstructorDashboard: React.FC = () => {
             <TabsTrigger value="students" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               นักศึกษาที่ดูแล
+            </TabsTrigger>
+            <TabsTrigger value="all-students" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              นักศึกษาทั้งหมด
             </TabsTrigger>
           </TabsList>
 
@@ -336,7 +434,7 @@ const InstructorDashboard: React.FC = () => {
                   ดูรายละเอียดนักศึกษา
                 </CardTitle>
                 <CardDescription>
-                  เลือกนักศึกษาเพื่อดูข้อมูลและผลการเรียนแบบละเอียด
+                  เลือกนักศึกษาเพื่อดูข้อมูลแกะละเอียด
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -589,7 +687,7 @@ const InstructorDashboard: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Search className="h-5 w-5" />
-                  ค้นหานักศึกษา
+                  ค้นหานักศึกษาที่ดูแล
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -678,6 +776,18 @@ const InstructorDashboard: React.FC = () => {
                           <Eye className="h-4 w-4 mr-1" />
                           ดูรายละเอียด
                         </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleRemoveStudent(student.id)}
+                          disabled={isAssigning === student.id}
+                        >
+                          {isAssigning === student.id ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          ) : (
+                            <UserMinus className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -704,6 +814,173 @@ const InstructorDashboard: React.FC = () => {
                       variant="outline" 
                       className="mt-4"
                       onClick={() => setSearchTerm('')}
+                    >
+                      ล้างการค้นหา
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* All Students Tab */}
+          <TabsContent value="all-students" className="space-y-6">
+            {/* Search Bar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  ค้นหานักศึกษาทั้งหมด
+                </CardTitle>
+                <CardDescription>
+                  เลือกนักศึกษาเพื่อเพิ่มเข้าสู่รายการที่ดูแล
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="ค้นหาด้วยชื่อ, อีเมล, หรือรหัสนักศึกษา..."
+                    value={allStudentsSearchTerm}
+                    onChange={(e) => setAllStudentsSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* All Students Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAllStudents.map((student) => {
+                const stats = getStudentStatistics(student.id);
+                const isUnderCare = student.advisorId === user?.uid;
+                return (
+                  <Card key={student.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={student.photoURL || ''} />
+                          <AvatarFallback>
+                            {student.displayName?.charAt(0) || student.email?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">
+                            {student.displayName || 'ไม่ระบุชื่อ'}
+                          </CardTitle>
+                          <CardDescription className="truncate">
+                            {student.studentId}
+                          </CardDescription>
+                          {isUnderCare && (
+                            <Badge variant="default" className="mt-1">
+                              ดูแลแล้ว
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Contact Info */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Mail className="h-4 w-4" />
+                          <span className="truncate">{student.email}</span>
+                        </div>
+                        {student.phone && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Phone className="h-4 w-4" />
+                            <span>{student.phone}</span>
+                          </div>
+                        )}
+                        {student.department && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Building className="h-4 w-4" />
+                            <span>{student.department}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Academic Stats */}
+                      <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                          <p className="text-xs text-gray-600">วิชาที่ผ่าน</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-blue-600">{stats.gpa}</p>
+                          <p className="text-xs text-gray-600">เกรดเฉลี่ย</p>
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-orange-600">{stats.totalCredits}</p>
+                        <p className="text-xs text-gray-600">หน่วยกิตรวม</p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => setSelectedStudentId(student.id)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          ดูรายละเอียด
+                        </Button>
+                        {isUnderCare ? (
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleRemoveStudent(student.id)}
+                            disabled={isAssigning === student.id}
+                          >
+                            {isAssigning === student.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            ) : (
+                              <UserMinus className="h-4 w-4" />
+                            )}
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            onClick={() => handleAssignStudent(student.id)}
+                            disabled={isAssigning === student.id}
+                          >
+                            {isAssigning === student.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            ) : (
+                              <Plus className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* No students found */}
+            {filteredAllStudents.length === 0 && (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {allStudentsSearchTerm ? 'ไม่พบนักศึกษาที่ค้นหา' : 'ไม่มีนักศึกษาในระบบ'}
+                  </h3>
+                  <p className="text-gray-600">
+                    {allStudentsSearchTerm 
+                      ? 'ลองเปลี่ยนคำค้นหาหรือตรวจสอบการสะกดคำ' 
+                      : 'ยังไม่มีนักศึกษาที่ลงทะเบียนในระบบ'
+                    }
+                  </p>
+                  {allStudentsSearchTerm && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setAllStudentsSearchTerm('')}
                     >
                       ล้างการค้นหา
                     </Button>
