@@ -133,7 +133,7 @@ const CourseManagement: React.FC = () => {
   const loadCourses = async () => {
     setLoading(true);
     try {
-      // First try to get courses from Firebase
+      // Get courses from Firebase
       const firebaseCourses = await firebaseService.getCourses(
         selectedProgram,
         selectedCurriculumYear,
@@ -141,23 +141,40 @@ const CourseManagement: React.FC = () => {
         parseInt(selectedSemester)
       );
 
+      // Get curriculum courses as base data
+      const curriculumCourses = generateCoursesForSemester(
+        selectedProgram,
+        selectedCurriculumYear,
+        selectedYear,
+        selectedSemester
+      );
+
+      // Create a map of curriculum courses
+      const curriculumMap = new Map(curriculumCourses.map(c => [c.id, c]));
+
+      // Process Firebase courses
+      const processedCourses: Course[] = [];
+      
       if (firebaseCourses && firebaseCourses.length > 0) {
-        setCourses(firebaseCourses.map(c => ({
-          ...c,
-          semester: c.semester ?? parseInt(selectedSemester),
-          year: c.year ?? parseInt(selectedYear),
-          isActive: c.isActive ?? true
-        })));
-      } else {
-        // Fallback to curriculum data
-        const curriculumCourses = generateCoursesForSemester(
-          selectedProgram,
-          selectedCurriculumYear,
-          selectedYear,
-          selectedSemester
-        );
-        setCourses(curriculumCourses);
+        // Add Firebase courses (these override curriculum courses)
+        firebaseCourses.forEach(fbCourse => {
+          processedCourses.push({
+            ...fbCourse,
+            semester: fbCourse.semester ?? parseInt(selectedSemester),
+            year: fbCourse.year ?? parseInt(selectedYear),
+            isActive: fbCourse.isActive ?? true
+          });
+          // Remove from curriculum map if it exists there
+          curriculumMap.delete(fbCourse.id);
+        });
       }
+
+      // Add remaining curriculum courses that weren't overridden by Firebase
+      curriculumMap.forEach(course => {
+        processedCourses.push(course);
+      });
+
+      setCourses(processedCourses);
     } catch (error) {
       console.error('Error loading courses:', error);
       toast({
