@@ -169,6 +169,41 @@ class FirebaseService {
     }
   }
 
+  async updateUserRole(userId: string, newRole: 'student' | 'instructor' | 'staff' | 'admin', adminUserId: string): Promise<boolean> {
+    try {
+      // Get current user data first
+      const userRef = ref(database, `users/${userId}`);
+      const userSnapshot = await get(userRef);
+      
+      if (!userSnapshot.exists()) {
+        throw new Error('User not found');
+      }
+      
+      const currentUser = userSnapshot.val();
+      const oldRole = currentUser.role;
+      
+      // Update user role
+      await update(userRef, { 
+        role: newRole,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Create audit log for role change
+      await this.createAuditLog({
+        action: 'เปลี่ยนบทบาทผู้ใช้',
+        details: `เปลี่ยนบทบาทผู้ใช้ ${currentUser.name} (${currentUser.email}) จาก ${oldRole} เป็น ${newRole}`,
+        userId: adminUserId,
+        ipAddress: 'localhost',
+        category: 'user'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return false;
+    }
+  }
+
   async deleteUser(userId: string): Promise<boolean> {
     try {
       const userRef = ref(database, `users/${userId}`);

@@ -316,7 +316,36 @@ const AdminDashboard: React.FC = () => {
 
   const changeUserRole = async (userId: string, newRole: UserRole) => {
     try {
-      const success = await firebaseService.updateUser(userId, { role: newRole });
+      // ตรวจสอบสิทธิ์ admin
+      if (user?.role !== 'admin') {
+        toast({
+          title: 'ไม่มีสิทธิ์เข้าถึง',
+          description: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเปลี่ยนบทบาทผู้ใช้ได้',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      if (!user?.id) {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่พบข้อมูลผู้ใช้ที่ทำการเปลี่ยนแปลง',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // ป้องกันการเปลี่ยน role ของตัวเอง
+      if (userId === user.id) {
+        toast({
+          title: 'ไม่สามารถดำเนินการได้',
+          description: 'ไม่สามารถเปลี่ยนบทบาทของตัวเองได้',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const success = await firebaseService.updateUserRole(userId, newRole, user.id);
       if (success) {
         toast({
           title: 'เปลี่ยนบทบาทสำเร็จ',
@@ -838,6 +867,7 @@ const AdminDashboard: React.FC = () => {
                           <Select
                             value={userData.role}
                             onValueChange={(newRole) => changeUserRole(userData.id, newRole as UserRole)}
+                            disabled={userData.id === user?.id || user?.role !== 'admin'}
                           >
                             <SelectTrigger className="w-32">
                               <SelectValue />
@@ -849,10 +879,21 @@ const AdminDashboard: React.FC = () => {
                               <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Button variant="outline" size="sm" onClick={() => handleEditUser(userData)}>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEditUser(userData)}
+                            disabled={user?.role !== 'admin'}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteUser(userData)} className="text-destructive hover:text-destructive">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleDeleteUser(userData)} 
+                            className="text-destructive hover:text-destructive"
+                            disabled={userData.id === user?.id || user?.role !== 'admin'}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
