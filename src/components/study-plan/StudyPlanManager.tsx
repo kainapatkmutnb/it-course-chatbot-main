@@ -147,31 +147,68 @@ const StudyPlanManager: React.FC = () => {
 
   // Update available courses when filters change
   useEffect(() => {
-    if (courseSelectionMode === 'curriculum') {
-      const programData = courseDatabase[selectedProgram]?.[selectedCurriculumYear];
-      if (programData) {
+    const loadCourses = async () => {
+      if (courseSelectionMode === 'curriculum') {
         const allCourses: any[] = [];
         
-        // Extract courses from semester-based structure (e.g., "1-1", "1-2", "2-1", "2-2")
-        Object.entries(programData).forEach(([semesterKey, courses]: [string, any]) => {
-          if (Array.isArray(courses)) {
-            const [year, semester] = semesterKey.split('-').map(Number);
-            courses.forEach((course: any) => {
+        // 1. Get courses from curriculum data (completeCurriculumData.ts)
+        const programData = courseDatabase[selectedProgram]?.[selectedCurriculumYear];
+        if (programData) {
+          // Extract courses from semester-based structure (e.g., "1-1", "1-2", "2-1", "2-2")
+          Object.entries(programData).forEach(([semesterKey, courses]: [string, any]) => {
+            if (Array.isArray(courses)) {
+              const [year, semester] = semesterKey.split('-').map(Number);
+              courses.forEach((course: any) => {
+                allCourses.push({
+                  ...course,
+                  id: course.code || `${course.name}_${Math.random()}`,
+                  year: year,
+                  semester: semester,
+                  semesterKey: semesterKey,
+                  source: 'curriculum'
+                });
+              });
+            }
+          });
+        }
+        
+        // 2. Get courses from Firebase (added by admin)
+        try {
+          const firebaseCourses = await firebaseService.getCourses(selectedProgram, selectedCurriculumYear);
+          
+          // Add Firebase courses to the list
+          firebaseCourses.forEach((course: any) => {
+            // Check if course already exists in curriculum data
+            const existingCourse = allCourses.find(c => c.code === course.code);
+            
+            if (!existingCourse) {
+              // Add new course from Firebase
               allCourses.push({
                 ...course,
-                id: course.code || `${course.name}_${Math.random()}`,
-                year: year,
-                semester: semester,
-                semesterKey: semesterKey
+                id: course.id || course.code,
+                year: course.year || 1,
+                semester: course.semester || 1,
+                semesterKey: `${course.year || 1}-${course.semester || 1}`,
+                source: 'firebase'
               });
-            });
-          }
-        });
+            } else {
+              // Update existing course with Firebase data (Firebase takes priority)
+              Object.assign(existingCourse, {
+                ...course,
+                source: 'both'
+              });
+            }
+          });
+        } catch (error) {
+          console.error('Error loading Firebase courses:', error);
+        }
         
         setAvailableCourses(allCourses);
         setFilteredCourses(allCourses);
       }
-    }
+    };
+    
+    loadCourses();
   }, [courseSelectionMode, selectedProgram, selectedCurriculumYear]);
 
   // Filter courses based on search term, year, and semester
