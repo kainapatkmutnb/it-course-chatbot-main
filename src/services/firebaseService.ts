@@ -26,7 +26,7 @@ export interface Course {
   mainCategory: string;
   subCategory: string;
   prerequisites: string[];
-  corequisites?: string[];
+  corequisites: string[];
   semester?: number;
   year?: number;
   isActive: boolean;
