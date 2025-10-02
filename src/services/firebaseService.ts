@@ -22,10 +22,11 @@ export interface Course {
   name: string;
   credits: number;
   description?: string;
-  category: 'general' | 'core' | 'elective';
+  category: 'general' | 'core' | 'elective' | 'major' | 'free';
   mainCategory: string;
   subCategory: string;
   prerequisites?: string[];
+  corequisites?: string[];
   semester?: number;
   year?: number;
   isActive: boolean;
