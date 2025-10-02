@@ -6,6 +6,7 @@ export interface User {
   name: string;
   role: UserRole;
   profilePicture?: string;
+  phone?: string; // Optional phone number
   studentId?: string; // For students
   employeeId?: string; // For staff/instructors
   department?: string;

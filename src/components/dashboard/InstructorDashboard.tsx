@@ -236,7 +236,7 @@ const InstructorDashboard: React.FC = () => {
     
     setIsAssigning(studentId);
     try {
-      const success = await firebaseService.assignStudentToInstructor(studentId, user.uid);
+      const success = await firebaseService.assignStudentToInstructor(studentId, user.id);
       if (success) {
         toast({
           title: 'สำเร็จ',
@@ -268,7 +268,7 @@ const InstructorDashboard: React.FC = () => {
     
     setIsAssigning(studentId);
     try {
-      const success = await firebaseService.removeStudentFromInstructor(studentId, user.uid);
+      const success = await firebaseService.removeStudentFromInstructor(studentId, user.id);
       if (success) {
         toast({
           title: 'สำเร็จ',
@@ -844,7 +844,7 @@ const InstructorDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAllStudents.map((student) => {
                 const stats = getStudentStatistics(student.id);
-                const isUnderCare = student.advisorId === user?.uid;
+                const isUnderCare = student.advisorId === user?.id;
                 return (
                   <Card key={student.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader className="pb-3">

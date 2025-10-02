@@ -53,11 +53,11 @@ const StudentDashboard: React.FC = () => {
   
   // Use new hook to get GPA and credits from Firebase
   const { 
-    gpaData, 
+    data: gpaData, 
     loading: gpaLoading, 
     error: gpaError, 
-    refreshGPAData, 
-    updateGPAData 
+    refreshGPAAndCredits, 
+    updateGPAAndCredits 
   } = useStudentGPAAndCredits(user?.id);
 
   // Profile editing functions
@@ -113,12 +113,6 @@ const StudentDashboard: React.FC = () => {
   const inProgressCourses = studyPlan?.courses.filter(course => course.status === 'in_progress') || [];
   const plannedCourses = studyPlan?.courses.filter(course => course.status === 'planned') || [];
   
-  // Use Firebase data for GPA and credits, fallback to calculated values
-  const completedCredits = gpaData?.completedCredits || completedCourses.reduce((sum, course) => sum + course.credits, 0);
-  const totalCredits = gpaData?.totalCredits || studyPlan?.totalCredits || 140;
-  const currentGPA = gpaData?.gpa || calculateGPA();
-  const progressPercentage = (completedCredits / totalCredits) * 100;
-
   // Calculate GPA from completed courses
   const calculateGPA = () => {
     const gradedCourses = completedCourses.filter(course => course.grade);
@@ -136,6 +130,12 @@ const StudentDashboard: React.FC = () => {
     const totalCreditsGraded = gradedCourses.reduce((sum, course) => sum + course.credits, 0);
     return totalCreditsGraded > 0 ? totalPoints / totalCreditsGraded : 0;
   };
+  
+  // Use Firebase data for GPA and credits, fallback to calculated values
+  const completedCredits = gpaData?.completedCredits || completedCourses.reduce((sum, course) => sum + course.credits, 0);
+  const totalCredits = gpaData?.totalCredits || studyPlan?.totalCredits || 140;
+  const currentGPA = gpaData?.gpa || calculateGPA();
+  const progressPercentage = (completedCredits / totalCredits) * 100;
 
   // Update loading/error conditions to include GPA data
   if (studyPlanLoading || gpaLoading) {
