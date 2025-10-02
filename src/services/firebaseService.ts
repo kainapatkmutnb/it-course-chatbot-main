@@ -168,6 +168,17 @@ class FirebaseService {
     }
   }
 
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      const userRef = ref(database, `users/${userId}`);
+      await remove(userRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
+
   // Courses
   async getCourses(): Promise<Course[]> {
     try {

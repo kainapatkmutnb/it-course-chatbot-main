@@ -54,6 +54,8 @@ const AdminDashboard: React.FC = () => {
   });
   const [editingUser, setEditingUser] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
 
   const allCourses = getAllCourses();
 
@@ -101,11 +103,30 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const changeUserRole = (userId: string, newRole: string) => {
-    toast({
-      title: 'เปลี่ยนบทบาทสำเร็จ',
-      description: `เปลี่ยนบทบาทผู้ใช้เป็น ${newRole} แล้ว`,
-    });
+  const changeUserRole = async (userId: string, newRole: string) => {
+    try {
+      const success = await firebaseService.updateUser(userId, { role: newRole });
+      if (success) {
+        toast({
+          title: 'เปลี่ยนบทบาทสำเร็จ',
+          description: `เปลี่ยนบทบาทผู้ใช้เป็น ${getRoleDisplayName(newRole)} แล้ว`,
+        });
+        // Refresh users data would be handled by the useUsers hook
+      } else {
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถเปลี่ยนบทบาทผู้ใช้ได้',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error changing user role:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถเปลี่ยนบทบาทผู้ใช้ได้',
+        variant: 'destructive'
+      });
+    }
   };
 
   const createUser = async () => {
@@ -166,19 +187,65 @@ const AdminDashboard: React.FC = () => {
   const handleUpdateUser = async () => {
     if (editingUser && editingUser.name && editingUser.email && editingUser.role) {
       try {
-        // Here you would call firebaseService.updateUser
-        // For now, just show success toast
-        toast({
-          title: 'อัปเดตผู้ใช้สำเร็จ',
-          description: `อัปเดตข้อมูลผู้ใช้ ${editingUser.name} แล้ว`,
+        const success = await firebaseService.updateUser(editingUser.id, {
+          name: editingUser.name,
+          email: editingUser.email,
+          role: editingUser.role
         });
-        setIsEditDialogOpen(false);
-        setEditingUser(null);
+        
+        if (success) {
+          toast({
+            title: 'อัปเดตผู้ใช้สำเร็จ',
+            description: `อัปเดตข้อมูลผู้ใช้ ${editingUser.name} แล้ว`,
+          });
+          setIsEditDialogOpen(false);
+          setEditingUser(null);
+        } else {
+          toast({
+            title: 'เกิดข้อผิดพลาด',
+            description: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้',
+            variant: 'destructive'
+          });
+        }
       } catch (error) {
         console.error('Error updating user:', error);
         toast({
           title: 'เกิดข้อผิดพลาด',
           description: 'ไม่สามารถอัปเดตข้อมูลผู้ใช้ได้',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  const handleDeleteUser = (userData: any) => {
+    setUserToDelete(userData);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (userToDelete) {
+      try {
+        const success = await firebaseService.deleteUser(userToDelete.id);
+        if (success) {
+          toast({
+            title: 'ลบผู้ใช้สำเร็จ',
+            description: `ลบบัญชีผู้ใช้ ${userToDelete.name} แล้ว`,
+          });
+          setIsDeleteDialogOpen(false);
+          setUserToDelete(null);
+        } else {
+          toast({
+            title: 'เกิดข้อผิดพลาด',
+            description: 'ไม่สามารถลบบัญชีผู้ใช้ได้',
+            variant: 'destructive'
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถลบบัญชีผู้ใช้ได้',
           variant: 'destructive'
         });
       }
@@ -449,6 +516,9 @@ const AdminDashboard: React.FC = () => {
                           </Select>
                           <Button variant="outline" size="sm" onClick={() => handleEditUser(userData)}>
                             <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteUser(userData)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -783,6 +853,46 @@ const AdminDashboard: React.FC = () => {
                  <div className="flex space-x-2">
                    <Button className="flex-1" onClick={handleUpdateUser}>อัปเดตข้อมูล</Button>
                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>ยกเลิก</Button>
+                 </div>
+               </div>
+             )}
+           </DialogContent>
+         </Dialog>
+
+         {/* Delete User Confirmation Dialog */}
+         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+           <DialogContent>
+             <DialogHeader>
+               <DialogTitle>ยืนยันการลบผู้ใช้</DialogTitle>
+               <DialogDescription>
+                 คุณแน่ใจหรือไม่ที่จะลบบัญชีผู้ใช้นี้? การดำเนินการนี้ไม่สามารถยกเลิกได้
+               </DialogDescription>
+             </DialogHeader>
+             {userToDelete && (
+               <div className="space-y-4">
+                 <div className="p-4 bg-muted rounded-lg">
+                   <div className="flex items-center space-x-3">
+                     <Avatar className="h-10 w-10">
+                       <AvatarImage src={userToDelete.profilePicture} alt={userToDelete.name} />
+                       <AvatarFallback>
+                         {userToDelete.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                       </AvatarFallback>
+                     </Avatar>
+                     <div>
+                       <div className="font-medium">{userToDelete.name}</div>
+                       <div className="text-sm text-muted-foreground">{userToDelete.email}</div>
+                       <Badge variant={getRoleBadgeVariant(userToDelete.role)} className="mt-1">
+                         {getRoleDisplayName(userToDelete.role)}
+                       </Badge>
+                     </div>
+                   </div>
+                 </div>
+                 <div className="flex space-x-2">
+                   <Button variant="destructive" className="flex-1" onClick={confirmDeleteUser}>
+                     <Trash2 className="w-4 h-4 mr-2" />
+                     ลบผู้ใช้
+                   </Button>
+                   <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>ยกเลิก</Button>
                  </div>
                </div>
              )}
