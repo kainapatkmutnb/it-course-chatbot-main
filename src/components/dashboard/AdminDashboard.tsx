@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsers } from '@/hooks/useFirebaseData';
-import { users, getAllCourses, auditLogs } from '@/services/completeCurriculumData';
+import { getAllCourses, auditLogs } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -77,9 +77,9 @@ const AdminDashboard: React.FC = () => {
   };
 
   const stats = {
-    totalUsers: users.length,
+    totalUsers: allUsers?.length || 0,
     totalCourses: allCourses.length,
-    activeUsers: users.filter(u => u.lastLogin).length,
+    activeUsers: allUsers?.filter(u => u.lastLoginAt).length || 0,
     activeCourses: allCourses.filter(c => c.isActive).length
   };
 
@@ -151,11 +151,11 @@ const AdminDashboard: React.FC = () => {
     });
   };
 
-  const filteredUsers = users.filter(u =>
+  const filteredUsers = allUsers?.filter(u =>
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
 
   return (
     <div className="min-h-screen p-6 gradient-subtle">
@@ -222,7 +222,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <Users className="w-8 h-8 text-primary" />
-                <span className="text-2xl font-bold">{stats?.totalUsers || allUsers.length}</span>
+                <span className="text-2xl font-bold">{stats?.totalUsers}</span>
               </div>
             </CardContent>
           </Card>
@@ -250,7 +250,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <Users className="w-8 h-8 text-success" />
-                <span className="text-2xl font-bold">{stats?.activeUsers || allUsers.filter(u => u.lastLoginAt).length}</span>
+                <span className="text-2xl font-bold">{stats?.activeUsers}</span>
               </div>
             </CardContent>
           </Card>
@@ -362,7 +362,15 @@ const AdminDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredUsers.length > 0 ? (
+                  {usersLoading ? (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-muted-foreground">กำลังโหลดข้อมูลผู้ใช้...</div>
+                    </div>
+                  ) : usersError ? (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-destructive">เกิดข้อผิดพลาดในการโหลดข้อมูลผู้ใช้</div>
+                    </div>
+                  ) : filteredUsers.length > 0 ? (
                     filteredUsers.map((userData) => (
                       <div key={userData.id} className="flex items-center justify-between p-4 rounded-lg border hover:shadow-soft transition-shadow">
                         <div className="flex items-center space-x-4">
@@ -381,7 +389,10 @@ const AdminDashboard: React.FC = () => {
                               </Badge>
                               {userData.lastLoginAt && (
                                 <span className="text-xs text-muted-foreground">
-                                  เข้าสู่ระบบล่าสุด: {new Date(userData.lastLoginAt.seconds * 1000).toLocaleDateString('th-TH')}
+                                  เข้าสู่ระบบล่าสุด: {userData.lastLoginAt instanceof Date 
+                                    ? userData.lastLoginAt.toLocaleDateString('th-TH')
+                                    : new Date((userData.lastLoginAt as any).seconds * 1000).toLocaleDateString('th-TH')
+                                  }
                                 </span>
                               )}
                             </div>
