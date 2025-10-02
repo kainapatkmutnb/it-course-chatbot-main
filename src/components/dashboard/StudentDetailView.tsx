@@ -61,6 +61,10 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [originalYear, setOriginalYear] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Filter states for study plan
+  const [filterYear, setFilterYear] = useState<string>('all');
+  const [filterSemester, setFilterSemester] = useState<string>('all');
 
   // Handle year change (just update local state)
   const handleYearChange = (year: string) => {
@@ -319,8 +323,53 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                   <p>กำลังโหลดแผนการเรียน...</p>
                 </div>
               ) : studyPlan.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  {/* Filter Controls */}
+                  <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium">ปีการศึกษา:</label>
+                      <Select value={filterYear} onValueChange={setFilterYear}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">ทุกปี</SelectItem>
+                          {Array.from(new Set(studyPlan.map(course => course.year).filter(year => year))).sort().map(year => (
+                            <SelectItem key={year} value={year.toString()}>ปีที่ {year}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium">เทอม:</label>
+                      <Select value={filterSemester} onValueChange={setFilterSemester}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">ทุกเทอม</SelectItem>
+                          {Array.from(new Set(studyPlan.map(course => course.semester).filter(semester => semester))).sort().map(semester => (
+                            <SelectItem key={semester} value={semester.toString()}>เทอม {semester}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Course List */}
+                  <div className="space-y-3">
                   {studyPlan
+                    .filter(course => {
+                      // Filter by year
+                      if (filterYear !== 'all' && course.year !== parseInt(filterYear)) {
+                        return false;
+                      }
+                      // Filter by semester
+                      if (filterSemester !== 'all' && course.semester !== parseInt(filterSemester)) {
+                        return false;
+                      }
+                      return true;
+                    })
                     .sort((a, b) => {
                       // เรียงตามปีก่อน (น้อยไปมาก)
                       if (a.year !== b.year) {
@@ -394,11 +443,24 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                       </div>
                     );
                   })}
+                  </div>
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">รวมหน่วยกิตที่วางแผน:</span>
                       <span className="font-bold text-blue-600">
-                        {studyPlan.reduce((total, course) => total + (course.credits || 0), 0)} หน่วยกิต
+                        {studyPlan
+                          .filter(course => {
+                            // Filter by year
+                            if (filterYear !== 'all' && course.year !== parseInt(filterYear)) {
+                              return false;
+                            }
+                            // Filter by semester
+                            if (filterSemester !== 'all' && course.semester !== parseInt(filterSemester)) {
+                              return false;
+                            }
+                            return true;
+                          })
+                          .reduce((total, course) => total + (course.credits || 0), 0)} หน่วยกิต
                       </span>
                     </div>
                   </div>
