@@ -440,7 +440,8 @@ const CourseManagement: React.FC = () => {
                   <SelectValue placeholder="เลือกปีหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedProgram && curriculumYears[selectedProgram as keyof typeof curriculumYears]?.map((year) => (
+                  {selectedProgram && curriculumYears[selectedProgram as keyof typeof curriculumYears] && 
+                   curriculumYears[selectedProgram as keyof typeof curriculumYears].map((year) => (
                     <SelectItem key={year} value={year}>
                       {year}
                     </SelectItem>
