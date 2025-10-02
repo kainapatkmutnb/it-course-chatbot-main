@@ -213,7 +213,7 @@ const StaffDashboard: React.FC = () => {
     }
   };
 
-  const addCorequisite = async () => {
+  const addCorequisiteHandler = async () => {
     if (selectedCourse && corequisiteToAdd && selectedCourse !== corequisiteToAdd) {
       try {
         // Find the course to update
@@ -624,7 +624,7 @@ const StaffDashboard: React.FC = () => {
 
                       <div className="flex items-end">
                         <Button 
-                          onClick={addCorequisite}
+                          onClick={addCorequisiteHandler}
                           disabled={!selectedCourse || !corequisiteToAdd}
                           className="w-full bg-blue-600 hover:bg-blue-700"
                         >
