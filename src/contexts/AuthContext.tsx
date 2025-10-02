@@ -60,8 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role,
               profilePicture: firebaseUser.photoURL || undefined,
               isActive: true,
-              createdAt: new Date(),
-              lastLogin: new Date().toISOString()
+              createdAt: new Date().toISOString(),
+              lastLogin: new Date()
             };
             
             await set(userRef, newUser);
@@ -256,8 +256,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         employeeId: userData.employeeId,
         department: userData.department,
         isActive: true,
-        createdAt: new Date(),
-        lastLoginAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date()
       };
       
       const userRef = ref(db, `users/${result.user.uid}`);
