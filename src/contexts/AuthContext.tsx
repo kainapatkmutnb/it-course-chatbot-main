@@ -106,7 +106,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Only @kmutnb.ac.th and @email.kmutnb.ac.th email addresses are allowed');
       }
 
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Log successful login
+      const auditRef = push(ref(db, 'auditLogs'));
+      await set(auditRef, {
+        action: 'user_login',
+        userId: result.user.uid,
+        userEmail: result.user.email,
+        loginMethod: 'email_password',
+        timestamp: new Date().toISOString(),
+        ipAddress: 'localhost',
+        category: 'authentication',
+        details: {
+          success: true,
+          userAgent: navigator.userAgent
+        }
+      });
       
       toast({
         title: 'เข้าสู่ระบบสำเร็จ',
@@ -114,6 +130,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error: any) {
       console.error('Email/password sign-in error:', error);
+      
+      // Log failed login attempt
+      try {
+        const auditRef = push(ref(db, 'auditLogs'));
+        await set(auditRef, {
+          action: 'user_login_failed',
+          userEmail: email,
+          loginMethod: 'email_password',
+          timestamp: new Date().toISOString(),
+          ipAddress: 'localhost',
+          category: 'authentication',
+          details: {
+            success: false,
+            errorCode: error.code,
+            errorMessage: error.message,
+            userAgent: navigator.userAgent
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to log login attempt:', logError);
+      }
       
       let errorMessage = 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
       
@@ -159,8 +196,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!isAllowedDomain) {
         await signOut(auth);
+        
+        // Log failed Google login due to domain restriction
+        const auditRef = push(ref(db, 'auditLogs'));
+        await set(auditRef, {
+          action: 'user_login_failed',
+          userEmail: result.user.email,
+          loginMethod: 'google',
+          timestamp: new Date().toISOString(),
+          ipAddress: 'localhost',
+          category: 'authentication',
+          details: {
+            success: false,
+            reason: 'domain_not_allowed',
+            userAgent: navigator.userAgent
+          }
+        });
+        
         throw new Error('Only @kmutnb.ac.th and @email.kmutnb.ac.th email addresses are allowed');
       }
+
+      // Log successful Google login
+      const auditRef = push(ref(db, 'auditLogs'));
+      await set(auditRef, {
+        action: 'user_login',
+        userId: result.user.uid,
+        userEmail: result.user.email,
+        loginMethod: 'google',
+        timestamp: new Date().toISOString(),
+        ipAddress: 'localhost',
+        category: 'authentication',
+        details: {
+          success: true,
+          userAgent: navigator.userAgent
+        }
+      });
 
       toast({
         title: 'เข้าสู่ระบบสำเร็จ',
@@ -168,6 +238,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error: any) {
       console.error('Google sign-in error:', error);
+      
+      // Log failed Google login attempt (for other errors)
+      try {
+        const auditRef = push(ref(db, 'auditLogs'));
+        await set(auditRef, {
+          action: 'user_login_failed',
+          loginMethod: 'google',
+          timestamp: new Date().toISOString(),
+          ipAddress: 'localhost',
+          category: 'authentication',
+          details: {
+            success: false,
+            errorCode: error.code,
+            errorMessage: error.message,
+            userAgent: navigator.userAgent
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to log Google login attempt:', logError);
+      }
+      
       let errorMessage = error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
 
       // Network/config related
