@@ -264,8 +264,15 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
+                {(() => {
+                  console.log('🔍 Debug - studentCourses in All Courses tab:', studentCourses);
+                  console.log('🔍 Debug - studentCourses length:', studentCourses.length);
+                  return null;
+                })()}
                 {studentCourses.map((studentCourse) => {
                   const course = getCourseDetails(studentCourse.courseId);
+                  console.log('🔍 Debug - studentCourse:', studentCourse);
+                  console.log('🔍 Debug - course details:', course);
                   if (!course) return null;
                   
                   return (
