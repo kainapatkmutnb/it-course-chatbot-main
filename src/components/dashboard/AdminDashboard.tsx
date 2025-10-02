@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useAuth } from '@/contexts/AuthContext';
 import { useUsers } from '@/hooks/useFirebaseData';
 import { users, getAllCourses, auditLogs } from '@/services/completeCurriculumData';
+import { firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Shield, 
@@ -54,6 +55,27 @@ const AdminDashboard: React.FC = () => {
 
   const allCourses = getAllCourses();
 
+  // Helper functions for role display
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'student': return 'นักศึกษา';
+      case 'instructor': return 'อาจารย์';
+      case 'staff': return 'บุคลากร';
+      case 'admin': return 'ผู้ดูแลระบบ';
+      default: return role;
+    }
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin': return 'destructive';
+      case 'instructor': return 'default';
+      case 'staff': return 'secondary';
+      case 'student': return 'outline';
+      default: return 'outline';
+    }
+  };
+
   const stats = {
     totalUsers: users.length,
     totalCourses: allCourses.length,
@@ -82,6 +104,44 @@ const AdminDashboard: React.FC = () => {
       title: 'เปลี่ยนบทบาทสำเร็จ',
       description: `เปลี่ยนบทบาทผู้ใช้เป็น ${newRole} แล้ว`,
     });
+  };
+
+  const createUser = async () => {
+    if (newUser.name && newUser.email && newUser.role) {
+      try {
+        const userId = await firebaseService.createUser({
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          isActive: true
+        });
+        
+        if (userId) {
+          toast({
+            title: 'สร้างผู้ใช้สำเร็จ',
+            description: `สร้างบัญชีผู้ใช้ ${newUser.name} แล้ว`,
+          });
+          setNewUser({
+            name: '',
+            email: '',
+            role: 'student'
+          });
+        } else {
+          toast({
+            title: 'เกิดข้อผิดพลาด',
+            description: 'ไม่สามารถสร้างบัญชีผู้ใช้ได้',
+            variant: 'destructive'
+          });
+        }
+      } catch (error) {
+        console.error('Error creating user:', error);
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: 'ไม่สามารถสร้างบัญชีผู้ใช้ได้',
+          variant: 'destructive'
+        });
+      }
+    }
   };
 
   const exportData = () => {
