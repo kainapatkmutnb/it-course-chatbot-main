@@ -142,7 +142,12 @@ const CourseManagement: React.FC = () => {
       );
 
       if (firebaseCourses && firebaseCourses.length > 0) {
-        setCourses(firebaseCourses);
+        setCourses(firebaseCourses.map(c => ({
+          ...c,
+          semester: c.semester ?? parseInt(selectedSemester),
+          year: c.year ?? parseInt(selectedYear),
+          isActive: c.isActive ?? true
+        })));
       } else {
         // Fallback to curriculum data
         const curriculumCourses = generateCoursesForSemester(
