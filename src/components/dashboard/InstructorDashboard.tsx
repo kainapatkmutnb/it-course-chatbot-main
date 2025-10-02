@@ -32,7 +32,8 @@ import {
   MapPin,
   Plus,
   UserPlus,
-  UserMinus
+  UserMinus,
+  BarChart3
 } from 'lucide-react';
 
 const InstructorDashboard: React.FC = () => {
