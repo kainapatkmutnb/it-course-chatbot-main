@@ -262,6 +262,28 @@ const AdminDashboard: React.FC = () => {
     u.role.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  // Load audit logs from Firebase
+  useEffect(() => {
+    const loadAuditLogs = async () => {
+      try {
+        setAuditLogsLoading(true);
+        const logs = await firebaseService.getAuditLogs(50);
+        setAuditLogs(logs);
+      } catch (error) {
+        console.error('Error loading audit logs:', error);
+        toast({
+          title: "ข้อผิดพลาด",
+          description: "ไม่สามารถโหลดข้อมูล Audit Log ได้",
+          variant: "destructive",
+        });
+      } finally {
+        setAuditLogsLoading(false);
+      }
+    };
+
+    loadAuditLogs();
+  }, [toast]);
+
   return (
     <div className="min-h-screen p-6 gradient-subtle">
       <div className="container mx-auto space-y-6">
@@ -797,25 +819,3 @@ const AdminDashboard: React.FC = () => {
  };
  
  export default AdminDashboard;
-
- // Load audit logs from Firebase
- useEffect(() => {
-   const loadAuditLogs = async () => {
-     try {
-       setAuditLogsLoading(true);
-       const logs = await firebaseService.getAuditLogs(50);
-       setAuditLogs(logs);
-     } catch (error) {
-       console.error('Error loading audit logs:', error);
-       toast({
-         title: "ข้อผิดพลาด",
-         description: "ไม่สามารถโหลดข้อมูล Audit Log ได้",
-         variant: "destructive",
-       });
-     } finally {
-       setAuditLogsLoading(false);
-     }
-   };
- 
-   loadAuditLogs();
- }, [toast]);
