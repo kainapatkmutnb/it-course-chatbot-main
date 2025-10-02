@@ -63,7 +63,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
     setSelectedYear(year);
     if (student) {
       try {
-        await firebaseService.updateUser(student.uid, { year: parseInt(year) });
+        await firebaseService.updateUser(studentId, { studentYear: parseInt(year) } as Partial<User>);
         setStudent({ ...student, year: parseInt(year) } as any);
       } catch (error) {
         console.error('❌ Error updating student year:', error);
