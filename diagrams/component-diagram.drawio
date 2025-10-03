@@ -1,0 +1,153 @@
+<mxfile host="65bd71144e">
+    <diagram name="Component Diagram" id="component-diagram">
+        <mxGraphModel dx="352" dy="377" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="แผนภาพส่วนประกอบ (Component Diagram)&#xa;ระบบผู้ช่วยการวางแผนรายวิชาและหลักสูตรด้วยแชทบอท" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="30" width="570" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="client-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1f5fe;strokeColor=#01579b;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="120" width="1000" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="client-label" value="Client Layer (React + TypeScript)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#01579b;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="130" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="app-component" value="App.tsx&#xa;(Main Router &amp; Layout)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="170" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="auth-context" value="AuthContext.tsx&#xa;(Authentication)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffecb3;strokeColor=#ff8f00;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="170" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="chatbot-component" value="ChatBot.tsx&#xa;(n8n Integration)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8bbd9;strokeColor=#e91e63;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="170" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="dashboard-component" value="CurriculumDashboard.tsx&#xa;(Main Dashboard)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#7b1fa2;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="660" y="170" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="flowchart-component" value="CurriculumFlowchart.tsx&#xa;(Course Visualization)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b39ddb;strokeColor=#512da8;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="170" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="timeline-component" value="CurriculumTimelineFlowchart.tsx&#xa;(Timeline View)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9c27b0;strokeColor=#4a148c;fontSize=12;fontStyle=1;fontColor=white;" parent="1" vertex="1">
+                    <mxGeometry x="720" y="300" width="180" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="protected-routes" value="ProtectedRoute.tsx&#xa;RoleBasedRoute.tsx&#xa;(Access Control)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#d32f2f;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="270" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="pages-component" value="Pages&#xa;(Login, Register, Home,&#xa;Courses, etc.)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#4caf50;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="270" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="service-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="440" width="1000" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="service-label" value="Service Layer" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#e65100;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="450" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="firebase-service" value="firebaseService.ts&#xa;(Data Operations)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="490" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="course-service" value="courseService.ts&#xa;(Course Management)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=12;fontStyle=1;arcSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="490" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="department-service" value="departmentService.ts&#xa;(Department Data)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="490" width="160" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="external-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="600" width="1000" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="external-label" value="External Services" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#7b1fa2;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="610" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="firebase-external" value="Firebase&#xa;Authentication &amp;&#xa;Realtime Database" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="650" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="n8n-external" value="n8n Chatbot&#xa;Webhook Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="650" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn1" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="app-component" target="auth-context" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn2" value="includes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="app-component" target="protected-routes" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn3" value="protects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="auth-context" target="pages-component" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn4" value="renders" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="dashboard-component" target="flowchart-component" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn5" value="renders" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="dashboard-component" target="timeline-component" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn6" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="auth-context" target="firebase-service" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="370" y="400"/>
+                            <mxPoint x="280" y="400"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="conn7" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="dashboard-component" target="course-service" edge="1">
+                    <mxGeometry x="0.1766" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="700" y="230"/>
+                            <mxPoint x="700" y="420"/>
+                            <mxPoint x="480" y="420"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="conn8" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="flowchart-component" target="department-service" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="910" y="430"/>
+                            <mxPoint x="680" y="430"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="conn9" value="connects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="firebase-service" target="firebase-external" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="conn10" value="integrates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="chatbot-component" target="n8n-external" edge="1">
+                    <mxGeometry x="-0.1273" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="550" y="580"/>
+                            <mxPoint x="680" y="580"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="" style="group" vertex="1" connectable="0" parent="1">
+                    <mxGeometry x="860" y="750" width="220" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" parent="2" vertex="1">
+                    <mxGeometry width="220" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-title" value="คำอธิบาย (Legend)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" parent="2" vertex="1">
+                    <mxGeometry x="10" y="10" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-component" value="Component" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=10;" parent="2" vertex="1">
+                    <mxGeometry x="10" y="40" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-service" value="Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=10;" parent="2" vertex="1">
+                    <mxGeometry x="10" y="75" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-external" value="External" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" parent="2" vertex="1">
+                    <mxGeometry x="10" y="110" width="80" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-layer" value="Layer Boundary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;strokeWidth=2;dashed=1;fontSize=10;" parent="2" vertex="1">
+                    <mxGeometry x="110" y="40" width="100" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-relation" value="Relationship" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="2" vertex="1">
+                    <mxGeometry x="110" y="75" width="80" height="15" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-arrow" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" parent="2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="110" y="100" as="sourcePoint"/>
+                        <mxPoint x="170" y="100" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
