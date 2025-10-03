@@ -1,10 +1,10 @@
 <mxfile host="65bd71144e">
     <diagram name="Context Diagram" id="context-diagram">
-        <mxGraphModel dx="510" dy="546" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="927" dy="993" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="system" value="ระบบผู้ช่วยการวางแผนรายวิชา&#xa;และหลักสูตรด้วยแชทบอท&#xa;(IT Course Chatbot System)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" parent="1" vertex="1">
+                <mxCell id="system" value="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยี สารสนเทศด้วย Chatbot" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="484" y="350" width="200" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="student" value="นักศึกษา&#xa;(Students)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" parent="1" vertex="1">
@@ -34,8 +34,7 @@
                 <mxCell id="flow2" value="แผนภาพหลักสูตร&#xa;ข้อมูลรายวิชา" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;" parent="1" source="system" target="student" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="513" y="370"/>
-                            <mxPoint x="400" y="370"/>
+                            <mxPoint x="400" y="368"/>
                             <mxPoint x="400" y="160"/>
                             <mxPoint x="210" y="160"/>
                         </Array>
@@ -44,11 +43,10 @@
                 <mxCell id="flow3" value="จัดการข้อมูลรายวิชา&#xa;ตรวจสอบแผนการเรียน" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;fontColor=#0066CC;" parent="1" source="teacher" target="system" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="flow4" value="รายงานสถิติ&#xa;ข้อมูลนักศึกษา" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.187;entryY=0.003;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;entryPerimeter=0;" parent="1" source="system" target="teacher" edge="1">
-                    <mxGeometry x="0.7621" relative="1" as="geometry">
+                <mxCell id="flow4" value="รายงานสถิติ&#xa;ข้อมูลนักศึกษา" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.017;exitY=0.344;exitDx=0;exitDy=0;entryX=0.187;entryY=0.003;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;entryPerimeter=0;exitPerimeter=0;" parent="1" source="system" target="teacher" edge="1">
+                    <mxGeometry x="0.6127" relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="484" y="390"/>
-                            <mxPoint x="310" y="390"/>
+                            <mxPoint x="310" y="391"/>
                             <mxPoint x="310" y="350"/>
                             <mxPoint x="172" y="350"/>
                         </Array>
@@ -74,35 +72,38 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="flow7" value="ยืนยันตัวตน&#xa;จัดเก็บข้อมูล" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;fontColor=#0066CC;" parent="1" source="system" target="firebase" edge="1">
+                <mxCell id="flow7" value="ยืนยันตัวตน&#xa;จัดเก็บข้อมูล" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.994;exitY=0.414;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;fontColor=#0066CC;exitPerimeter=0;" parent="1" source="system" target="firebase" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="750" y="380"/>
+                            <mxPoint x="710" y="400"/>
+                            <mxPoint x="750" y="399"/>
                             <mxPoint x="750" y="320"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="flow8" value="ข้อมูลผู้ใช้&#xa;ข้อมูลหลักสูตร" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;" parent="1" source="firebase" target="system" edge="1">
+                <mxCell id="flow8" value="ข้อมูลผู้ใช้&#xa;ข้อมูลหลักสูตร" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=-0.009;exitY=0.255;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;exitPerimeter=0;" parent="1" source="firebase" target="system" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="750" y="320"/>
-                            <mxPoint x="750" y="380"/>
+                            <mxPoint x="800" y="300"/>
+                            <mxPoint x="673" y="300"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="flow9" value="คำถาม/คำสั่ง&#xa;แชทบอท" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;fontColor=#0066CC;" parent="1" source="system" target="n8n" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="750" y="440"/>
+                            <mxPoint x="750" y="437"/>
                             <mxPoint x="750" y="490"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="flow10" value="คำตอบ/ข้อมูล&#xa;หลักสูตร" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;" parent="1" source="n8n" target="system" edge="1">
+                <mxCell id="flow10" value="คำตอบ/ข้อมูล&#xa;หลักสูตร" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=-0.009;exitY=0.623;exitDx=0;exitDy=0;entryX=0.916;entryY=0.77;entryDx=0;entryDy=0;fontSize=10;fontColor=#CC0000;entryPerimeter=0;exitPerimeter=0;" parent="1" source="n8n" target="system" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="750" y="490"/>
-                            <mxPoint x="750" y="440"/>
+                            <mxPoint x="750" y="500"/>
+                            <mxPoint x="690" y="500"/>
+                            <mxPoint x="690" y="460"/>
+                            <mxPoint x="667" y="460"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
@@ -110,7 +111,7 @@
                     <mxGeometry x="350" y="80" width="470" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="2" value="" style="group" vertex="1" connectable="0" parent="1">
-                    <mxGeometry x="384" y="740" width="300" height="120" as="geometry"/>
+                    <mxGeometry x="150" y="640" width="300" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="legend-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" parent="2" vertex="1">
                     <mxGeometry width="300" height="120" as="geometry"/>
