@@ -156,7 +156,8 @@ const Login: React.FC = () => {
               <p>ใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th</p>
             </div>
 
-            {/* Role Information */}
+            {/* Role Information - commented out as requested */}
+            {/*
             <div className="text-center text-xs text-gray-500 space-y-1">
               <p>บทบาทจะถูกกำหนดอัตโนมัติตามอีเมล:</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -166,6 +167,7 @@ const Login: React.FC = () => {
                 <div>ผู้ดูแล: admin@kmutnb.ac.th</div>
               </div>
             </div>
+            */}
           </CardContent>
         </Card>
 
