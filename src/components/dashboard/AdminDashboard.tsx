@@ -1003,7 +1003,7 @@ const AdminDashboard: React.FC = () => {
                           <Avatar className="h-12 w-12">
                             <AvatarImage src={userData.profilePicture} alt={userData.name} />
                             <AvatarFallback>
-                              {userData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              {(userData.name || '').split(' ').map(n => n[0]).join('').toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -1410,7 +1410,7 @@ const AdminDashboard: React.FC = () => {
                      <Avatar className="h-10 w-10">
                        <AvatarImage src={userToDelete.profilePicture} alt={userToDelete.name} />
                        <AvatarFallback>
-                         {userToDelete.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                         {(userToDelete.name || '').split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                        </AvatarFallback>
                      </Avatar>
                      <div>
