@@ -21,20 +21,38 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    onError={(e) => {
-      // Fallback to default avatar when Google image fails to load
-      const target = e.target as HTMLImageElement;
-      if (target.src !== '/default-avatar.svg') {
-        target.src = '/default-avatar.svg';
-      }
-    }}
-    {...props}
-  />
-))
+>(({ className, src, ...props }, ref) => {
+  const [imageSrc, setImageSrc] = React.useState(src);
+  const [hasError, setHasError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImageSrc(src);
+    setHasError(false);
+  }, [src]);
+
+  const handleError = React.useCallback(() => {
+    if (!hasError) {
+      setHasError(true);
+      // Don't try to load any fallback image, just let AvatarFallback handle it
+      setImageSrc(undefined);
+    }
+  }, [hasError]);
+
+  // Don't render AvatarImage if we have an error or no valid src
+  if (hasError || !imageSrc) {
+    return null;
+  }
+
+  return (
+    <AvatarPrimitive.Image
+      ref={ref}
+      className={cn("aspect-square h-full w-full", className)}
+      src={imageSrc}
+      onError={handleError}
+      {...props}
+    />
+  );
+})
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<
