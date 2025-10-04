@@ -276,7 +276,7 @@ const Register: React.FC = () => {
             </div>
 
             {/* Registration Info */}
-            <div className="text-center text-xs text-gray-500 space-y-2">
+            {/* <div className="text-center text-xs text-gray-500 space-y-2">
               <p className="font-medium">การสมัครสมาชิกจะทำการ:</p>
               <ul className="text-left space-y-1 bg-gray-50 p-3 rounded-lg">
                 <li>• สร้างโปรไฟล์ผู้ใช้อัตโนมัติ</li>
@@ -284,7 +284,7 @@ const Register: React.FC = () => {
                 <li>• เข้าสู่ระบบทันที</li>
                 <li>• เริ่มใช้งานระบบได้ทันที</li>
               </ul>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
