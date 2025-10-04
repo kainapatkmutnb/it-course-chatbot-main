@@ -129,8 +129,8 @@ const Courses: React.FC = () => {
         for (let semester = 1; semester <= 2; semester++) {
           allCourses.push(...generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 7));
         }
-        // Add semester 3 for specific programs and years
-        if ((programCode === 'IT' || programCode === 'INE') && year === 3) {
+        // Add semester 3 for specific programs and years (exclude cooperative education curricula)
+        if ((programCode === 'IT' || programCode === 'INE') && year === 3 && !curriculumYear.includes('สหกิจ')) {
           allCourses.push(...generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 7));
         }
         if (programCode === 'INET' && year === 2) {
