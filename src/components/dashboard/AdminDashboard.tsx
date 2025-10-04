@@ -754,9 +754,9 @@ const AdminDashboard: React.FC = () => {
   };
 
   const filteredUsers = allUsers?.filter(u =>
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.role.toLowerCase().includes(searchTerm.toLowerCase())
+    (u.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (u.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (u.role?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   ) || [];
 
   // Load audit logs from Firebase
