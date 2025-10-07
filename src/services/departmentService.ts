@@ -95,7 +95,7 @@ export const getDepartments = (): Department[] => {
     {
       id: 'INET',
       code: 'INET',
-      name: 'Information and Network Technology',
+      name: 'Information and Network Engineering',
       nameThai: 'เทคโนโลยีสารสนเทศและเครือข่าย',
       curricula: [
         {
@@ -121,7 +121,7 @@ export const getDepartments = (): Department[] => {
     {
       id: 'ITI',
       code: 'ITI',
-      name: 'Information Technology (Continuing)',
+      name: 'Information Technology',
       nameThai: 'เทคโนโลยีสารสนเทศ (ต่อเนื่อง)',
       curricula: [
         {
@@ -147,7 +147,7 @@ export const getDepartments = (): Department[] => {
     {
       id: 'ITT',
       code: 'ITT',
-      name: 'Information Technology Transfer',
+      name: 'Information Technology',
       nameThai: 'เทคโนโลยีสารสนเทศ (เทียบโอน)',
       curricula: [
         {
