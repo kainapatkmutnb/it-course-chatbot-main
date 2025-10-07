@@ -177,7 +177,9 @@ const CourseManagement: React.FC = () => {
         processedCourses.push(course);
       });
 
-      setCourses(processedCourses);
+      // Sort courses by course code
+      const sortedCourses = processedCourses.sort((a, b) => a.code.localeCompare(b.code));
+      setCourses(sortedCourses);
     } catch (error) {
       console.error('Error loading courses:', error);
       toast({
@@ -259,7 +261,9 @@ const CourseManagement: React.FC = () => {
         });
       }
 
-      setCourses([...courses, newCourse]);
+      // Add new course and sort by course code
+      const updatedCourses = [...courses, newCourse].sort((a, b) => a.code.localeCompare(b.code));
+      setCourses(updatedCourses);
       setIsAddDialogOpen(false);
       resetForm();
 
@@ -325,8 +329,9 @@ const CourseManagement: React.FC = () => {
         updatedCourse
       );
 
-      // Update courses state with the new data
-      const updatedCourses = courses.map(c => c.id === editingCourse.id ? updatedCourse : c);
+      // Update courses state with the new data and sort by course code
+      const updatedCourses = courses.map(c => c.id === editingCourse.id ? updatedCourse : c)
+        .sort((a, b) => a.code.localeCompare(b.code));
       setCourses(updatedCourses);
       
       // Update filtered courses as well to ensure UI consistency

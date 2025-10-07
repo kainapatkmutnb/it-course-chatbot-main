@@ -50,7 +50,7 @@ const Courses: React.FC = () => {
     if (selectedDepartment !== 'all') {
       const availableCurricula = getAvailableCurriculaOptions();
       // Find the curriculum with the highest number for the selected department
-      if (availableCurricula.length > 0) {
+      if (availableCurricula && availableCurricula.length > 0) {
         const latestCurriculum = availableCurricula.reduce((latest, current) => {
           const latestYear = parseInt(latest.value.split(' ')[1]);
           const currentYear = parseInt(current.value.split(' ')[1]);
@@ -112,6 +112,7 @@ const Courses: React.FC = () => {
               semester.toString(), 
               7
             );
+            // Keep original order - newest courses will be at the bottom
             setAllCourses(courses);
           } else {
             // Load all courses for curriculum
@@ -124,6 +125,7 @@ const Courses: React.FC = () => {
               });
             });
             
+            // Keep original order - newest courses will be at the bottom
             setAllCourses(flatCourses);
           }
         } catch (error) {
@@ -140,7 +142,7 @@ const Courses: React.FC = () => {
     loadCourses();
   }, [selectedDepartment, selectedCurriculum, selectedSemester]);
   
-  const filteredCourses = allCourses.filter(course => {
+  const filteredCourses = (allCourses || []).filter(course => {
     const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -351,7 +353,7 @@ const Courses: React.FC = () => {
                               <p className="text-sm text-muted-foreground leading-relaxed">{course.description}</p>
                             </div>
 
-                            {course.prerequisites.length > 0 && (
+                            {(course.prerequisites && course.prerequisites.length > 0) && (
                               <div>
                                 <h4 className="font-medium mb-2 flex items-center space-x-2">
                                   <AlertCircle className="w-4 h-4" />
@@ -367,7 +369,7 @@ const Courses: React.FC = () => {
                               </div>
                             )}
 
-                            {course.corequisites.length > 0 && (
+                            {(course.corequisites && course.corequisites.length > 0) && (
                               <div>
                                 <h4 className="font-medium mb-2 flex items-center space-x-2">
                                   <AlertCircle className="w-4 h-4" />

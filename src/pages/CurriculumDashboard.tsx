@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-// Mock data imports removed - using real data from API
+import { getDepartments } from '@/services/departmentService';
 import { 
   BookOpen, 
   Search, 
@@ -24,26 +24,30 @@ const CurriculumDashboard: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
-  // Create curriculum options with fixed order
+  // Create curriculum options from department service
   const curriculumOptions = useMemo(() => {
-    return [
-      { value: 'IT-62', label: 'IT 62', description: 'หลักสูตรเทคโนโลยีสารสนเทศ พ.ศ. 2562' },
-      { value: 'IT-67', label: 'IT 67', description: 'หลักสูตรเทคโนโลยีสารสนเทศ พ.ศ. 2567' },
-      { value: 'INE-62', label: 'INE 62', description: 'หลักสูตรวิศวกรรมเครือข่ายสารสนเทศ พ.ศ. 2562' },
-      { value: 'INE-67', label: 'INE 67', description: 'หลักสูตรวิศวกรรมเครือข่ายสารสนเทศ พ.ศ. 2567' },
-      { value: 'INET-62', label: 'INET 62', description: 'หลักสูตรเทคโนโลยีอินเทอร์เน็ต พ.ศ. 2562' },
-      { value: 'INET-67', label: 'INET 67', description: 'หลักสูตรเทคโนโลยีอินเทอร์เน็ต พ.ศ. 2567' },
-      { value: 'ITI-61', label: 'ITI 61', description: 'หลักสูตรเทคโนโลยีสารสนเทศนวัตกรรม พ.ศ. 2561' },
-      { value: 'ITI-66', label: 'ITI 66', description: 'หลักสูตรเทคโนโลยีสารสนเทศนวัตกรรม พ.ศ. 2566' },
-      { value: 'ITT-67', label: 'ITT 67', description: 'หลักสูตรเทคโนโลยีสารสนเทศสำหรับครู พ.ศ. 2567' }
-    ];
+    const departments = getDepartments();
+    const options: { value: string; label: string; description: string }[] = [];
+    
+    departments.forEach(dept => {
+      dept.curricula.forEach(curriculum => {
+        options.push({
+          value: curriculum.id,
+          label: curriculum.id,
+          description: curriculum.name
+        });
+      });
+    });
+    
+    return options;
   }, []);
 
   // Get selected curriculum data
   const selectedCurriculumData = useMemo(() => {
     if (!selectedCurriculum) return null;
     
-    for (const dept of mockDepartments) {
+    const departments = getDepartments();
+    for (const dept of departments) {
       const curriculum = dept.curricula.find(curr => curr.id === selectedCurriculum);
       if (curriculum) {
         return { department: dept, curriculum };
@@ -66,35 +70,63 @@ const CurriculumDashboard: React.FC = () => {
     ];
   }, []);
 
-  // Get courses for selected semester
-  const selectedSemesterCourses = useMemo(() => {
-    if (!selectedCurriculumData || !selectedSemester) return [];
-    
-    const [yearStr, semesterStr] = selectedSemester.split('-');
-    const year = parseInt(yearStr);
-    const semester = parseInt(semesterStr);
-    
-    const semesterData = selectedCurriculumData.curriculum.semesters.find(
-      sem => sem.year === year && sem.semester === semester
-    );
-    
-    return semesterData?.courses || [];
+  // State for courses data
+  const [selectedSemesterCourses, setSelectedSemesterCourses] = useState<HybridCourse[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+
+  // Load courses for selected semester using hybrid service
+  useEffect(() => {
+    const loadCourses = async () => {
+      if (!selectedCurriculumData || !selectedSemester) {
+        setSelectedSemesterCourses([]);
+        return;
+      }
+      
+      setIsLoadingCourses(true);
+      
+      try {
+        const [yearStr, semesterStr] = selectedSemester.split('-');
+        const year = parseInt(yearStr);
+        const semester = parseInt(semesterStr);
+        
+        // Extract program and curriculum year from curriculum ID
+        const curriculumId = selectedCurriculumData.curriculum.id;
+        const [program, curriculumYear] = curriculumId.split('-');
+        
+        const hybridData = await getHybridCurriculumData(program, curriculumYear);
+        const semesterKey = `${year}-${semester}`;
+        
+        setSelectedSemesterCourses(hybridData[semesterKey] || []);
+      } catch (error) {
+        console.error('Error loading curriculum data:', error);
+        setSelectedSemesterCourses([]);
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+
+    loadCourses();
   }, [selectedCurriculumData, selectedSemester]);
 
-  // Filter courses based on search term
+  // Filter courses based on search term and sort by course code
   const filteredCourses = useMemo(() => {
-    if (!searchTerm) return selectedSemesterCourses;
+    let courses = selectedSemesterCourses;
     
-    return selectedSemesterCourses.filter(course =>
-      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (searchTerm) {
+      courses = selectedSemesterCourses.filter(course =>
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Keep original order - newest courses will be at the bottom
+    return courses;
   }, [selectedSemesterCourses, searchTerm]);
 
   // Summary stats based on currently displayed (filtered) courses
   const summaryStats = useMemo(() => {
-    const displayed = filteredCourses as any[];
+    const displayed = (filteredCourses || []) as any[];
     const displayedCount = displayed.length;
     const totalCredits = displayed.reduce((sum, c) => sum + (c.credits || 0), 0);
     const specialized = displayed.filter((c) => c.mainCategory === 'หมวดวิชาเฉพาะ').length;
@@ -244,7 +276,7 @@ const CurriculumDashboard: React.FC = () => {
         )}
 
         {/* Course List */}
-        {filteredCourses.length > 0 && (
+        {(filteredCourses && filteredCourses.length > 0) && (
           <>
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold flex items-center space-x-2">
@@ -254,7 +286,7 @@ const CurriculumDashboard: React.FC = () => {
                 </span>
               </h2>
               <Badge variant="outline" className="text-lg px-3 py-1">
-                {filteredCourses.length} รายวิชา
+                {filteredCourses?.length || 0} รายวิชา
               </Badge>
             </div>
 
@@ -299,7 +331,7 @@ const CurriculumDashboard: React.FC = () => {
                       </div>
 
                       {/* Prerequisites */}
-                      {course.prerequisites.length > 0 && (
+                      {(course.prerequisites && course.prerequisites.length > 0) && (
                         <div className="space-y-1">
                           <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                             <AlertCircle className="w-3 h-3" />
@@ -316,7 +348,7 @@ const CurriculumDashboard: React.FC = () => {
                       )}
 
                       {/* Corequisites */}
-                      {course.corequisites.length > 0 && (
+                      {(course.corequisites && course.corequisites.length > 0) && (
                         <div className="space-y-1">
                           <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                             <AlertCircle className="w-3 h-3" />
@@ -377,7 +409,7 @@ const CurriculumDashboard: React.FC = () => {
         )}
 
         {/* No Results */}
-        {selectedCurriculum && selectedSemester && filteredCourses.length === 0 && (
+        {selectedCurriculum && selectedSemester && (filteredCourses && filteredCourses.length === 0) && (
           <Card className="shadow-medium">
             <CardContent className="text-center py-12">
               <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
