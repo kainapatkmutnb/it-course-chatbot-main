@@ -1569,219 +1569,168 @@ const AdminDashboard: React.FC = () => {
 
                 {/* Course Selection and Prerequisites Management */}
                 {selectedProgram && selectedCurriculumYear && selectedYear && selectedSemester && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Add Prerequisites */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">เพิ่มเงื่อนไขวิชา (Prerequisites)</CardTitle>
-                          <CardDescription>
-                            กำหนดวิชาที่ต้องเรียนผ่านก่อน
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>เลือกรายวิชา</Label>
-                            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="เลือกรายวิชา" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {courses.map((course) => (
-                                  <SelectItem key={course.code} value={course.code}>
-                                    {course.code} - {course.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                  <>
+                    {/* Add Prerequisites Section */}
+                    <div className="grid md:grid-cols-3 gap-4 p-4 border rounded-lg bg-secondary/5">
+                      <div>
+                        <Label htmlFor="course-select">เลือกวิชา</Label>
+                        <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="เลือกวิชาที่ต้องการตั้งเงื่อนไข" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {courses.map((course) => (
+                              <SelectItem key={course.code} value={course.code}>
+                                {course.code} - {course.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                          <div className="space-y-2">
-                            <Label>เลือกเงื่อนไขวิชา</Label>
-                            <Select value={prerequisiteToAdd} onValueChange={setPrerequisiteToAdd}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="เลือกเงื่อนไขวิชา" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {allCoursesInCurriculum
-                                  .filter(course => course.code !== selectedCourse)
-                                  .map((course) => (
-                                    <SelectItem key={course.code} value={course.code}>
-                                      {course.code} - {course.name}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                      <div>
+                        <Label htmlFor="prerequisite-select">เลือกวิชาเงื่อนไข</Label>
+                        <Select value={prerequisiteToAdd} onValueChange={setPrerequisiteToAdd}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="เลือกวิชาเงื่อนไข" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allCoursesInCurriculum
+                              .filter(course => course.code !== selectedCourse)
+                              .map((course) => (
+                                <SelectItem key={course.code} value={course.code}>
+                                  {course.code} - {course.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                          <Button 
-                            onClick={addPrerequisite} 
-                            className="w-full"
-                            disabled={!selectedCourse || !prerequisiteToAdd}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            เพิ่มเงื่อนไขวิชา
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      {/* Add Corequisites */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">เพิ่มวิชาที่ต้องเรียนพร้อมกัน (Corequisites)</CardTitle>
-                          <CardDescription>
-                            กำหนดวิชาที่ต้องเรียนในภาคเรียนเดียวกัน
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>เลือกรายวิชา</Label>
-                            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="เลือกรายวิชา" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {courses.map((course) => (
-                                  <SelectItem key={course.code} value={course.code}>
-                                    {course.code} - {course.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>เลือกวิชาที่ต้องเรียนพร้อมกัน</Label>
-                            <Select value={corequisiteToAdd} onValueChange={setCorequisiteToAdd}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="เลือกวิชาที่ต้องเรียนพร้อมกัน" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {allCoursesInCurriculum
-                                  .filter(course => course.code !== selectedCourse)
-                                  .map((course) => (
-                                    <SelectItem key={course.code} value={course.code}>
-                                      {course.code} - {course.name}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <Button 
-                            onClick={addCorequisiteHandler} 
-                            className="w-full"
-                            disabled={!selectedCourse || !corequisiteToAdd}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            เพิ่มวิชาที่ต้องเรียนพร้อมกัน
-                          </Button>
-                        </CardContent>
-                      </Card>
+                      <div className="flex items-end">
+                        <Button 
+                          onClick={addPrerequisite}
+                          disabled={!selectedCourse || !prerequisiteToAdd}
+                          className="w-full"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          เพิ่มเงื่อนไข
+                        </Button>
+                      </div>
                     </div>
 
-                    {/* Current Course Conditions */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">เงื่อนไขรายวิชาปัจจุบัน</CardTitle>
-                        <CardDescription>
-                          รายการเงื่อนไขรายวิชาที่กำหนดไว้แล้ว
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {loading ? (
-                          <div className="flex items-center justify-center p-8">
-                            <div className="text-muted-foreground">กำลังโหลดข้อมูล...</div>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {courses
-                              .filter(course => course.prerequisites.length > 0 || (course.corequisites && course.corequisites.length > 0))
+                    {/* Add Corequisite Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue/5 border border-blue/20 rounded-lg">
+                      <div>
+                        <Label htmlFor="corequisite-course">เลือกวิชาที่ต้องเรียนพร้อมกัน</Label>
+                        <Select value={corequisiteToAdd} onValueChange={setCorequisiteToAdd}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="เลือกวิชาที่ต้องเรียนพร้อมกัน" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allCoursesInCurriculum
+                              .filter(course => course.code !== selectedCourse)
                               .map((course) => (
-                                <Card key={course.code} className="border-l-4 border-l-primary">
-                                  <CardContent className="p-4">
-                                    <div className="flex items-start justify-between">
-                                      <div className="flex-1">
-                                        <h4 className="font-semibold text-lg">
-                                          {course.code} - {course.name}
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground mb-3">
-                                          {course.credits} หน่วยกิต
-                                        </p>
-
-                                        {/* Prerequisites */}
-                                        {course.prerequisites.length > 0 && (
-                                          <div className="mb-3">
-                                            <h5 className="font-medium text-sm mb-2 flex items-center">
-                                              <AlertCircle className="w-4 h-4 mr-1 text-orange-500" />
-                                              เงื่อนไขวิชา (Prerequisites):
-                                            </h5>
-                                            <div className="flex flex-wrap gap-2">
-                                              {course.prerequisites.map((prerequisite) => (
-                                                <Badge 
-                                                  key={prerequisite} 
-                                                  variant="secondary"
-                                                  className="flex items-center space-x-1"
-                                                >
-                                                  <span>{prerequisite}</span>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                                                    onClick={() => removePrerequisite(course.code, prerequisite)}
-                                                  >
-                                                    <Trash2 className="w-3 h-3" />
-                                                  </Button>
-                                                </Badge>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Corequisites */}
-                                        {course.corequisites && course.corequisites.length > 0 && (
-                                          <div>
-                                            <h5 className="font-medium text-sm mb-2 flex items-center">
-                                              <CheckCircle className="w-4 h-4 mr-1 text-blue-500" />
-                                              วิชาที่ต้องเรียนพร้อมกัน (Corequisites):
-                                            </h5>
-                                            <div className="flex flex-wrap gap-2">
-                                              {course.corequisites.map((corequisite) => (
-                                                <Badge 
-                                                  key={corequisite} 
-                                                  variant="outline"
-                                                  className="flex items-center space-x-1"
-                                                >
-                                                  <span>{corequisite}</span>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                                                    onClick={() => removeCorequisite(course.code, corequisite)}
-                                                  >
-                                                    <Trash2 className="w-3 h-3" />
-                                                  </Button>
-                                                </Badge>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </CardContent>
-                                </Card>
+                                <SelectItem key={course.code} value={course.code}>
+                                  {course.code} - {course.name}
+                                </SelectItem>
                               ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                            {courses.filter(course => course.prerequisites.length > 0 || (course.corequisites && course.corequisites.length > 0)).length === 0 && (
-                              <div className="text-center p-8 text-muted-foreground">
-                                ยังไม่มีการกำหนดเงื่อนไขรายวิชา
-                              </div>
-                            )}
+                      <div className="flex items-end">
+                        <Button 
+                          onClick={addCorequisiteHandler}
+                          disabled={!selectedCourse || !corequisiteToAdd}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          เพิ่มวิชาที่ต้องเรียนพร้อมกัน
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Search */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="ค้นหารายวิชา..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+
+                    {/* Course List with Prerequisites */}
+                    <div className="space-y-4">
+                      {filteredCourses.map((course) => (
+                        <div key={course.id} className="p-4 border rounded-lg hover:shadow-soft transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-3">
+                              <BookOpen className="w-5 h-5 text-primary" />
+                              <h3 className="font-medium">{course.code} - {course.name}</h3>
+                              <Badge variant="outline">{course.credits} หน่วยกิต</Badge>
+                            </div>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {course.description}
+                          </p>
+                          
+                          {/* Prerequisites */}
+                          {course.prerequisites && course.prerequisites.length > 0 ? (
+                            <div className="space-y-2 mb-3">
+                              <p className="text-sm font-medium">วิชาที่ต้องเรียนมาก่อน:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {course.prerequisites.map((prerequisite, index) => (
+                                  <div key={`${course.code}-pre-${prerequisite}`} className="flex items-center space-x-1 bg-warning/10 border border-warning/20 rounded-lg px-3 py-1">
+                                    <span className="text-sm">{prerequisite}</span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                      onClick={() => removePrerequisite(course.code, prerequisite)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {/* Corequisites */}
+                          {course.corequisites && course.corequisites.length > 0 ? (
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium">วิชาที่ต้องเรียนพร้อมกัน:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {course.corequisites.map((corequisite, index) => (
+                                  <div key={`${course.code}-co-${corequisite}`} className="flex items-center space-x-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-1">
+                                    <span className="text-sm">{corequisite}</span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                      onClick={() => removeCorequisite(course.code, corequisite)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {(!course.prerequisites || course.prerequisites.length === 0) && 
+                           (!course.corequisites || course.corequisites.length === 0) && (
+                            <div className="flex items-center space-x-2 text-muted-foreground">
+                              <AlertCircle className="w-4 h-4" />
+                              <span className="text-sm">ยังไม่มีเงื่อนไขการเรียน</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
 
                 {/* Course Overview */}
