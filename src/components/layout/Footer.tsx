@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import Chatbot from '@/components/chat/Chatbot';
+import ChatBot from '@/components/chat/ChatBot';
 import { 
   MessageCircle, 
   Bot, 
@@ -121,7 +121,7 @@ const Footer: React.FC = () => {
       </footer>
 
       {/* Chatbot Component */}
-      <Chatbot />
+      <ChatBot />
     </>
   );
 };

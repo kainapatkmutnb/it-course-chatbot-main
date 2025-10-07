@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import '@n8n/chat/style.css';
 import { createChat } from '@n8n/chat';
 
-const Chatbot = () => {
+const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -13,7 +13,7 @@ const Chatbot = () => {
         setChatError(null);
         
         // Check if webhook is available before initializing chat
-        const webhookUrl = 'http://localhost:5678/webhook/dd7276e3-4e2c-48c0-a7b7-ca3647acf777/chat';
+        const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/dd7276e3-4e2c-48c0-a7b7-ca3647acf777/chat';
         
         // Test webhook connectivity
         try {
@@ -21,8 +21,14 @@ const Chatbot = () => {
             method: 'HEAD',
             signal: AbortSignal.timeout(3000) // 3 second timeout
           });
+          
+          // If webhook is not available, show warning but still initialize chat
+          if (!response.ok) {
+            console.warn('Webhook service may not be available, but initializing chat anyway');
+          }
         } catch (fetchError) {
-          throw new Error('Webhook service is not available');
+          console.warn('Webhook service is not available, but initializing chat anyway:', fetchError);
+          // Don't throw error, just log warning and continue
         }
 
         createChat({
@@ -91,4 +97,4 @@ const Chatbot = () => {
   return <div id="n8n-chat"></div>;
 };
 
-export default Chatbot;
+export default ChatBot;
