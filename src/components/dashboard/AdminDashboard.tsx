@@ -16,7 +16,7 @@ import { firebaseService, AuditLog } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/auth';
 import CourseManagement from './CourseManagement';
-import { getCoursesByProgram } from '@/services/courseService';
+import { getCoursesByProgram, getCourseNameByCode } from '@/services/courseService';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { Course } from '@/services/firebaseService';
 import { CourseWithProgram } from '@/services/courseService';
@@ -1703,7 +1703,7 @@ const AdminDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.prerequisites.map((prerequisite, index) => (
                                   <div key={`${course.code}-pre-${prerequisite}`} className="flex items-center space-x-1 bg-warning/10 border border-warning/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{prerequisite}</span>
+                                    <span className="text-sm">{prerequisite} - {getCourseNameByCode(prerequisite)}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -1725,7 +1725,7 @@ const AdminDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.corequisites.map((corequisite, index) => (
                                   <div key={`${course.code}-co-${corequisite}`} className="flex items-center space-x-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{corequisite}</span>
+                                    <span className="text-sm">{corequisite} - {getCourseNameByCode(corequisite)}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"

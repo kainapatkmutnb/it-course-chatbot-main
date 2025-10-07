@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/hooks/useFirebaseData';
 import { Course, firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
-import { getCoursesByProgram } from '@/services/courseService';
+import { getCoursesByProgram, getCourseNameByCode } from '@/services/courseService';
 import CourseManagement from './CourseManagement';
 import { 
   Users, 
@@ -779,7 +779,7 @@ const StaffDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.prerequisites.map((prerequisite, index) => (
                                   <div key={`${course.code}-pre-${prerequisite}`} className="flex items-center space-x-1 bg-warning/10 border border-warning/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{prerequisite}</span>
+                                    <span className="text-sm">{prerequisite} - {getCourseNameByCode(prerequisite)}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -801,7 +801,7 @@ const StaffDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.corequisites.map((corequisite, index) => (
                                   <div key={`${course.code}-co-${corequisite}`} className="flex items-center space-x-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{corequisite}</span>
+                                    <span className="text-sm">{corequisite} - {getCourseNameByCode(corequisite)}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -952,7 +952,7 @@ const StaffDashboard: React.FC = () => {
                                     <div className="flex flex-wrap gap-2">
                                       {course.prerequisites.map((prerequisite, index) => (
                                         <Badge key={`${course.code}-pre-${prerequisite}`} variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
-                                          {prerequisite}
+                                          {prerequisite} - {getCourseNameByCode(prerequisite)}
                                         </Badge>
                                       ))}
                                     </div>
@@ -965,7 +965,7 @@ const StaffDashboard: React.FC = () => {
                                     <div className="flex flex-wrap gap-2">
                                       {course.corequisites.map((corequisite, index) => (
                                         <Badge key={`${course.code}-co-${corequisite}`} variant="outline" className="bg-blue/10 border-blue/20 text-blue-700">
-                                          {corequisite}
+                                          {corequisite} - {getCourseNameByCode(corequisite)}
                                         </Badge>
                                       ))}
                                     </div>
