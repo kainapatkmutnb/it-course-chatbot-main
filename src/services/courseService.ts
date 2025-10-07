@@ -244,3 +244,11 @@ export const getCourseDependents = (courseCode: string): CourseWithProgram[] => 
     course.prerequisites && course.prerequisites.includes(courseCode)
   );
 };
+
+/**
+ * Get course name by course code
+ */
+export const getCourseNameByCode = (courseCode: string): string => {
+  const course = getCourseByCode(courseCode);
+  return course ? course.name : courseCode; // Return course name if found, otherwise return the code
+};
