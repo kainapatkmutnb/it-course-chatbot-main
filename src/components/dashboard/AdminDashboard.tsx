@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -436,7 +436,20 @@ const AdminDashboard: React.FC = () => {
     }
   }, [selectedProgram, selectedCurriculumYear, selectedYear, selectedSemester]);
 
-  // Filter courses based on search term
+  // Filter courses based on search term for course management
+  const filteredCoursesForManagement = useMemo(() => {
+    if (searchTerm) {
+      return courses.filter(course =>
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    } else {
+      return courses;
+    }
+  }, [courses, searchTerm]);
+
+  // Filter courses based on search term for overview
   useEffect(() => {
     if (overviewSearchTerm.trim() === '') {
       setFilteredCourses(allCoursesOverview);
@@ -1515,7 +1528,7 @@ const AdminDashboard: React.FC = () => {
                       <SelectContent>
                         {programs.map((program) => (
                           <SelectItem key={program.code} value={program.code}>
-                            {program.name}
+                            {program.code} - {program.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1524,7 +1537,11 @@ const AdminDashboard: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="curriculum-year-select">ปีหลักสูตร</Label>
-                    <Select value={selectedCurriculumYear} onValueChange={setSelectedCurriculumYear}>
+                    <Select 
+                      value={selectedCurriculumYear} 
+                      onValueChange={setSelectedCurriculumYear}
+                      disabled={!selectedProgram}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="เลือกปีหลักสูตร" />
                       </SelectTrigger>
@@ -1539,15 +1556,16 @@ const AdminDashboard: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="year-select">ปีการศึกษา</Label>
+                    <Label htmlFor="year-select">ชั้นปี</Label>
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
                       <SelectTrigger>
-                        <SelectValue placeholder="เลือกปีการศึกษา" />
+                        <SelectValue placeholder="เลือกชั้นปี" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="2567">2567</SelectItem>
-                        <SelectItem value="2568">2568</SelectItem>
-                        <SelectItem value="2569">2569</SelectItem>
+                        <SelectItem value="1">ปี 1</SelectItem>
+                        <SelectItem value="2">ปี 2</SelectItem>
+                        <SelectItem value="3">ปี 3</SelectItem>
+                        <SelectItem value="4">ปี 4</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1561,7 +1579,7 @@ const AdminDashboard: React.FC = () => {
                       <SelectContent>
                         <SelectItem value="1">ภาคเรียนที่ 1</SelectItem>
                         <SelectItem value="2">ภาคเรียนที่ 2</SelectItem>
-                        <SelectItem value="3">ภาคเรียนฤดูร้อน</SelectItem>
+                        <SelectItem value="3">ภาคเรียนที่ 3</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1638,6 +1656,8 @@ const AdminDashboard: React.FC = () => {
                         </Select>
                       </div>
 
+                      <div></div>
+
                       <div className="flex items-end">
                         <Button 
                           onClick={addCorequisiteHandler}
@@ -1663,7 +1683,7 @@ const AdminDashboard: React.FC = () => {
 
                     {/* Course List with Prerequisites */}
                     <div className="space-y-4">
-                      {filteredCourses.map((course) => (
+                      {filteredCoursesForManagement.map((course) => (
                         <div key={course.id} className="p-4 border rounded-lg hover:shadow-soft transition-shadow">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center space-x-3">
