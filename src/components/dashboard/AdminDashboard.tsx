@@ -441,11 +441,12 @@ const AdminDashboard: React.FC = () => {
     if (overviewSearchTerm.trim() === '') {
       setFilteredCourses(allCoursesOverview);
     } else {
-      const filtered = allCoursesOverview.filter(course =>
-        course.code.toLowerCase().includes(overviewSearchTerm.toLowerCase()) ||
-        course.name.toLowerCase().includes(overviewSearchTerm.toLowerCase()) ||
-        course.programName?.toLowerCase().includes(overviewSearchTerm.toLowerCase())
-      );
+      const filtered = allCoursesOverview.filter(course => {
+        const programName = programs.find(p => p.code === course.program)?.name || course.program;
+        return course.code.toLowerCase().includes(overviewSearchTerm.toLowerCase()) ||
+               course.name.toLowerCase().includes(overviewSearchTerm.toLowerCase()) ||
+               programName.toLowerCase().includes(overviewSearchTerm.toLowerCase());
+      });
       setFilteredCourses(filtered);
     }
   }, [allCoursesOverview, overviewSearchTerm]);
