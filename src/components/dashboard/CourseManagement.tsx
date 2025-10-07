@@ -155,13 +155,14 @@ const CourseManagement: React.FC = () => {
       // Create a map of curriculum courses
       const curriculumMap = new Map(curriculumCourses.map(c => [c.id, c]));
 
-      // Process Firebase courses
+      // Process courses - curriculum courses first, then Firebase courses at the bottom
       const processedCourses: Course[] = [];
+      const firebaseCoursesToAdd: Course[] = [];
       
       if (firebaseCourses && firebaseCourses.length > 0) {
-        // Add Firebase courses (these override curriculum courses)
+        // Prepare Firebase courses and remove duplicates from curriculum
         firebaseCourses.forEach(fbCourse => {
-          processedCourses.push({
+          firebaseCoursesToAdd.push({
             ...fbCourse,
             semester: fbCourse.semester ?? parseInt(selectedSemester),
             year: fbCourse.year ?? parseInt(selectedYear),
@@ -172,14 +173,16 @@ const CourseManagement: React.FC = () => {
         });
       }
 
-      // Add remaining curriculum courses that weren't overridden by Firebase
+      // Add curriculum courses first
       curriculumMap.forEach(course => {
         processedCourses.push(course);
       });
 
-      // Sort courses by course code
-      const sortedCourses = processedCourses.sort((a, b) => a.code.localeCompare(b.code));
-      setCourses(sortedCourses);
+      // Add Firebase courses (admin/staff added) at the bottom
+      processedCourses.push(...firebaseCoursesToAdd);
+
+      // Keep original order - admin/staff added courses will be at the bottom
+      setCourses(processedCourses);
     } catch (error) {
       console.error('Error loading courses:', error);
       toast({
@@ -261,8 +264,8 @@ const CourseManagement: React.FC = () => {
         });
       }
 
-      // Add new course and sort by course code
-      const updatedCourses = [...courses, newCourse].sort((a, b) => a.code.localeCompare(b.code));
+      // Add new course at the bottom (admin/staff added courses stay at bottom)
+      const updatedCourses = [...courses, newCourse];
       setCourses(updatedCourses);
       setIsAddDialogOpen(false);
       resetForm();
@@ -329,9 +332,8 @@ const CourseManagement: React.FC = () => {
         updatedCourse
       );
 
-      // Update courses state with the new data and sort by course code
-      const updatedCourses = courses.map(c => c.id === editingCourse.id ? updatedCourse : c)
-        .sort((a, b) => a.code.localeCompare(b.code));
+      // Update courses state with the new data (keep original order)
+      const updatedCourses = courses.map(c => c.id === editingCourse.id ? updatedCourse : c);
       setCourses(updatedCourses);
       
       // Update filtered courses as well to ensure UI consistency

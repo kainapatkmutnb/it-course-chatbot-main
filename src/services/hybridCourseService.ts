@@ -114,9 +114,8 @@ export const getHybridCoursesForSemester = async (
       isUpdatedFromFirebase: true
     }));
 
-    // Combine and sort all courses by course code
+    // Combine courses - admin/staff added courses (newHybridCourses) will be at the bottom
     const allHybridCourses = [...hybridCourses, ...newHybridCourses];
-    allHybridCourses.sort((a, b) => a.code.localeCompare(b.code));
 
     return allHybridCourses;
   } catch (error) {
