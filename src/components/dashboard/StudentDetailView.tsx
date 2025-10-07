@@ -248,7 +248,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
             <Avatar className="h-24 w-24">
               <AvatarImage src={(student as any).avatar} alt={student.name} />
               <AvatarFallback className="text-lg">
-                {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {(student.name || '').split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-3">

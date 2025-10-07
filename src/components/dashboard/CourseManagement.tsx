@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +63,7 @@ const CourseManagement: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(false);
+  const [forceRender, setForceRender] = useState(0);
 
   const [courseForm, setCourseForm] = useState<CourseFormData>({
     code: '',
@@ -276,21 +277,28 @@ const CourseManagement: React.FC = () => {
     }
   };
 
-  const handleEditCourse = (course: Course) => {
-    setEditingCourse(course);
-    setCourseForm({
-      code: course.code,
-      name: course.name,
-      credits: course.credits,
-      description: course.description,
-      prerequisites: course.prerequisites.join(', '),
-      corequisites: course.corequisites.join(', '),
-      category: course.category,
-      mainCategory: course.mainCategory,
-      subCategory: course.subCategory
-    });
-    setIsEditDialogOpen(true);
-  };
+  const handleEditCourse = useCallback((course: Course) => {
+    // Force a clean state reset first
+    setIsEditDialogOpen(false);
+    setEditingCourse(null);
+    
+    // Use setTimeout to ensure state is reset before setting new values
+    setTimeout(() => {
+      setEditingCourse(course);
+      setCourseForm({
+        code: course.code,
+        name: course.name,
+        credits: course.credits,
+        description: course.description,
+        prerequisites: (course.prerequisites || []).join(', '),
+        corequisites: (course.corequisites || []).join(', '),
+        category: course.category,
+        mainCategory: course.mainCategory,
+        subCategory: course.subCategory
+      });
+      setIsEditDialogOpen(true);
+    }, 50);
+  }, []);
 
   const handleUpdateCourse = async () => {
     if (!editingCourse) return;
@@ -317,10 +325,28 @@ const CourseManagement: React.FC = () => {
         updatedCourse
       );
 
-      setCourses(courses.map(c => c.id === editingCourse.id ? updatedCourse : c));
+      // Update courses state with the new data
+      const updatedCourses = courses.map(c => c.id === editingCourse.id ? updatedCourse : c);
+      setCourses(updatedCourses);
+      
+      // Update filtered courses as well to ensure UI consistency
+      if (searchTerm) {
+        setFilteredCourses(updatedCourses.filter(course =>
+          course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          course.description.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
+      } else {
+        setFilteredCourses(updatedCourses);
+      }
+
+      // Reset all states properly
       setIsEditDialogOpen(false);
       setEditingCourse(null);
       resetForm();
+      
+      // Force re-render to ensure UI updates
+      setForceRender(prev => prev + 1);
 
       toast({
         title: "แก้ไขรายวิชาสำเร็จ",
@@ -637,7 +663,7 @@ const CourseManagement: React.FC = () => {
               ) : (
                 <div className="grid gap-4">
                   {filteredCourses.map((course) => (
-                    <Card key={course.id} className="hover:shadow-md transition-shadow">
+                    <Card key={`${course.id}-${forceRender}`} className="hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -663,10 +689,10 @@ const CourseManagement: React.FC = () => {
                             {((course.prerequisites && course.prerequisites.length > 0) || (course.corequisites && course.corequisites.length > 0)) && (
                               <div className="mt-2 text-xs text-gray-500">
                                 {course.prerequisites && course.prerequisites.length > 0 && (
-                                  <div>วิชาที่ต้องเรียนมาก่อน: {course.prerequisites.join(', ')}</div>
+                                  <div>วิชาที่ต้องเรียนมาก่อน: {(course.prerequisites || []).join(', ')}</div>
                                 )}
                                 {course.corequisites && course.corequisites.length > 0 && (
-                                  <div>วิชาที่ต้องเรียนพร้อมกัน: {course.corequisites.join(', ')}</div>
+                                  <div>วิชาที่ต้องเรียนพร้อมกัน: {(course.corequisites || []).join(', ')}</div>
                                 )}
                               </div>
                             )}
@@ -706,7 +732,14 @@ const CourseManagement: React.FC = () => {
       </Card>
 
       {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) {
+          // Reset states when dialog is closed
+          setEditingCourse(null);
+          resetForm();
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>แก้ไขรายวิชา</DialogTitle>

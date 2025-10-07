@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Course } from '@/types/course';
-import { generateCoursesForSemester } from '@/services/completeCurriculumData';
+import { getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseService';
 
 interface CurriculumTimelineFlowchartProps {
   selectedDepartment: string;
@@ -13,92 +13,49 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
   selectedCurriculum, 
   departmentName 
 }) => {
-  // Generate course data organized by year and semester
-  const timelineData = useMemo(() => {
-    let programCode, curriculumYear;
-    
-    // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
-    if (selectedCurriculum === 'IT 62 สหกิจ') {
-      programCode = 'IT';
-      curriculumYear = '62 สหกิจ';
-    } else if (selectedCurriculum === 'IT 67 สหกิจ') {
-      programCode = 'IT';
-      curriculumYear = '67 สหกิจ';
-    } else if (selectedCurriculum === 'INE 62 สหกิจ') {
-      programCode = 'INE';
-      curriculumYear = '62 สหกิจ';
-    } else if (selectedCurriculum === 'INE 67 สหกิจ') {
-      programCode = 'INE';
-      curriculumYear = '67 สหกิจ';
-    } else {
-      [programCode, curriculumYear] = selectedCurriculum.split(' ');
-    }
-    
-    // Check if this is a co-op curriculum
-    const isCoopCurriculum = selectedCurriculum.includes('COOP') || selectedCurriculum.includes('สหกิจ');
-    
-    // Determine max year based on program and co-op status
-    let maxYear = 4; // Default for IT programs
-    if (programCode === 'INET') maxYear = 3;
-    else if (programCode === 'ITI' || programCode === 'ITT') maxYear = 2;
-    
-    const timeline: { [year: number]: { [semester: number]: Course[] } } = {};
-    
-    for (let year = 1; year <= maxYear; year++) {
-      timeline[year] = {};
-      
-      // Regular semesters with more courses for better flowchart
-      for (let semester = 1; semester <= 2; semester++) {
-        const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 7);
-        if (courses.length > 0) {
-          timeline[year][semester] = courses;
+  const [timelineData, setTimelineData] = useState<{ [year: number]: { [semester: number]: HybridCourse[] } }>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load hybrid course data (static + Firebase updates)
+  useEffect(() => {
+    const loadCurriculumData = async () => {
+      setIsLoading(true);
+      try {
+        let programCode, curriculumYear;
+        
+        // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
+        if (selectedCurriculum === 'IT 62 สหกิจ') {
+          programCode = 'IT';
+          curriculumYear = '62 สหกิจ';
+        } else if (selectedCurriculum === 'IT 67 สหกิจ') {
+          programCode = 'IT';
+          curriculumYear = '67 สหกิจ';
+        } else if (selectedCurriculum === 'INE 62 สหกิจ') {
+          programCode = 'INE';
+          curriculumYear = '62 สหกิจ';
+        } else if (selectedCurriculum === 'INE 67 สหกิจ') {
+          programCode = 'INE';
+          curriculumYear = '67 สหกิจ';
+        } else {
+          [programCode, curriculumYear] = selectedCurriculum.split(' ');
         }
+
+        const hybridData = await getHybridCurriculumData(programCode, curriculumYear);
+        setTimelineData(hybridData);
+      } catch (error) {
+        console.error('Error loading curriculum data:', error);
+        setTimelineData({});
+      } finally {
+        setIsLoading(false);
       }
-      
-      // Special handling for co-op curriculum
-      if (isCoopCurriculum) {
-        // For co-op curriculum (IT or INE), show year 3 semesters 1 and 2 instead of semester 3
-        if (year === 3) {
-          // Year 3 semester 1 and 2 for co-op
-          for (let semester = 1; semester <= 2; semester++) {
-            // ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง ไม่ใช้ INE-COOP อีกต่อไป
-            const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 7);
-            if (courses.length > 0) {
-              timeline[year][semester] = courses;
-            }
-          }
-        }
-        // Year 4 for co-op preparation and internship
-        if (year === 4) {
-          for (let semester = 1; semester <= 2; semester++) {
-            // ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง ไม่ใช้ INE-COOP อีกต่อไป
-            const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 7);
-            if (courses.length > 0) {
-              timeline[year][semester] = courses;
-            }
-          }
-        }
-      } else {
-        // Regular curriculum special semester 3 handling
-        if ((programCode === 'IT' || programCode === 'INE') && year === 3) {
-          const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 2);
-          if (courses.length > 0) timeline[year][3] = courses;
-        }
-        if (programCode === 'INET' && year === 2) {
-          const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 2);
-          if (courses.length > 0) timeline[year][3] = courses;
-        }
-        if (programCode === 'ITI' && year === 1) {
-          const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 2);
-          if (courses.length > 0) timeline[year][3] = courses;
-        }
-      }
+    };
+
+    if (selectedCurriculum) {
+      loadCurriculumData();
     }
-    
-    return timeline;
   }, [selectedCurriculum]);
 
-  const calculateSemesterCredits = (courses: Course[]) => {
+  const calculateSemesterCredits = (courses: HybridCourse[]) => {
     return courses.reduce((sum, course) => sum + course.credits, 0);
   };
 
@@ -117,10 +74,12 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
 
   // Create a flat list of all semesters for easier layout
   const semesterLayout = useMemo(() => {
+    if (isLoading || !timelineData) return [];
+    
     const layout: Array<{
       year: number;
       semester: number;
-      courses: Course[];
+      courses: HybridCourse[];
       label: string;
       isInternship: boolean;
     }> = [];
@@ -161,7 +120,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
       });
 
     return layout;
-  }, [timelineData, selectedCurriculum]);
+  }, [selectedCurriculum, timelineData, isLoading]);
 
   // DIAGRAM ENGINE - Curriculum flowchart with prerequisite arrows
   // Following strict orthogonal routing rules through white gutters
@@ -508,6 +467,24 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
     return arrows;
   }, [semesterLayout, selectedCurriculum]);
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center bg-white p-4 border-b-2 border-black">
+          <h1 className="text-lg font-bold">
+            แผนภูมิแสดงความต่อเนื่อง{departmentName} 
+            {selectedCurriculum.includes('สหกิจ') ? ' (สหกิจศึกษา)' : ` (ปี ${selectedCurriculum.split(' ')[1]})`}
+          </h1>
+        </div>
+        <div className="bg-white p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">กำลังโหลดข้อมูลหลักสูตร...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -515,6 +492,12 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
         <h1 className="text-lg font-bold">
           แผนภูมิแสดงความต่อเนื่อง{departmentName} 
           {selectedCurriculum.includes('สหกิจ') ? ' (สหกิจศึกษา)' : ` (ปี ${selectedCurriculum.split(' ')[1]})`}
+          {/* Show indicator if data is from Firebase */}
+          {semesterLayout.some(sem => sem.courses.some(course => course.isUpdatedFromFirebase)) && (
+            <span className="ml-2 text-sm text-green-600 font-normal">
+              (อัปเดตล่าสุด)
+            </span>
+          )}
         </h1>
       </div>
 

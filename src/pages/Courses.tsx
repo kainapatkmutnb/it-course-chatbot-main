@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Mock data imports removed - using real data from API
 import { useAuth } from '@/contexts/AuthContext';
-import { generateCoursesForSemester } from '@/services/completeCurriculumData';
+import { getHybridCoursesForSemester, getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseService';
 import { CurriculumFlowchart } from '@/components/curriculum/CurriculumFlowchart';
 import { CurriculumTimelineFlowchart } from '@/components/curriculum/CurriculumTimelineFlowchart';
 import { 
@@ -32,6 +32,8 @@ const Courses: React.FC = () => {
   const [selectedCurriculum, setSelectedCurriculum] = useState<string>('all');
   const [selectedSemester, setSelectedSemester] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<string>('courses');
+  const [allCourses, setAllCourses] = useState<HybridCourse[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filter curricula based on selected department
   const getAvailableCurriculaOptions = () => {
@@ -73,81 +75,70 @@ const Courses: React.FC = () => {
     }
   }, [selectedCurriculum]);
 
-  // Generate courses based on selections
-  const generateFilteredCourses = () => {
-    // Only show courses if both department and curriculum are selected
-    if (selectedDepartment !== 'all' && selectedCurriculum !== 'all') {
-      // If specific curriculum and semester are selected, show only those courses
-      if (selectedSemester !== 'all') {
-        const [year, semester] = selectedSemester.split('-').map(Number);
-        
-        // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
-        let programCode, curriculumYear;
-        if (selectedCurriculum === 'IT 62 สหกิจ') {
-          programCode = 'IT';
-          curriculumYear = '62 สหกิจ';
-        } else if (selectedCurriculum === 'IT 67 สหกิจ') {
-          programCode = 'IT';
-          curriculumYear = '67 สหกิจ';
-        } else if (selectedCurriculum === 'INE 62 สหกิจ') {
-          programCode = 'INE';
-          curriculumYear = '62 สหกิจ';
-        } else if (selectedCurriculum === 'INE 67 สหกิจ') {
-          programCode = 'INE';
-          curriculumYear = '67 สหกิจ';
-        } else {
-          [programCode, curriculumYear] = selectedCurriculum.split(' ');
-        }
-        
-        return generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 7);
-      }
-      
-      // If only curriculum is selected, show all courses for that curriculum
-      let programCode, curriculumYear;
-      
-      // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
-      if (selectedCurriculum === 'IT 62 สหกิจ') {
-        programCode = 'IT';
-        curriculumYear = '62 สหกิจ';
-      } else if (selectedCurriculum === 'IT 67 สหกิจ') {
-        programCode = 'IT';
-        curriculumYear = '67 สหกิจ';
-      } else if (selectedCurriculum === 'INE 62 สหกิจ') {
-        programCode = 'INE';
-        curriculumYear = '62 สหกิจ';
-      } else if (selectedCurriculum === 'INE 67 สหกิจ') {
-        programCode = 'INE';
-        curriculumYear = '67 สหกิจ';
-      } else {
-        [programCode, curriculumYear] = selectedCurriculum.split(' ');
-      }
-      
-      const allCourses = [];
-      const maxYear = programCode === 'INET' ? 3 : programCode === 'ITI' || programCode === 'ITT' ? 2 : 4;
-      // Generate courses for all semesters
-      for (let year = 1; year <= maxYear; year++) {
-        for (let semester = 1; semester <= 2; semester++) {
-          allCourses.push(...generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 7));
-        }
-        // Add semester 3 for specific programs and years (exclude cooperative education curricula)
-        if ((programCode === 'IT' || programCode === 'INE') && year === 3 && !curriculumYear.includes('สหกิจ')) {
-          allCourses.push(...generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 7));
-        }
-        if (programCode === 'INET' && year === 2) {
-          allCourses.push(...generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 7));
-        }
-        if ((programCode === 'ITI') && year === 1) {
-          allCourses.push(...generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 7));
-        }
-      }
-      return allCourses;
-    }
-    
-    // If department and curriculum are not both selected, return empty array
-    return [];
-  };
+  // Load hybrid courses when selections change
+  useEffect(() => {
+    const loadCourses = async () => {
+      // Only load courses if both department and curriculum are selected
+      if (selectedDepartment !== 'all' && selectedCurriculum !== 'all') {
+        setIsLoading(true);
+        try {
+          // Parse curriculum selection
+          let programCode, curriculumYear;
+          
+          // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
+          if (selectedCurriculum === 'IT 62 สหกิจ') {
+            programCode = 'IT';
+            curriculumYear = '62 สหกิจ';
+          } else if (selectedCurriculum === 'IT 67 สหกิจ') {
+            programCode = 'IT';
+            curriculumYear = '67 สหกิจ';
+          } else if (selectedCurriculum === 'INE 62 สหกิจ') {
+            programCode = 'INE';
+            curriculumYear = '62 สหกิจ';
+          } else if (selectedCurriculum === 'INE 67 สหกิจ') {
+            programCode = 'INE';
+            curriculumYear = '67 สหกิจ';
+          } else {
+            [programCode, curriculumYear] = selectedCurriculum.split(' ');
+          }
 
-  const allCourses = generateFilteredCourses();
+          if (selectedSemester !== 'all') {
+            // Load specific semester
+            const [year, semester] = selectedSemester.split('-').map(Number);
+            const courses = await getHybridCoursesForSemester(
+              programCode, 
+              curriculumYear, 
+              year.toString(), 
+              semester.toString(), 
+              7
+            );
+            setAllCourses(courses);
+          } else {
+            // Load all courses for curriculum
+            const curriculumData = await getHybridCurriculumData(programCode, curriculumYear);
+            const flatCourses: HybridCourse[] = [];
+            
+            Object.values(curriculumData).forEach(yearData => {
+              Object.values(yearData).forEach(semesterCourses => {
+                flatCourses.push(...semesterCourses);
+              });
+            });
+            
+            setAllCourses(flatCourses);
+          }
+        } catch (error) {
+          console.error('Error loading courses:', error);
+          setAllCourses([]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setAllCourses([]);
+      }
+    };
+
+    loadCourses();
+  }, [selectedDepartment, selectedCurriculum, selectedSemester]);
   
   const filteredCourses = allCourses.filter(course => {
     const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -296,8 +287,16 @@ const Courses: React.FC = () => {
 
           <TabsContent value="courses" className="space-y-6">
             {/* Course Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCourses.map((course) => (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center space-y-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground">กำลังโหลดข้อมูลรายวิชา...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCourses.map((course) => (
                 <Card key={course.id} className="shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -403,10 +402,11 @@ const Courses: React.FC = () => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
 
             {/* No Results */}
-            {filteredCourses.length === 0 && (
+            {!isLoading && filteredCourses.length === 0 && (
               <Card className="shadow-medium">
                 <CardContent className="text-center py-12">
                   <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

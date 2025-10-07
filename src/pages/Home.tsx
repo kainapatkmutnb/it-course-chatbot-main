@@ -144,7 +144,7 @@ const Home: React.FC = () => {
                 <div className="flex items-center space-x-2 bg-white/10 rounded-lg p-3">
                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                     <span className="text-sm font-bold">
-                      {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {(user?.name || '').split(' ').map(n => n[0]).join('').toUpperCase()}
                     </span>
                   </div>
                   <div>

@@ -1801,7 +1801,7 @@ const AdminDashboard: React.FC = () => {
                                       <div className="mb-2">
                                         <span className="text-xs font-medium text-orange-600">เงื่อนไขวิชา: </span>
                                         <span className="text-xs text-muted-foreground">
-                                          {course.prerequisites.join(', ')}
+                                          {(course.prerequisites || []).join(', ')}
                                         </span>
                                       </div>
                                     )}
@@ -1811,7 +1811,7 @@ const AdminDashboard: React.FC = () => {
                                       <div>
                                         <span className="text-xs font-medium text-blue-600">วิชาที่ต้องเรียนพร้อมกัน: </span>
                                         <span className="text-xs text-muted-foreground">
-                                          {course.corequisites.join(', ')}
+                                          {(course.corequisites || []).join(', ')}
                                         </span>
                                       </div>
                                     )}
