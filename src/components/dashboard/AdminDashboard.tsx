@@ -19,6 +19,7 @@ import CourseManagement from './CourseManagement';
 import { getCoursesByProgram } from '@/services/courseService';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { Course } from '@/services/firebaseService';
+import { CourseWithProgram } from '@/services/courseService';
 import { 
   Shield, 
   Users, 
@@ -94,8 +95,8 @@ const AdminDashboard: React.FC = () => {
   const [corequisiteToAdd, setCorequisiteToAdd] = useState<string>('');
   const [courses, setCourses] = useState<any[]>([]);
   const [allCoursesInCurriculum, setAllCoursesInCurriculum] = useState<any[]>([]);
-  const [allCoursesOverview, setAllCoursesOverview] = useState<any[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [allCoursesOverview, setAllCoursesOverview] = useState<CourseWithProgram[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<CourseWithProgram[]>([]);
   const [overviewSearchTerm, setOverviewSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [overviewLoading, setOverviewLoading] = useState(false);
@@ -733,7 +734,7 @@ const AdminDashboard: React.FC = () => {
   const loadAllCoursesForOverview = async () => {
     setOverviewLoading(true);
     try {
-      const allCourses: any[] = [];
+      const allCourses: CourseWithProgram[] = [];
       
       // Loop through all programs and curriculum years
       for (const program of programs) {
@@ -746,8 +747,7 @@ const AdminDashboard: React.FC = () => {
             // Add program and curriculum year info to each course
             const coursesWithInfo = programCourses.map(course => ({
               ...course,
-              programCode: program.code,
-              programName: program.name,
+              program: program.code,
               curriculumYear: year
             }));
             
@@ -1810,7 +1810,7 @@ const AdminDashboard: React.FC = () => {
                       ) : (
                         <div className="grid gap-4">
                           {filteredCourses.slice(0, 20).map((course) => (
-                            <Card key={`${course.programCode}-${course.curriculumYear}-${course.code}`} className="border-l-2 border-l-muted">
+                            <Card key={`${course.program}-${course.curriculumYear}-${course.code}`} className="border-l-2 border-l-muted">
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
@@ -1823,7 +1823,7 @@ const AdminDashboard: React.FC = () => {
                                       </Badge>
                                     </div>
                                     <p className="text-sm text-muted-foreground mb-2">
-                                      {course.programName} • หลักสูตร {course.curriculumYear}
+                                      {programs.find(p => p.code === course.program)?.name || course.program} • หลักสูตร {course.curriculumYear}
                                     </p>
 
                                     {/* Prerequisites */}
