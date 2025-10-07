@@ -75,6 +75,7 @@ export const ROLE_PERMISSIONS = {
     'view_curriculum',
     'manage_courses',
     'manage_curriculum',
+    'manage_course_prerequisites',
     'manage_users',
     'manage_roles',
     'view_audit_logs',
