@@ -68,13 +68,15 @@ export const getHybridCoursesForSemester = async (
       
       if (firebaseCourse) {
         // Merge Firebase data with base course data
+        // For prerequisites and corequisites, use Firebase data if it exists (even if empty array)
+        // This ensures that deleted prerequisites/corequisites are properly reflected
         return {
           ...baseCourse,
           name: firebaseCourse.name || baseCourse.name,
           description: firebaseCourse.description || baseCourse.description,
           credits: firebaseCourse.credits || baseCourse.credits,
-          prerequisites: firebaseCourse.prerequisites || baseCourse.prerequisites,
-          corequisites: firebaseCourse.corequisites || baseCourse.corequisites,
+          prerequisites: firebaseCourse.prerequisites !== undefined ? firebaseCourse.prerequisites : baseCourse.prerequisites,
+          corequisites: firebaseCourse.corequisites !== undefined ? firebaseCourse.corequisites : baseCourse.corequisites,
           instructor: firebaseCourse.instructor || baseCourse.instructor,
           maxStudents: firebaseCourse.maxStudents || baseCourse.maxStudents,
           currentStudents: firebaseCourse.currentStudents || baseCourse.currentStudents,

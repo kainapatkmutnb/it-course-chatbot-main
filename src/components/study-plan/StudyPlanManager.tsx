@@ -686,18 +686,7 @@ const StudyPlanManager: React.FC = () => {
                             {course.mainCategory && <Badge variant="secondary">{course.mainCategory}</Badge>}
                             {course.subCategory && <Badge variant="outline">{course.subCategory}</Badge>}
                           </div>
-                          {course.prerequisites && course.prerequisites.length > 0 && (
-                            <div className="text-sm">
-                              <span className="font-medium text-orange-600">วิชาที่ต้องเรียนมาก่อน: </span>
-                              <span className="text-orange-700">{(course.prerequisites || []).join(', ')}</span>
-                            </div>
-                          )}
-                          {course.corequisites && course.corequisites.length > 0 && (
-                            <div className="text-sm">
-                              <span className="font-medium">วิชาที่ต้องเรียนพร้อมกัน: </span>
-                              {(course.corequisites || []).join(', ')}
-                            </div>
-                          )}
+
                         </div>
                       ) : null;
                     })()}

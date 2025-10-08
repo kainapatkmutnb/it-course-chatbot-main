@@ -14,6 +14,7 @@ import { Course, firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { getCoursesByProgram, getCourseNameByCode } from '@/services/courseService';
 import CourseManagement from './CourseManagement';
+import { extractCourseNumber } from '@/lib/utils';
 import { 
   Users, 
   Settings, 
@@ -170,8 +171,12 @@ const StaffDashboard: React.FC = () => {
         const courseToUpdate = courses.find(c => c.code === selectedCourse);
         if (!courseToUpdate) return;
 
-        // Update prerequisites
-        const updatedPrerequisites = [...courseToUpdate.prerequisites, prerequisiteToAdd];
+        // Find the prerequisite course to get its name
+        const prerequisiteCourse = allCoursesInCurriculum.find(c => c.code === prerequisiteToAdd);
+        const prerequisiteDisplay = prerequisiteCourse ? `${extractCourseNumber(prerequisiteCourse.code)} ${prerequisiteCourse.name}` : extractCourseNumber(prerequisiteToAdd);
+
+        // Update prerequisites - handle case where prerequisites might be undefined or null
+        const updatedPrerequisites = [...(courseToUpdate.prerequisites || []), prerequisiteDisplay];
         const updatedCourse = {
           ...courseToUpdate,
           prerequisites: updatedPrerequisites
@@ -195,7 +200,7 @@ const StaffDashboard: React.FC = () => {
         if (user) {
           await firebaseService.createAuditLog({
             action: 'เพิ่มเงื่อนไขวิชา',
-            details: `เพิ่มเงื่อนไขวิชา ${prerequisiteToAdd} สำหรับ ${selectedCourse}`,
+            details: `เพิ่มเงื่อนไขวิชา ${prerequisiteDisplay} สำหรับ ${selectedCourse}`,
             userId: user.id,
             ipAddress: 'localhost',
             category: 'course'
@@ -204,7 +209,7 @@ const StaffDashboard: React.FC = () => {
         
         toast({
           title: 'เพิ่มเงื่อนไขสำเร็จ',
-          description: `เพิ่มเงื่อนไขวิชา ${prerequisiteToAdd} สำหรับ ${selectedCourse}`,
+          description: `เพิ่มเงื่อนไขวิชา ${prerequisiteDisplay} สำหรับ ${selectedCourse}`,
         });
       } catch (error) {
         toast({
@@ -223,8 +228,12 @@ const StaffDashboard: React.FC = () => {
         const courseToUpdate = courses.find(c => c.code === selectedCourse);
         if (!courseToUpdate) return;
 
+        // Find the corequisite course to get its name
+        const corequisiteCourse = allCoursesInCurriculum.find(c => c.code === corequisiteToAdd);
+        const corequisiteDisplay = corequisiteCourse ? `${extractCourseNumber(corequisiteCourse.code)} ${corequisiteCourse.name}` : extractCourseNumber(corequisiteToAdd);
+
         // Update corequisites
-        const updatedCorequisites = [...(courseToUpdate.corequisites || []), corequisiteToAdd];
+        const updatedCorequisites = [...(courseToUpdate.corequisites || []), corequisiteDisplay];
         const updatedCourse = {
           ...courseToUpdate,
           corequisites: updatedCorequisites
@@ -248,7 +257,7 @@ const StaffDashboard: React.FC = () => {
         if (user) {
           await firebaseService.createAuditLog({
             action: 'เพิ่มวิชาที่ต้องเรียนพร้อมกัน',
-            details: `เพิ่มวิชาที่ต้องเรียนพร้อมกัน ${corequisiteToAdd} สำหรับ ${selectedCourse}`,
+            details: `เพิ่มวิชาที่ต้องเรียนพร้อมกัน ${corequisiteDisplay} สำหรับ ${selectedCourse}`,
             userId: user.id,
             ipAddress: 'localhost',
             category: 'course'
@@ -257,7 +266,7 @@ const StaffDashboard: React.FC = () => {
         
         toast({
           title: 'เพิ่มวิชาที่ต้องเรียนพร้อมกันสำเร็จ',
-          description: `เพิ่มวิชาที่ต้องเรียนพร้อมกัน ${corequisiteToAdd} สำหรับ ${selectedCourse}`,
+          description: `เพิ่มวิชาที่ต้องเรียนพร้อมกัน ${corequisiteDisplay} สำหรับ ${selectedCourse}`,
         });
       } catch (error) {
         toast({
@@ -275,8 +284,8 @@ const StaffDashboard: React.FC = () => {
       const courseToUpdate = courses.find(c => c.code === courseCode);
       if (!courseToUpdate) return;
 
-      // Update prerequisites
-      const updatedPrerequisites = courseToUpdate.prerequisites.filter(p => p !== prerequisite);
+      // Update prerequisites - handle case where prerequisites might be undefined or null
+      const updatedPrerequisites = (courseToUpdate.prerequisites || []).filter(p => p !== prerequisite);
       const updatedCourse = {
         ...courseToUpdate,
         prerequisites: updatedPrerequisites
@@ -309,6 +318,11 @@ const StaffDashboard: React.FC = () => {
         title: 'ลบเงื่อนไขสำเร็จ',
         description: `ลบเงื่อนไขวิชา ${prerequisite} ออกจาก ${courseCode}`,
       });
+
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('courseDataUpdated', {
+        detail: { action: 'removePrerequisite', courseCode, prerequisite }
+      }));
     } catch (error) {
       toast({
         title: 'เกิดข้อผิดพลาด',
@@ -373,8 +387,8 @@ const StaffDashboard: React.FC = () => {
       const courseToUpdate = courses.find(c => c.code === courseCode);
       if (!courseToUpdate) return;
 
-      // Update corequisites
-      const updatedCorequisites = courseToUpdate.corequisites.filter(c => c !== corequisite);
+      // Update corequisites - handle case where corequisites might be undefined or null
+      const updatedCorequisites = (courseToUpdate.corequisites || []).filter(c => c !== corequisite);
       const updatedCourse = {
         ...courseToUpdate,
         corequisites: updatedCorequisites
@@ -407,6 +421,11 @@ const StaffDashboard: React.FC = () => {
         title: 'ลบวิชาที่ต้องเรียนพร้อมกันสำเร็จ',
         description: `ลบวิชาที่ต้องเรียนพร้อมกัน ${corequisite} ออกจาก ${courseCode}`,
       });
+
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('courseDataUpdated', {
+        detail: { action: 'removeCorequisite', courseCode, corequisite }
+      }));
     } catch (error) {
       toast({
         title: 'เกิดข้อผิดพลาด',
@@ -692,7 +711,19 @@ const StaffDashboard: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {allCoursesInCurriculum
-                              .filter(course => course.code !== selectedCourse)
+                              .filter(course => {
+                                if (course.code === selectedCourse) return false;
+                                
+                                // Get the selected course data to check existing prerequisites
+                                const selectedCourseData = courses.find(c => c.code === selectedCourse);
+                                if (selectedCourseData && selectedCourseData.prerequisites) {
+                                  const courseNumber = extractCourseNumber(course.code);
+                                  return !selectedCourseData.prerequisites.some(prereq =>
+                                    extractCourseNumber(prereq).includes(courseNumber)
+                                  );
+                                }
+                                return true;
+                              })
                               .map((course) => (
                                 <SelectItem key={course.id} value={course.code}>
                                   {course.code} - {course.name}
@@ -724,7 +755,19 @@ const StaffDashboard: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {allCoursesInCurriculum
-                              .filter(course => course.code !== selectedCourse)
+                              .filter(course => {
+                                if (course.code === selectedCourse) return false;
+                                
+                                // Get the selected course data to check existing corequisites
+                                const selectedCourseData = courses.find(c => c.code === selectedCourse);
+                                if (selectedCourseData && selectedCourseData.corequisites) {
+                                  const courseNumber = extractCourseNumber(course.code);
+                                  return !selectedCourseData.corequisites.some(coreq =>
+                                    extractCourseNumber(coreq).includes(courseNumber)
+                                  );
+                                }
+                                return true;
+                              })
                               .map((course) => (
                                 <SelectItem key={course.id} value={course.code}>
                                   {course.code} - {course.name}
@@ -779,7 +822,7 @@ const StaffDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.prerequisites.map((prerequisite, index) => (
                                   <div key={`${course.code}-pre-${prerequisite}`} className="flex items-center space-x-1 bg-warning/10 border border-warning/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{prerequisite} - {getCourseNameByCode(prerequisite)}</span>
+                                    <span className="text-sm">{getCourseNameByCode(prerequisite)}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -801,7 +844,7 @@ const StaffDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.corequisites.map((corequisite, index) => (
                                   <div key={`${course.code}-co-${corequisite}`} className="flex items-center space-x-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{corequisite} - {getCourseNameByCode(corequisite)}</span>
+                                    <span className="text-sm">{getCourseNameByCode(corequisite)}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -952,7 +995,7 @@ const StaffDashboard: React.FC = () => {
                                     <div className="flex flex-wrap gap-2">
                                       {course.prerequisites.map((prerequisite, index) => (
                                         <Badge key={`${course.code}-pre-${prerequisite}`} variant="outline" className="bg-orange-50 border-orange-200 text-orange-700">
-                                          {prerequisite} - {getCourseNameByCode(prerequisite)}
+                                          {getCourseNameByCode(prerequisite)}
                                         </Badge>
                                       ))}
                                     </div>
@@ -965,7 +1008,7 @@ const StaffDashboard: React.FC = () => {
                                     <div className="flex flex-wrap gap-2">
                                       {course.corequisites.map((corequisite, index) => (
                                         <Badge key={`${course.code}-co-${corequisite}`} variant="outline" className="bg-blue/10 border-blue/20 text-blue-700">
-                                          {corequisite} - {getCourseNameByCode(corequisite)}
+                                          {getCourseNameByCode(corequisite)}
                                         </Badge>
                                       ))}
                                     </div>

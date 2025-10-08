@@ -20,6 +20,7 @@ import { getCoursesByProgram, getCourseNameByCode } from '@/services/courseServi
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { Course } from '@/services/firebaseService';
 import { CourseWithProgram } from '@/services/courseService';
+import { extractCourseNumber } from '@/lib/utils';
 import { 
   Shield, 
   Users, 
@@ -543,8 +544,12 @@ const AdminDashboard: React.FC = () => {
         const courseToUpdate = courses.find(c => c.code === selectedCourse);
         if (!courseToUpdate) return;
 
-        // Update prerequisites
-        const updatedPrerequisites = [...courseToUpdate.prerequisites, prerequisiteToAdd];
+        // Find the selected prerequisite course to get both code and name
+        const prerequisiteCourse = allCoursesInCurriculum.find(c => c.code === prerequisiteToAdd);
+        const prerequisiteDisplay = prerequisiteCourse ? `${extractCourseNumber(prerequisiteCourse.code)} ${prerequisiteCourse.name}` : extractCourseNumber(prerequisiteToAdd);
+        
+        // Update prerequisites - handle case where prerequisites might be undefined or null
+        const updatedPrerequisites = [...(courseToUpdate.prerequisites || []), prerequisiteDisplay];
         const updatedCourse = {
           ...courseToUpdate,
           prerequisites: updatedPrerequisites
@@ -596,8 +601,12 @@ const AdminDashboard: React.FC = () => {
         const courseToUpdate = courses.find(c => c.code === selectedCourse);
         if (!courseToUpdate) return;
 
+        // Find the selected corequisite course to get both code and name
+        const corequisiteCourse = allCoursesInCurriculum.find(c => c.code === corequisiteToAdd);
+        const corequisiteDisplay = corequisiteCourse ? `${extractCourseNumber(corequisiteCourse.code)} ${corequisiteCourse.name}` : extractCourseNumber(corequisiteToAdd);
+        
         // Update corequisites
-        const updatedCorequisites = [...(courseToUpdate.corequisites || []), corequisiteToAdd];
+        const updatedCorequisites = [...(courseToUpdate.corequisites || []), corequisiteDisplay];
         const updatedCourse = {
           ...courseToUpdate,
           corequisites: updatedCorequisites
@@ -648,8 +657,8 @@ const AdminDashboard: React.FC = () => {
       const courseToUpdate = courses.find(c => c.code === courseCode);
       if (!courseToUpdate) return;
 
-      // Update prerequisites
-      const updatedPrerequisites = courseToUpdate.prerequisites.filter(p => p !== prerequisite);
+      // Update prerequisites - handle case where prerequisites might be undefined or null
+      const updatedPrerequisites = (courseToUpdate.prerequisites || []).filter(p => p !== prerequisite);
       const updatedCourse = {
         ...courseToUpdate,
         prerequisites: updatedPrerequisites
@@ -697,8 +706,8 @@ const AdminDashboard: React.FC = () => {
       const courseToUpdate = courses.find(c => c.code === courseCode);
       if (!courseToUpdate) return;
 
-      // Update corequisites
-      const updatedCorequisites = courseToUpdate.corequisites.filter(c => c !== corequisite);
+      // Update corequisites - handle case where corequisites might be undefined or null
+      const updatedCorequisites = (courseToUpdate.corequisites || []).filter(c => c !== corequisite);
       const updatedCourse = {
         ...courseToUpdate,
         corequisites: updatedCorequisites
@@ -1614,7 +1623,21 @@ const AdminDashboard: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {allCoursesInCurriculum
-                              .filter(course => course.code !== selectedCourse)
+                              .filter(course => {
+                                // ไม่แสดงวิชาตัวเอง
+                                if (course.code === selectedCourse) return false;
+                                
+                                // ไม่แสดงวิชาที่เพิ่มเป็น prerequisite ไว้แล้ว
+                                const selectedCourseData = courses.find(c => c.code === selectedCourse);
+                                if (selectedCourseData && selectedCourseData.prerequisites) {
+                                  const courseNumber = extractCourseNumber(course.code);
+                                  return !selectedCourseData.prerequisites.some(prereq => 
+                                    prereq.includes(courseNumber)
+                                  );
+                                }
+                                
+                                return true;
+                              })
                               .map((course) => (
                                 <SelectItem key={course.code} value={course.code}>
                                   {course.code} - {course.name}
@@ -1646,7 +1669,21 @@ const AdminDashboard: React.FC = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {allCoursesInCurriculum
-                              .filter(course => course.code !== selectedCourse)
+                              .filter(course => {
+                                // ไม่แสดงวิชาตัวเอง
+                                if (course.code === selectedCourse) return false;
+                                
+                                // ไม่แสดงวิชาที่เพิ่มเป็น corequisite ไว้แล้ว
+                                const selectedCourseData = courses.find(c => c.code === selectedCourse);
+                                if (selectedCourseData && selectedCourseData.corequisites) {
+                                  const courseNumber = extractCourseNumber(course.code);
+                                  return !selectedCourseData.corequisites.some(coreq => 
+                                    coreq.includes(courseNumber)
+                                  );
+                                }
+                                
+                                return true;
+                              })
                               .map((course) => (
                                 <SelectItem key={course.code} value={course.code}>
                                   {course.code} - {course.name}
@@ -1703,7 +1740,7 @@ const AdminDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.prerequisites.map((prerequisite, index) => (
                                   <div key={`${course.code}-pre-${prerequisite}`} className="flex items-center space-x-1 bg-warning/10 border border-warning/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{prerequisite} - {getCourseNameByCode(prerequisite)}</span>
+                                    <span className="text-sm">{prerequisite}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"
@@ -1725,7 +1762,7 @@ const AdminDashboard: React.FC = () => {
                               <div className="flex flex-wrap gap-2">
                                 {course.corequisites.map((corequisite, index) => (
                                   <div key={`${course.code}-co-${corequisite}`} className="flex items-center space-x-1 bg-blue/10 border border-blue/20 rounded-lg px-3 py-1">
-                                    <span className="text-sm">{corequisite} - {getCourseNameByCode(corequisite)}</span>
+                                    <span className="text-sm">{corequisite}</span>
                                     <Button
                                       size="sm"
                                       variant="ghost"

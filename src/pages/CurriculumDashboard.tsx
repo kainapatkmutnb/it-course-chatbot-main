@@ -108,6 +108,39 @@ const CurriculumDashboard: React.FC = () => {
     loadCourses();
   }, [selectedCurriculumData, selectedSemester]);
 
+  // Listen for course data updates from other components
+  useEffect(() => {
+    const handleCourseDataUpdate = () => {
+      // Reload courses when data is updated
+      if (selectedCurriculumData && selectedSemester) {
+        const loadCourses = async () => {
+          setIsLoadingCourses(true);
+          try {
+            const [yearStr, semesterStr] = selectedSemester.split('-');
+            const year = parseInt(yearStr);
+            const semester = parseInt(semesterStr);
+            
+            const curriculumId = selectedCurriculumData.curriculum.id;
+            const [program, curriculumYear] = curriculumId.split('-');
+            
+            const hybridData = await getHybridCurriculumData(program, curriculumYear);
+            const semesterKey = `${year}-${semester}`;
+            
+            setSelectedSemesterCourses(hybridData[semesterKey] || []);
+          } catch (error) {
+            console.error('Error reloading curriculum data:', error);
+          } finally {
+            setIsLoadingCourses(false);
+          }
+        };
+        loadCourses();
+      }
+    };
+
+    window.addEventListener('courseDataUpdated', handleCourseDataUpdate);
+    return () => window.removeEventListener('courseDataUpdated', handleCourseDataUpdate);
+  }, [selectedCurriculumData, selectedSemester]);
+
   // Filter courses based on search term and sort by course code
   const filteredCourses = useMemo(() => {
     let courses = selectedSemesterCourses;

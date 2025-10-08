@@ -141,6 +141,50 @@ const Courses: React.FC = () => {
 
     loadCourses();
   }, [selectedDepartment, selectedCurriculum, selectedSemester]);
+
+  // Listen for course data updates from other components
+  useEffect(() => {
+    const handleCourseDataUpdate = () => {
+      // Reload courses when data is updated
+      if (selectedDepartment && selectedCurriculum && selectedSemester) {
+        const loadCourses = async () => {
+          setIsLoading(true);
+          try {
+            if (selectedSemester === 'all') {
+              const [program, curriculumYear] = selectedCurriculum.split('-');
+              const curriculumData = await getHybridCurriculumData(program, curriculumYear);
+              
+              const flatCourses: HybridCourse[] = [];
+              
+              Object.values(curriculumData).forEach(yearData => {
+                Object.values(yearData).forEach(semesterCourses => {
+                  flatCourses.push(...semesterCourses);
+                });
+              });
+              
+              setAllCourses(flatCourses);
+            } else {
+              const [program, curriculumYear] = selectedCurriculum.split('-');
+              const [yearStr, semesterStr] = selectedSemester.split('-');
+              const year = parseInt(yearStr);
+              const semester = parseInt(semesterStr);
+              
+              const courses = await getHybridCoursesForSemester(program, curriculumYear, year, semester);
+              setAllCourses(courses);
+            }
+          } catch (error) {
+            console.error('Error reloading courses:', error);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+        loadCourses();
+      }
+    };
+
+    window.addEventListener('courseDataUpdated', handleCourseDataUpdate);
+    return () => window.removeEventListener('courseDataUpdated', handleCourseDataUpdate);
+  }, [selectedDepartment, selectedCurriculum, selectedSemester]);
   
   const filteredCourses = (allCourses || []).filter(course => {
     const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
