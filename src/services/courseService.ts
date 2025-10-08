@@ -46,12 +46,12 @@ export const getAllCourses = (): CourseWithProgram[] => {
 };
 
 /**
- * Get courses for a specific program and curriculum year
+ * Get courses for a specific program and curriculum year (static data only)
  */
-export const getCoursesByProgram = (program: string, curriculumYear: string): CourseWithProgram[] => {
+export const getCoursesByProgramSync = (program: string, curriculumYear: string): CourseWithProgram[] => {
   const allCourses: CourseWithProgram[] = [];
   
-  // Use generateCoursesForSemester for all years and semesters
+  // Get static courses from generateCoursesForSemester for all years and semesters
   for (let year = 1; year <= 4; year++) {
     for (let semester = 1; semester <= 2; semester++) {
       const semesterCourses = generateCoursesForSemester(
@@ -71,6 +71,68 @@ export const getCoursesByProgram = (program: string, curriculumYear: string): Co
         });
       });
     }
+  }
+
+  return allCourses;
+};
+
+/**
+ * Get courses for a specific program and curriculum year (including Firebase courses)
+ */
+export const getCoursesByProgram = async (program: string, curriculumYear: string): Promise<CourseWithProgram[]> => {
+  const allCourses: CourseWithProgram[] = [];
+  
+  // Get static courses from generateCoursesForSemester for all years and semesters
+  for (let year = 1; year <= 4; year++) {
+    for (let semester = 1; semester <= 2; semester++) {
+      const semesterCourses = generateCoursesForSemester(
+        program, 
+        curriculumYear, 
+        year.toString(), 
+        semester.toString()
+      );
+      
+      semesterCourses.forEach(course => {
+        allCourses.push({
+          ...course,
+          program,
+          curriculumYear,
+          id: course.id || `${course.code}-${program}-${curriculumYear}`,
+          isActive: course.isActive !== false
+        });
+      });
+    }
+  }
+
+  try {
+    // Import firebaseService here to avoid circular dependency
+    const { firebaseService } = await import('./firebaseService');
+    
+    // Get all Firebase courses for this program and curriculum
+    const firebaseCourses = await firebaseService.getCourses();
+    
+    // Filter Firebase courses for this specific program and curriculum
+    const relevantFirebaseCourses = firebaseCourses.filter(course => 
+      course.program === program && course.curriculumYear === curriculumYear
+    );
+    
+    // Add Firebase courses that don't exist in static data
+    const staticCourseCodes = new Set(allCourses.map(course => course.code));
+    
+    relevantFirebaseCourses.forEach(firebaseCourse => {
+      if (!staticCourseCodes.has(firebaseCourse.code)) {
+        allCourses.push({
+          ...firebaseCourse,
+          program,
+          curriculumYear,
+          id: firebaseCourse.id || `${firebaseCourse.code}-${program}-${curriculumYear}`,
+          isActive: firebaseCourse.isActive !== false
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error loading Firebase courses for program:', error);
+    // Continue with static courses only if Firebase fails
   }
 
   return allCourses;

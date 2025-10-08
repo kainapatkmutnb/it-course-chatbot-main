@@ -34,6 +34,8 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
   // Generate real course data based on selected curriculum
   useEffect(() => {
     const loadCourses = async () => {
+      if (!selectedCurriculum) return;
+      
       setIsLoading(true);
       let programCode, curriculumYear;
       
@@ -101,7 +103,7 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
     };
     
     loadCourses();
-  }, [selectedCurriculum, firebaseCourses]); // Add firebaseCourses as dependency
+  }, [selectedCurriculum, firebaseCourses]); // Add firebaseCourses as dependency to trigger refresh when Firebase data changes
 
   // Calculate credits for each semester
   const calculateSemesterCredits = (courses: Course[]) => {
@@ -241,69 +243,22 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
   }>>([]);
 
   React.useEffect(() => {
+    console.log('=== useEffect for updating lines triggered ===');
+    if (Object.keys(coursesByYear).length === 0) {
+      console.log('No courses available, skipping line update');
+      return;
+    }
+
     const updateLines = () => {
       console.log('=== updateLines called ===');
-      const lines: Array<{
-        id: string;
-        x1: number;
-        y1: number;
-        x2: number;
-        y2: number;
-        prereqCourse: Course;
-        targetCourse: Course;
-      }> = [];
-
-      Object.entries(coursesByYear).forEach(([year, semesters]) => {
-        Object.entries(semesters).forEach(([semester, courses]) => {
-          courses.forEach((course) => {
-            const prerequisites = findPrerequisiteConnections(course);
-            console.log(`Course ${course.code} has ${prerequisites.length} prerequisites`);
-            
-            prerequisites.forEach(prereqCourse => {
-              // Find positions of both courses
-              const targetElement = document.getElementById(`course-${course.code.replace(/[^a-zA-Z0-9]/g, '')}`);
-              const prereqElement = document.getElementById(`course-${prereqCourse.code.replace(/[^a-zA-Z0-9]/g, '')}`);
-              
-              console.log(`Looking for elements: target=${targetElement ? 'found' : 'not found'}, prereq=${prereqElement ? 'found' : 'not found'}`);
-              
-              if (targetElement && prereqElement) {
-                const targetRect = targetElement.getBoundingClientRect();
-                const prereqRect = prereqElement.getBoundingClientRect();
-                const containerElement = document.querySelector('.curriculum-flowchart-container');
-                
-                if (containerElement) {
-                  const containerRect = containerElement.getBoundingClientRect();
-                  
-                  // Calculate relative positions within the container
-                  const x1 = prereqRect.right - containerRect.left;
-                  const y1 = prereqRect.top + prereqRect.height / 2 - containerRect.top;
-                  const x2 = targetRect.left - containerRect.left;
-                  const y2 = targetRect.top + targetRect.height / 2 - containerRect.top;
-                  
-                  console.log(`Adding line: (${x1}, ${y1}) -> (${x2}, ${y2})`);
-                  
-                  lines.push({
-                    id: `${prereqCourse.id}-${course.id}`,
-                    x1,
-                    y1,
-                    x2,
-                    y2,
-                    prereqCourse,
-                    targetCourse: course
-                  });
-                }
-              }
-            });
-          });
-        });
-      });
-
-      console.log(`Total lines to draw: ${lines.length}`);
+      // Use the existing generatePrerequisiteLines function
+      const lines = generatePrerequisiteLines;
+      console.log(`Generated lines from generatePrerequisiteLines: ${lines.length}`);
       setSvgLines(lines);
     };
 
     // Update lines after a longer delay to ensure DOM is fully ready
-    const timeoutId = setTimeout(updateLines, 500);
+    const timeoutId = setTimeout(updateLines, 1000);
     
     // Also update on window resize
     window.addEventListener('resize', updateLines);
@@ -312,7 +267,7 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
       clearTimeout(timeoutId);
       window.removeEventListener('resize', updateLines);
     };
-  }, [coursesByYear]);
+  }, [coursesByYear, generatePrerequisiteLines]);
 
   return (
     <div className="curriculum-flowchart-container relative space-y-6">

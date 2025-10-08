@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCourses } from '@/hooks/useFirebaseData';
 import { Course, firebaseService } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
-import { getCoursesByProgram, getCourseNameByCode } from '@/services/courseService';
+import { getCoursesByProgram, getCoursesByProgramSync, getCourseNameByCode } from '@/services/courseService';
 import CourseManagement from './CourseManagement';
 import { extractCourseNumber } from '@/lib/utils';
 import { 
@@ -151,8 +151,8 @@ const StaffDashboard: React.FC = () => {
 
   const loadAllCoursesInCurriculum = async () => {
     try {
-      // Get all courses for the selected program and curriculum year
-      const allCourses = getCoursesByProgram(selectedProgram, selectedCurriculumYear);
+      // Get all courses for the selected program and curriculum year (including Firebase courses)
+      const allCourses = await getCoursesByProgram(selectedProgram, selectedCurriculumYear);
       setAllCoursesInCurriculum(allCourses);
     } catch (error) {
       console.error('Error loading all courses in curriculum:', error);
@@ -465,7 +465,7 @@ const StaffDashboard: React.FC = () => {
         if (programYears) {
           for (const year of programYears) {
             // Get all courses for this program and curriculum year
-            const programCourses = getCoursesByProgram(program.code, year);
+            const programCourses = getCoursesByProgramSync(program.code, year);
             
             // Get Firebase courses for all semesters and years
             for (let studyYear = 1; studyYear <= 4; studyYear++) {
