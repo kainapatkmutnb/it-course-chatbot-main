@@ -38,6 +38,9 @@ export interface Course {
   // New optional categorization placeholders
   mainCategory?: string;
   subCategory?: string;
+  // Program and curriculum information
+  program?: string;
+  curriculumYear?: string;
 }
 
 export interface StudentCourse {

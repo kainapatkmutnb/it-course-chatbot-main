@@ -1,9 +1,10 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Department, Curriculum, Course } from '@/types/course';
-import { generateCoursesForSemester } from '@/services/completeCurriculumData';
+import { getHybridCoursesForSemester } from '@/services/hybridCourseService';
 import { ArrowDown, BookOpen } from 'lucide-react';
+import { useCourses } from '@/hooks/useFirebaseData';
 
 interface CurriculumFlowchartProps {
   selectedDepartment: string;
@@ -16,6 +17,10 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
   selectedCurriculum, 
   departmentName 
 }) => {
+  const { courses: firebaseCourses } = useCourses(); // Add courses dependency for re-rendering
+  const [coursesByYear, setCoursesByYear] = useState<{ [key: number]: { [key: number]: Course[] } }>({});
+  const [isLoading, setIsLoading] = useState(true);
+  
   const getCategoryBadge = (category: string) => {
     const baseClasses = "text-xs px-2 py-1 rounded-full";
     switch (category) {
@@ -27,70 +32,76 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
   };
 
   // Generate real course data based on selected curriculum
-  const coursesByYear = useMemo(() => {
-    let programCode, curriculumYear;
-    
-    // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
-    if (selectedCurriculum === 'IT 62 สหกิจ') {
-      programCode = 'IT';
-      curriculumYear = '62 สหกิจ';
-    } else if (selectedCurriculum === 'IT 67 สหกิจ') {
-      programCode = 'IT';
-      curriculumYear = '67 สหกิจ';
-    } else if (selectedCurriculum === 'INE 62 สหกิจ') {
-      programCode = 'INE';
-      curriculumYear = '62 สหกิจ';
-    } else if (selectedCurriculum === 'INE 67 สหกิจ') {
-      programCode = 'INE';
-      curriculumYear = '67 สหกิจ';
-    } else {
-      [programCode, curriculumYear] = selectedCurriculum.split(' ');
-    }
-    
-    const grouped: { [key: number]: { [key: number]: Course[] } } = {};
-    
-    // Check if this is a co-op curriculum
-    const isCoopCurriculum = selectedCurriculum.includes('COOP') || selectedCurriculum.includes('สหกิจ');
-    
-    // Determine max year based on program
-    const maxYear = programCode === 'INET' ? 3 : programCode === 'ITI' || programCode === 'ITT' ? 2 : 4;
-    
-    for (let year = 1; year <= maxYear; year++) {
-      grouped[year] = {};
+  useEffect(() => {
+    const loadCourses = async () => {
+      setIsLoading(true);
+      let programCode, curriculumYear;
       
-      // Regular semesters (1 and 2)
-      for (let semester = 1; semester <= 2; semester++) {
-        const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 15);
-        if (courses.length > 0) {
-          grouped[year][semester] = courses;
+      // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
+      if (selectedCurriculum === 'IT 62 สหกิจ') {
+        programCode = 'IT';
+        curriculumYear = '62 สหกิจ';
+      } else if (selectedCurriculum === 'IT 67 สหกิจ') {
+        programCode = 'IT';
+        curriculumYear = '67 สหกิจ';
+      } else if (selectedCurriculum === 'INE 62 สหกิจ') {
+        programCode = 'INE';
+        curriculumYear = '62 สหกิจ';
+      } else if (selectedCurriculum === 'INE 67 สหกิจ') {
+        programCode = 'INE';
+        curriculumYear = '67 สหกิจ';
+      } else {
+        [programCode, curriculumYear] = selectedCurriculum.split(' ');
+      }
+      
+      const grouped: { [key: number]: { [key: number]: Course[] } } = {};
+      
+      // Check if this is a co-op curriculum
+      const isCoopCurriculum = selectedCurriculum.includes('COOP') || selectedCurriculum.includes('สหกิจ');
+      
+      // Determine max year based on program
+      const maxYear = programCode === 'INET' ? 3 : programCode === 'ITI' || programCode === 'ITT' ? 2 : 4;
+      
+      for (let year = 1; year <= maxYear; year++) {
+        grouped[year] = {};
+        
+        // Regular semesters (1 and 2)
+        for (let semester = 1; semester <= 2; semester++) {
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 15);
+          if (courses.length > 0) {
+            grouped[year][semester] = courses;
+          }
+        }
+        
+        // Special semester 3 for specific programs (skip for co-op curricula)
+        if (!isCoopCurriculum && (programCode === 'IT' || programCode === 'INE') && year === 3) {
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          if (courses.length > 0) {
+            grouped[year][3] = courses;
+          }
+        }
+        
+        if (programCode === 'INET' && year === 2) {
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          if (courses.length > 0) {
+            grouped[year][3] = courses;
+          }
+        }
+        
+        if (programCode === 'ITI' && year === 1) {
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          if (courses.length > 0) {
+            grouped[year][3] = courses;
+          }
         }
       }
       
-      // Special semester 3 for specific programs (skip for co-op curricula)
-      if (!isCoopCurriculum && (programCode === 'IT' || programCode === 'INE') && year === 3) {
-        const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
-        if (courses.length > 0) {
-          grouped[year][3] = courses;
-        }
-      }
-      
-      if (programCode === 'INET' && year === 2) {
-        const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
-        if (courses.length > 0) {
-          grouped[year][3] = courses;
-        }
-      }
-      
-      if (programCode === 'ITI' && year === 1) {
-        const courses = generateCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
-        if (courses.length > 0) {
-          grouped[year][3] = courses;
-        }
-      }
-    }
+      setCoursesByYear(grouped);
+      setIsLoading(false);
+    };
     
-    return grouped;
-  }, [selectedCurriculum]);
+    loadCourses();
+  }, [selectedCurriculum, firebaseCourses]); // Add firebaseCourses as dependency
 
   // Calculate credits for each semester
   const calculateSemesterCredits = (courses: Course[]) => {
@@ -165,8 +176,212 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
     return connections;
   };
 
+  // Generate SVG lines for prerequisites
+  const generatePrerequisiteLines = useMemo(() => {
+    const lines: Array<{
+      id: string;
+      x1: number;
+      y1: number;
+      x2: number;
+      y2: number;
+      prereqCourse: Course;
+      targetCourse: Course;
+    }> = [];
+
+    Object.entries(coursesByYear).forEach(([year, semesters]) => {
+      Object.entries(semesters).forEach(([semester, courses]) => {
+        courses.forEach((course, courseIndex) => {
+          const prerequisites = findPrerequisiteConnections(course);
+          
+          prerequisites.forEach(prereqCourse => {
+            // Find positions of both courses
+            const targetElement = document.getElementById(`course-${course.code.replace(/[^a-zA-Z0-9]/g, '')}`);
+            const prereqElement = document.getElementById(`course-${prereqCourse.code.replace(/[^a-zA-Z0-9]/g, '')}`);
+            
+            if (targetElement && prereqElement) {
+              const targetRect = targetElement.getBoundingClientRect();
+              const prereqRect = prereqElement.getBoundingClientRect();
+              const containerRect = targetElement.closest('.space-y-8')?.getBoundingClientRect();
+              
+              if (containerRect) {
+                // Calculate relative positions
+                const x1 = prereqRect.right - containerRect.left;
+                const y1 = prereqRect.top + prereqRect.height / 2 - containerRect.top;
+                const x2 = targetRect.left - containerRect.left;
+                const y2 = targetRect.top + targetRect.height / 2 - containerRect.top;
+                
+                lines.push({
+                  id: `${prereqCourse.id}-${course.id}`,
+                  x1,
+                  y1,
+                  x2,
+                  y2,
+                  prereqCourse,
+                  targetCourse: course
+                });
+              }
+            }
+          });
+        });
+      });
+    });
+
+    return lines;
+  }, [coursesByYear]);
+
+  // Use effect to update lines when component mounts or updates
+  const [svgLines, setSvgLines] = React.useState<Array<{
+    id: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    prereqCourse: Course;
+    targetCourse: Course;
+  }>>([]);
+
+  React.useEffect(() => {
+    const updateLines = () => {
+      console.log('=== updateLines called ===');
+      const lines: Array<{
+        id: string;
+        x1: number;
+        y1: number;
+        x2: number;
+        y2: number;
+        prereqCourse: Course;
+        targetCourse: Course;
+      }> = [];
+
+      Object.entries(coursesByYear).forEach(([year, semesters]) => {
+        Object.entries(semesters).forEach(([semester, courses]) => {
+          courses.forEach((course) => {
+            const prerequisites = findPrerequisiteConnections(course);
+            console.log(`Course ${course.code} has ${prerequisites.length} prerequisites`);
+            
+            prerequisites.forEach(prereqCourse => {
+              // Find positions of both courses
+              const targetElement = document.getElementById(`course-${course.code.replace(/[^a-zA-Z0-9]/g, '')}`);
+              const prereqElement = document.getElementById(`course-${prereqCourse.code.replace(/[^a-zA-Z0-9]/g, '')}`);
+              
+              console.log(`Looking for elements: target=${targetElement ? 'found' : 'not found'}, prereq=${prereqElement ? 'found' : 'not found'}`);
+              
+              if (targetElement && prereqElement) {
+                const targetRect = targetElement.getBoundingClientRect();
+                const prereqRect = prereqElement.getBoundingClientRect();
+                const containerElement = document.querySelector('.curriculum-flowchart-container');
+                
+                if (containerElement) {
+                  const containerRect = containerElement.getBoundingClientRect();
+                  
+                  // Calculate relative positions within the container
+                  const x1 = prereqRect.right - containerRect.left;
+                  const y1 = prereqRect.top + prereqRect.height / 2 - containerRect.top;
+                  const x2 = targetRect.left - containerRect.left;
+                  const y2 = targetRect.top + targetRect.height / 2 - containerRect.top;
+                  
+                  console.log(`Adding line: (${x1}, ${y1}) -> (${x2}, ${y2})`);
+                  
+                  lines.push({
+                    id: `${prereqCourse.id}-${course.id}`,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    prereqCourse,
+                    targetCourse: course
+                  });
+                }
+              }
+            });
+          });
+        });
+      });
+
+      console.log(`Total lines to draw: ${lines.length}`);
+      setSvgLines(lines);
+    };
+
+    // Update lines after a longer delay to ensure DOM is fully ready
+    const timeoutId = setTimeout(updateLines, 500);
+    
+    // Also update on window resize
+    window.addEventListener('resize', updateLines);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateLines);
+    };
+  }, [coursesByYear]);
+
   return (
-    <div className="space-y-6">
+    <div className="curriculum-flowchart-container relative space-y-6">
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">กำลังโหลดข้อมูลหลักสูตร...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Main content */}
+      {!isLoading && (
+        <>
+          {/* SVG overlay for prerequisite lines */}
+          <svg 
+            className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
+            style={{ minHeight: '100vh' }}
+          >
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="9"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon
+                  points="0 0, 10 3.5, 0 7"
+                  fill="#3b82f6"
+                  opacity="0.7"
+                />
+              </marker>
+            </defs>
+            {svgLines.map((line) => (
+              <g key={line.id}>
+                <line
+                  x1={line.x1}
+                  y1={line.y1}
+                  x2={line.x2}
+                  y2={line.y2}
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeOpacity="0.7"
+                  markerEnd="url(#arrowhead)"
+              strokeDasharray="5,5"
+            />
+            {/* Connection point indicators */}
+            <circle
+              cx={line.x1}
+              cy={line.y1}
+              r="3"
+              fill="#3b82f6"
+              opacity="0.8"
+            />
+            <circle
+              cx={line.x2}
+              cy={line.y2}
+              r="3"
+              fill="#10b981"
+              opacity="0.8"
+            />
+          </g>
+        ))}
+      </svg>
+
       {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
@@ -307,6 +522,8 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
           </div>
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   );
 };

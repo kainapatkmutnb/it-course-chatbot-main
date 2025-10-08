@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Course } from '@/types/course';
 import { getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseService';
+import { useCourses } from '@/hooks/useFirebaseData';
 
 interface CurriculumTimelineFlowchartProps {
   selectedDepartment: string;
@@ -8,13 +9,14 @@ interface CurriculumTimelineFlowchartProps {
   departmentName: string;
 }
 
-export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartProps> = ({ 
-  selectedDepartment, 
-  selectedCurriculum, 
-  departmentName 
+export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartProps> = ({
+  selectedDepartment,
+  selectedCurriculum,
+  departmentName
 }) => {
   const [timelineData, setTimelineData] = useState<{ [year: number]: { [semester: number]: HybridCourse[] } }>({});
   const [isLoading, setIsLoading] = useState(true);
+  const { courses: firebaseCourses } = useCourses(); // Add courses dependency for re-rendering
 
   // Load hybrid course data (static + Firebase updates)
   useEffect(() => {
@@ -53,7 +55,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
     if (selectedCurriculum) {
       loadCurriculumData();
     }
-  }, [selectedCurriculum]);
+  }, [selectedCurriculum, firebaseCourses]); // Add firebaseCourses as dependency
 
   const calculateSemesterCredits = (courses: HybridCourse[]) => {
     return courses.reduce((sum, course) => sum + course.credits, 0);
@@ -166,12 +168,19 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
           if (validPrerequisites.some(prereq => {
             const prereqCode = prereq.split(' ')[0]; // เอาเฉพาะรหัสวิชา
             const courseCode = c.code.split('-')[1] || c.code; // เอาเฉพาะรหัสวิชา
-            return prereqCode === courseCode;
+            console.log(`Timeline Checking match: ${prereqCode} vs ${courseCode} (from ${c.code})`);
+            const isMatch = prereqCode === courseCode;
+            if (isMatch) {
+              console.log(`Timeline MATCH FOUND: ${prereqCode} matches ${courseCode}, adding ${c.id}`);
+            }
+            return isMatch;
           })) {
             prereqIds.push(c.id);
           }
         });
       });
+      
+      console.log(`Timeline Course ${course.code}: Found prereq IDs:`, prereqIds);
     }
     return prereqIds;
   };
@@ -391,7 +400,9 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
   };
 
   // Collect all arrow data with collision-free routing
+  // Generate arrow data for prerequisite connections
   const arrowData = useMemo(() => {
+    console.log('=== Generating arrow data ===');
     const arrows: Array<{
       id: string;
       pathPoints: Array<{ x: number; y: number }>;
@@ -405,14 +416,17 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
     semesterLayout.forEach((semData, semIndex) => {
       semData.courses.forEach((course, courseIndex) => {
         const prereqIds = findPrerequisites(course);
+        console.log(`=== Arrow generation for ${course.code}: Found ${prereqIds.length} prereq IDs ===`);
         
         // สำหรับหลักสูตร INET 67 ตัดเส้นวงกลมสีแดงออก
         if (isINET67 && course.code === 'INET-060233214') {
           // ไม่แสดงเส้นวงกลมสีแดง - ข้ามการสร้างเส้นทางสำหรบวิชานี้
+          console.log(`Skipping special course ${course.code} for INET 67`);
           return;
         } else {
           // ใช้ตำแหน่งลูกศรที่แตกต่างกันตามจำนวน prerequisites
           prereqIds.forEach((prereqId, prereqIndex) => {
+            console.log(`Processing prereq ${prereqIndex + 1}/${prereqIds.length}: ${prereqId}`);
             // Find prerequisite position
             let prereqSemIndex = -1;
             let prereqCourseIndex = -1;
@@ -424,6 +438,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
                 prereqSemIndex = prevSemIndex;
                 prereqCourseIndex = courseIdx;
                 prereqCourse = prevSem.courses[courseIdx];
+                console.log(`Found prereq course at sem ${prevSemIndex}, course ${courseIdx}: ${prereqCourse.code}`);
               }
             });
 
@@ -443,12 +458,16 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
                 }
               }
               
+              console.log(`Generating path from sem ${prereqSemIndex} course ${prereqCourseIndex} to sem ${semIndex} course ${courseIndex} with endPort ${endPortType}`);
+              
               const pathPoints = generateOrthogonalPath(
                 prereqSemIndex, prereqCourseIndex,
                 semIndex, courseIndex,
                 usedLanes,
                 endPortType
               );
+
+              console.log(`Generated path with ${pathPoints.length} points:`, pathPoints);
 
               // ตรวจสอบว่าเป็นเส้นพิเศษหรือไม่
               const isSpecial = isSpecialBlueConnection(prereqCourse, course);
@@ -458,12 +477,17 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
                 pathPoints,
                 isSpecial
               });
+              
+              console.log(`Added arrow ${prereqId}-${course.id}, total arrows: ${arrows.length}`);
+            } else {
+              console.log(`Could not find prereq course for ID: ${prereqId}`);
             }
           });
         }
       });
     });
 
+    console.log(`=== Final arrow data: ${arrows.length} arrows generated ===`);
     return arrows;
   }, [semesterLayout, selectedCurriculum]);
 
@@ -569,9 +593,12 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
               
               {/* Render orthogonal prerequisite arrows */}
               {arrowData.map((arrow, index) => {
+                console.log(`Rendering arrow ${index + 1}/${arrowData.length}: ${arrow.id}`);
                 const pathString = arrow.pathPoints.map((point, pointIndex) => 
                   `${pointIndex === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
                 ).join(' ');
+                
+                console.log(`Arrow ${arrow.id} path: ${pathString}`);
                 
                 // ใช้สีน้ำเงินเข้มสำหรับเส้นพิเศษ, สีดำสำหรับเส้นอื่น
                 const strokeColor = arrow.isSpecial ? "#1e40af" : "#555";

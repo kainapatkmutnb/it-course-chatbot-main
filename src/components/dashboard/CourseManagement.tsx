@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCourses } from '@/hooks/useFirebaseData';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { 
@@ -52,6 +53,7 @@ interface CourseFormData {
 const CourseManagement: React.FC = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { refreshCourses } = useCourses();
   const [selectedProgram, setSelectedProgram] = useState<string>('');
   const [selectedCurriculumYear, setSelectedCurriculumYear] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -270,6 +272,9 @@ const CourseManagement: React.FC = () => {
       setIsAddDialogOpen(false);
       resetForm();
 
+      // Refresh courses data to ensure all components get updated
+      await refreshCourses();
+
       toast({
         title: "เพิ่มรายวิชาสำเร็จ",
         description: `เพิ่มรายวิชา ${courseForm.code} ${courseForm.name} เรียบร้อยแล้ว`,
@@ -355,6 +360,9 @@ const CourseManagement: React.FC = () => {
       // Force re-render to ensure UI updates
       setForceRender(prev => prev + 1);
 
+      // Refresh courses data to ensure all components get updated
+      await refreshCourses();
+
       toast({
         title: "แก้ไขรายวิชาสำเร็จ",
         description: `แก้ไขรายวิชา ${courseForm.code} ${courseForm.name} เรียบร้อยแล้ว`,
@@ -395,6 +403,9 @@ const CourseManagement: React.FC = () => {
       }
 
       setCourses(courses.filter(c => c.id !== course.id));
+
+      // Refresh courses data to ensure all components get updated
+      await refreshCourses();
 
       toast({
         title: "ลบรายวิชาสำเร็จ",

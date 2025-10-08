@@ -67,16 +67,18 @@ export const getHybridCoursesForSemester = async (
       const firebaseCourse = firebaseCoursesMap.get(baseCourse.code);
       
       if (firebaseCourse) {
-        // Merge Firebase data with base course data
-        // For prerequisites and corequisites, use Firebase data if it exists (even if empty array)
-        // This ensures that deleted prerequisites/corequisites are properly reflected
+        // Use Firebase data as the primary source
+        // For prerequisites and corequisites, ALWAYS use Firebase data if the course exists in Firebase
+        // This ensures that admin/staff changes (including deletions) are fully respected
         return {
           ...baseCourse,
           name: firebaseCourse.name || baseCourse.name,
           description: firebaseCourse.description || baseCourse.description,
           credits: firebaseCourse.credits || baseCourse.credits,
-          prerequisites: firebaseCourse.prerequisites !== undefined ? firebaseCourse.prerequisites : baseCourse.prerequisites,
-          corequisites: firebaseCourse.corequisites !== undefined ? firebaseCourse.corequisites : baseCourse.corequisites,
+          // ALWAYS use Firebase prerequisites/corequisites when course exists in Firebase
+          // This ensures deleted prerequisites are properly removed from display
+          prerequisites: firebaseCourse.prerequisites || [],
+          corequisites: firebaseCourse.corequisites || [],
           instructor: firebaseCourse.instructor || baseCourse.instructor,
           maxStudents: firebaseCourse.maxStudents || baseCourse.maxStudents,
           currentStudents: firebaseCourse.currentStudents || baseCourse.currentStudents,
@@ -113,6 +115,8 @@ export const getHybridCoursesForSemester = async (
     // Add new courses to the hybrid courses array
     const newHybridCourses: HybridCourse[] = newFirebaseCourses.map(course => ({
       ...course,
+      semester: course.semester ?? parseInt(semester),
+      year: course.year ?? parseInt(year),
       isUpdatedFromFirebase: true
     }));
 

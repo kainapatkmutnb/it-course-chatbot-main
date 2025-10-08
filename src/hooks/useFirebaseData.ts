@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { firebaseService, User, Course, StudyPlan, AuditLog, Department } from '@/services/firebaseService';
+import { db as database } from '@/config/firebase';
+import { ref, onValue } from 'firebase/database';
 
 // Hook for users data
 export const useUsers = () => {
@@ -38,28 +40,60 @@ export const useUsers = () => {
   return { users, loading, error, refreshUsers };
 };
 
-// Hook for courses data
+// Hook for courses data with real-time updates
 export const useCourses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    let unsubscribe: (() => void) | null = null;
+
+    const setupRealtimeListener = () => {
       try {
         setLoading(true);
-        const coursesData = await firebaseService.getCourses();
-        setCourses(coursesData);
-        setError(null);
+        
+        // Set up real-time listener for courses collection
+        const coursesRef = ref(database, 'courses');
+        unsubscribe = onValue(coursesRef, (snapshot) => {
+          try {
+            const data = snapshot.val();
+            if (data) {
+              const coursesArray = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+              }));
+              setCourses(coursesArray);
+            } else {
+              setCourses([]);
+            }
+            setError(null);
+          } catch (err) {
+            setError('Failed to process courses data');
+            console.error('Error processing courses data:', err);
+          } finally {
+            setLoading(false);
+          }
+        }, (err) => {
+          setError('Failed to fetch courses');
+          console.error('Error fetching courses:', err);
+          setLoading(false);
+        });
       } catch (err) {
-        setError('Failed to fetch courses');
-        console.error('Error fetching courses:', err);
-      } finally {
+        setError('Failed to setup real-time listener');
+        console.error('Error setting up real-time listener:', err);
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    setupRealtimeListener();
+
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const refreshCourses = async () => {
