@@ -9,36 +9,57 @@
 - เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน
 - ระบบจัดการบทบาทผู้ใช้ 4 ประเภท: นักศึกษา, อาจารย์, บุคลากร, ผู้ดูแลระบบ
 
-### 📊 Dashboard ตามบทบาท
-- **นักศึกษา**: ดูแผนการเรียน, ติดตามผลการเรียน, จัดการรายวิชา, บันทึกปีการศึกษา
-- **อาจารย์**: จัดการนักศึกษาในความดูแล, ดูข้อมูลรายวิชาที่สอน, ดูรายละเอียดนักศึกษา
-- **บุคลากร**: จัดการข้อมูลรายวิชา, กำหนดเงื่อนไขรายวิชา
-- **ผู้ดูแลระบบ**: จัดการผู้ใช้, สถิติระบบ, ประวัติการใช้งาน, นำเข้า/ส่งออกข้อมูล
+### ✨ ฟีเจอร์หลัก
 
-### 📚 ระบบจัดการหลักสูตร
-- ข้อมูลรายวิชาครบถ้วน (รหัสวิชา, หน่วยกิต, คำอธิบาย)
-- การจัดหมวดหมู่รายวิชา (วิชาทั่วไป, วิชาเฉพาะ, วิชาเลือก)
-- ระบบเงื่อนไขรายวิชา (Prerequisites)
-- แผนการเรียนตามหลักสูตร
+### 🔐 ระบบยืนยันตัวตนและการจัดการบทบาท
+- **นักศึกษา**: ดูแผนการเรียน, จัดการรายวิชาส่วนตัว, บันทึกปีการศึกษา, ใช้ระบบแผนภูมิหลักสูตร
+- **อาจารย์**: ดูข้อมูลนักศึกษา, จัดการรายวิชาที่สอน, ดูรายละเอียดนักศึกษา, แก้ไขข้อมูลนักศึกษา, ติดตามความก้าวหน้าของนักศึกษา
+- **บุคลากร**: จัดการข้อมูลรายวิชา, กำหนดเงื่อนไขรายวิชา (Prerequisites และ Corequisites), จัดการหลักสูตร
+- **ผู้ดูแลระบบ**: จัดการผู้ใช้, สถิติระบบ, ประวัติการใช้งาน (Audit Logs), นำเข้า/ส่งออกข้อมูล, จัดการเงื่อนไขรายวิชาขั้นสูง
 
-### 🎯 ระบบแผนการเรียน
+### 📚 ระบบจัดการหลักสูตรและรายวิชา
+- ข้อมูลรายวิชาครบถ้วน (รหัสวิชา, ชื่อวิชา, หน่วยกิต, คำอธิบาย, หมวดหมู่)
+- การจัดหมวดหมู่รายวิชา (วิชาทั่วไป, วิชาเฉพาะ, วิชาเลือก, วิชาเสรี)
+- ระบบเงื่อนไขรายวิชา (Prerequisites และ Corequisites) แบบ Real-time
+- แผนการเรียนตามหลักสูตรหลายปีการศึกษา
+- ระบบค้นหาและกรองรายวิชาขั้นสูง
+- การจัดการรายวิชาแบบ CRUD (Create, Read, Update, Delete)
+
+### 📊 ระบบแผนภูมิหลักสูตร (Curriculum Flowchart)
+- **แผนภูมิแบบ Grid**: แสดงรายวิชาจัดเรียงตามปีและภาคการศึกษา
+- **แผนภูมิแบบ Timeline**: แสดงความต่อเนื่องของหลักสูตรตามเวลา
+- **เส้นเชื่อมโยงเงื่อนไขวิชา**: แสดงความสัมพันธ์ระหว่างรายวิชาแบบ Visual
+- **การอัปเดตแบบ Real-time**: เมื่อมีการเปลี่ยนแปลงเงื่อนไขวิชาจะอัปเดตทันที
+- **ระบบกรองตามหลักสูตร**: เลือกดูหลักสูตรและปีการศึกษาที่ต้องการ
+- **สรุปข้อมูลหลักสูตร**: แสดงจำนวนหน่วยกิตรวม, จำนวนวิชา, และสถิติต่างๆ
+
+### 🎯 ระบบแผนการเรียนส่วนบุคคล
 - สร้างและจัดการแผนการเรียนส่วนบุคคล
-- ติดตามความคืบหน้าการเรียน
-- คำนวณหน่วยกิตสะสม
-- สถานะรายวิชา (วางแผน, กำลังเรียน, ผ่านแล้ว, ไม่ผ่าน)
+- ติดตามความคืบหน้าการเรียนแบบ Real-time
+- คำนวณ GPA และหน่วยกิตสะสมอัตโนมัติ
+- สถานะรายวิชา (วางแผน, กำลังเรียน, ผ่านแล้ว, ไม่ผ่าน, ถอน)
 - **ระบบกรองข้อมูล**: Dropdown filters สำหรับกรองรายวิชาตามปีและภาคการศึกษา
 - **การบันทึกข้อมูล**: บันทึกปีการศึกษาของนักศึกษาแบบถาวร
+- **การคำนวณเกรด**: ระบบคำนวณเกรดและ GPA ตามมาตรฐาน KMUTNB
 
 ### 👨‍🎓 ระบบจัดการนักศึกษา
-- ดูรายละเอียดนักศึกษาแบบละเอียด
+- ดูรายละเอียดนักศึกษาแบบละเอียด (ข้อมูลส่วนตัว, แผนการเรียน, ผลการเรียน)
 - แก้ไขและบันทึกปีการศึกษาของนักศึกษา
-- ติดตามแผนการเรียนของนักศึกษา
-- ระบบกรองแผนการเรียนตามปีและภาคเรียน
+- ติดตามแผนการเรียนของนักศึกษาแบบ Real-time
+- ระบบกรองและค้นหานักศึกษา
+- การจัดการข้อมูลนักศึกษาแบบ Batch
+
+### 🤖 ระบบ Chatbot AI
+- ระบบแชทบอทสำหรับตอบคำถามเกี่ยวกับหลักสูตรและรายวิชา
+- การให้คำแนะนำการวางแผนการเรียน
+- ระบบค้นหาข้อมูลรายวิชาผ่าน Natural Language
 
 ### 📈 ระบบรายงานและสถิติ
-- สถิติผู้ใช้งานระบบ
-- รายงานการใช้งาน (Audit Logs)
+- สถิติผู้ใช้งานระบบแบบ Real-time
+- รายงานการใช้งาน (Audit Logs) พร้อมระบบค้นหา
 - ข้อมูลสถิติรายวิชาและนักศึกษา
+- Dashboard แสดงข้อมูลสำคัญของระบบ
+- ระบบ Export ข้อมูลเป็น CSV/Excel
 
 ## 🛠️ เทคโนโลยีที่ใช้
 
@@ -47,26 +68,13 @@
 - **TypeScript** - Type Safety
 - **Vite** - Build Tool และ Development Server
 - **Tailwind CSS** - Styling Framework
-- **shadcn/ui** - UI Components Library
+- **shadcn/ui** - UI Components Library (Radix UI)
 - **React Router DOM** - Navigation และ Routing
 - **Lucide React** - Icon Library
 - **React Hook Form** - Form Management
 - **Zod** - Schema Validation
-
-### Backend & Database
-- **Firebase** - Backend as a Service
-  - **Firebase Authentication** - ระบบยืนยันตัวตน
-  - **Firebase Realtime Database** - ฐานข้อมูลแบบ Real-time
-  - **Firebase Hosting** - Web Hosting
-
-### Additional Libraries
-- **TanStack React Query** - Data Fetching และ State Management
 - **Recharts** - Data Visualization และ Charts
-- **Date-fns** - Date Manipulation
-- **html2canvas & jsPDF** - PDF Generation
-- **React Day Picker** - Date Picker Component
-- **Sonner** - Toast Notifications
-- **React Hook Form** - Form Management
+- **html2canvas & jsPDF** - Export และ PDF Generation
 
 ### Backend & Database
 - **Firebase** - Backend as a Service
@@ -75,9 +83,22 @@
   - **Firebase Hosting** - Web Hosting
 
 ### State Management & Data Fetching
-- **React Context** - Global State Management
-- **TanStack React Query** - Server State Management
-- **Custom Hooks** - Data Fetching และ Business Logic
+- **TanStack React Query** - Data Fetching และ State Management
+- **React Context API** - Global State Management
+
+### UI/UX Libraries
+- **Radix UI** - Headless UI Components
+- **Class Variance Authority (CVA)** - Component Variants
+- **Tailwind Merge** - CSS Class Merging
+- **Sonner** - Toast Notifications
+- **Next Themes** - Theme Management
+- **Embla Carousel** - Carousel Components
+
+### Development Tools
+- **ESLint** - Code Linting
+- **TypeScript ESLint** - TypeScript Linting
+- **Autoprefixer** - CSS Prefixing
+- **PostCSS** - CSS Processing
 
 ## 🚀 การติดตั้งและใช้งาน
 
@@ -156,32 +177,59 @@ npm run preview
 ```
 src/
 ├── components/          # React Components
-│   ├── dashboard/      # Dashboard Components สำหรับแต่ละบทบาท
-│   │   ├── StudentDashboard.tsx      # Dashboard นักศึกษา
-│   │   ├── InstructorDashboard.tsx   # Dashboard อาจารย์
-│   │   ├── StaffDashboard.tsx        # Dashboard บุคลากร
-│   │   ├── AdminDashboard.tsx        # Dashboard ผู้ดูแลระบบ
-│   │   └── StudentDetailView.tsx     # รายละเอียดนักศึกษา
-│   ├── study-plan/     # Study Plan Management Components
-│   │   └── StudyPlanManager.tsx      # จัดการแผนการเรียน
-│   ├── layout/         # Layout Components
-│   └── ui/             # UI Components (shadcn/ui)
-├── contexts/           # React Contexts
-│   └── AuthContext.tsx # Authentication Context
-├── hooks/              # Custom Hooks
-│   ├── useFirebaseData.ts # Firebase Data Hooks
-│   └── use-toast.ts    # Toast Hook
-├── pages/              # Page Components
-├── services/           # API Services
-│   ├── firebaseService.ts    # Firebase Service
-│   ├── courseService.ts      # Course Service
-│   └── departmentService.ts  # Department Service
-├── types/              # TypeScript Types
-│   ├── auth.ts         # Authentication Types
-│   └── course.ts       # Course Types
-├── config/             # Configuration Files
-│   └── firebase.ts     # Firebase Configuration
-└── utils/              # Utility Functions
+│   ├── ProtectedRoute.tsx       # Route Protection Component
+│   ├── RoleBasedRoute.tsx       # Role-based Access Control
+│   ├── chat/                    # Chatbot Components
+│   │   └── ChatBot.tsx          # AI Chatbot Interface
+│   ├── curriculum/              # Curriculum Components
+│   │   ├── CurriculumFlowchart.tsx      # Grid-style Flowchart
+│   │   └── CurriculumTimelineFlowchart.tsx  # Timeline-style Flowchart
+│   ├── dashboard/               # Dashboard Components สำหรับแต่ละบทบาท
+│   │   ├── StudentDashboard.tsx         # Dashboard นักศึกษา
+│   │   ├── InstructorDashboard.tsx      # Dashboard อาจารย์
+│   │   ├── StaffDashboard.tsx           # Dashboard บุคลากร
+│   │   ├── AdminDashboard.tsx           # Dashboard ผู้ดูแลระบบ
+│   │   ├── StudentDetailView.tsx        # รายละเอียดนักศึกษา
+│   │   └── CourseManagement.tsx         # จัดการรายวิชา
+│   ├── study-plan/              # Study Plan Management Components
+│   │   └── StudyPlanManager.tsx         # จัดการแผนการเรียน
+│   ├── layout/                  # Layout Components
+│   │   ├── Header.tsx           # Header Component
+│   │   └── Footer.tsx           # Footer Component
+│   └── ui/                      # UI Components (shadcn/ui)
+├── pages/                       # Page Components
+│   ├── Home.tsx                 # หน้าแรก
+│   ├── Login.tsx                # หน้าเข้าสู่ระบบ
+│   ├── Register.tsx             # หน้าสมัครสมาชิก
+│   ├── Courses.tsx              # หน้ารายวิชา
+│   ├── CurriculumDashboard.tsx  # หน้าแผนภูมิหลักสูตร
+│   ├── DashboardRouter.tsx      # Router สำหรับ Dashboard
+│   ├── Index.tsx                # หน้าหลัก
+│   └── NotFound.tsx             # หน้า 404
+├── contexts/                    # React Contexts
+│   └── AuthContext.tsx          # Authentication Context
+├── hooks/                       # Custom Hooks
+│   ├── useFirebaseData.ts       # Firebase Data Hooks
+│   ├── use-toast.ts             # Toast Hook
+│   └── use-mobile.tsx           # Mobile Detection Hook
+├── services/                    # API Services
+│   ├── firebaseService.ts       # Firebase Service
+│   ├── courseService.ts         # Course Service
+│   ├── departmentService.ts     # Department Service
+│   ├── hybridCourseService.ts   # Hybrid Course Service
+│   └── completeCurriculumData.ts # Complete Curriculum Data
+├── types/                       # TypeScript Types
+│   ├── auth.ts                  # Authentication Types
+│   ├── course.ts                # Course Types
+│   └── chat.ts                  # Chat Types
+├── utils/                       # Utility Functions
+│   ├── gradeUtils.ts            # Grade Calculation Utils
+│   ├── pdfExport.ts             # PDF Export Utils
+│   └── firestoreUtils.ts        # Firestore Utils
+├── config/                      # Configuration Files
+│   └── firebase.ts              # Firebase Configuration
+└── lib/                         # Library Functions
+    └── utils.ts                 # General Utilities
 ```
 
 ## 🔧 คำสั่งที่สำคัญ
