@@ -140,19 +140,43 @@ class FirebaseService {
     }
   }
 
-  async createUser(userData: Omit<User, 'id' | 'createdAt'>): Promise<string | null> {
+  async createUser(userData: Omit<User, 'id' | 'createdAt'> & { password?: string }): Promise<string | null> {
     try {
-      const usersRef = ref(database, 'users');
-      const newUserRef = push(usersRef);
-      
-      const userWithTimestamp = {
-        ...userData,
-        createdAt: new Date().toISOString(),
-        isActive: true
-      };
-      
-      await set(newUserRef, userWithTimestamp);
-      return newUserRef.key;
+      // If password is provided, create user in Firebase Auth first
+      if (userData.password) {
+        const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+        const firebaseUser = userCredential.user;
+        
+        // Update display name in Firebase Auth
+        await updateProfile(firebaseUser, {
+          displayName: userData.name
+        });
+        
+        // Create user record in Realtime Database with Firebase Auth UID
+        const userRef = ref(database, `users/${firebaseUser.uid}`);
+        const userWithTimestamp = {
+          ...userData,
+          createdAt: new Date().toISOString(),
+          isActive: true
+        };
+        delete userWithTimestamp.password; // Don't store password in database
+        
+        await set(userRef, userWithTimestamp);
+        return firebaseUser.uid;
+      } else {
+        // Original behavior - only create in Realtime Database
+        const usersRef = ref(database, 'users');
+        const newUserRef = push(usersRef);
+        
+        const userWithTimestamp = {
+          ...userData,
+          createdAt: new Date().toISOString(),
+          isActive: true
+        };
+        
+        await set(newUserRef, userWithTimestamp);
+        return newUserRef.key;
+      }
     } catch (error) {
       console.error('Error creating user:', error);
       return null;
