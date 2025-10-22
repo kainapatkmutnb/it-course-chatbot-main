@@ -1,6 +1,23 @@
 import { db as database, auth } from '@/config/firebase';
 import { ref, get, set, push, update, remove, onValue, off } from 'firebase/database';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+
+// Firebase config for secondary app (for admin user creation)
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://it-chatbot-f663e-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+// Create secondary Firebase app for admin operations
+const adminApp = initializeApp(firebaseConfig, 'admin-app');
+const adminAuth = getAuth(adminApp);
 
 // Types
 export interface User {
@@ -144,13 +161,17 @@ class FirebaseService {
     try {
       // If password is provided, create user in Firebase Auth first
       if (userData.password) {
-        const userCredential = await createUserWithEmailAndPassword(auth, userData.email, userData.password);
+        // Use adminAuth (secondary app) to avoid affecting current user session
+        const userCredential = await createUserWithEmailAndPassword(adminAuth, userData.email, userData.password);
         const firebaseUser = userCredential.user;
         
         // Update display name in Firebase Auth
         await updateProfile(firebaseUser, {
           displayName: userData.name
         });
+        
+        // Sign out from admin auth to prevent auto-login
+        await signOut(adminAuth);
         
         // Create user record in Realtime Database with Firebase Auth UID
         const userRef = ref(database, `users/${firebaseUser.uid}`);
