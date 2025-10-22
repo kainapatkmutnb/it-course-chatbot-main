@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               email: firebaseUser.email!,
               name: firebaseUser.displayName || 'ผู้ใช้ใหม่',
               role,
-              profilePicture: firebaseUser.photoURL || undefined,
+              ...(firebaseUser.photoURL && { profilePicture: firebaseUser.photoURL }),
               isActive: true,
               createdAt: new Date(),
               lastLogin: new Date()
@@ -302,7 +302,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async (): Promise<void> => {
     try {
       // Log audit before signing out
-      if (user) {
+      if (user && user.id) {
         const auditRef = push(ref(db, 'auditLogs'));
         await set(auditRef, {
           action: 'user_logout',
