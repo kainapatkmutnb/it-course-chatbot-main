@@ -68,7 +68,8 @@ const AdminDashboard: React.FC = () => {
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
-    role: 'student' as const
+    role: 'student' as const,
+    password: ''
   });
   const [editingUser, setEditingUser] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -921,12 +922,13 @@ const AdminDashboard: React.FC = () => {
   };
 
   const createUser = async () => {
-    if (newUser.name && newUser.email && newUser.role) {
+    if (newUser.name && newUser.email && newUser.role && newUser.password) {
       try {
         const userId = await firebaseService.createUser({
           name: newUser.name,
           email: newUser.email,
           role: newUser.role,
+          password: newUser.password,
           isActive: true
         });
         
@@ -949,7 +951,8 @@ const AdminDashboard: React.FC = () => {
           setNewUser({
             name: '',
             email: '',
-            role: 'student'
+            role: 'student',
+            password: ''
           });
 
           // Auto refresh page after successful user creation
@@ -1369,6 +1372,16 @@ const AdminDashboard: React.FC = () => {
                                 <SelectItem value="admin">ผู้ดูแลระบบ</SelectItem>
                               </SelectContent>
                             </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="new-user-password">รหัสผ่าน</Label>
+                            <Input 
+                              id="new-user-password" 
+                              type="password"
+                              placeholder="รหัสผ่าน" 
+                              value={newUser.password}
+                              onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                            />
                           </div>
                           <Button className="w-full" onClick={createUser}>สร้างบัญชี</Button>
                         </div>
