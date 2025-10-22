@@ -109,9 +109,9 @@ const StudentDashboard: React.FC = () => {
   //   ) : [];
 
   // Calculate statistics from real data
-  const completedCourses = studyPlan?.courses.filter(course => course.status === 'completed') || [];
-  const inProgressCourses = studyPlan?.courses.filter(course => course.status === 'in_progress') || [];
-  const plannedCourses = studyPlan?.courses.filter(course => course.status === 'planned') || [];
+  const completedCourses = studyPlan?.courses?.filter(course => course.status === 'completed') || [];
+  const inProgressCourses = studyPlan?.courses?.filter(course => course.status === 'in_progress') || [];
+  const plannedCourses = studyPlan?.courses?.filter(course => course.status === 'planned') || [];
   
   // Calculate GPA from completed courses
   const calculateGPA = () => {
