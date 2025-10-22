@@ -180,48 +180,9 @@ const Register: React.FC = () => {
                 </div>
               )}
 
-              {/* Employee ID field for non-student emails */}
-              {!isStudentEmail && formData.email && (
-                <div className="space-y-2">
-                  <Label htmlFor="employeeId">รหัสพนักงาน</Label>
-                  <div className="relative">
-                    <IdCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="employeeId"
-                      type="text"
-                      placeholder="รหัสพนักงาน"
-                      value={formData.employeeId}
-                      onChange={(e) => handleInputChange('employeeId', e.target.value)}
-                      className="pl-10"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="department">คณะ/หน่วยงาน</Label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(value) => handleInputChange('department', value)}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="เลือกคณะ/หน่วยงาน" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="วิศวกรรมศาสตร์">คณะวิศวกรรมศาสตร์</SelectItem>
-                    <SelectItem value="เทคโนโลยีสารสนเทศและการสื่อสาร">คณะเทคโนโลยีสารสนเทศและการสื่อสาร</SelectItem>
-                    <SelectItem value="ครุศาสตร์อุตสาหกรรมและเทคโนโลยี">คณะครุศาสตร์อุตสาหกรรมและเทคโนโลยี</SelectItem>
-                    <SelectItem value="วิทยาศาสตร์ประยุกต์">คณะวิทยาศาสตร์ประยุกต์</SelectItem>
-                    <SelectItem value="สถาปัตยกรรมศาสตร์และการออกแบบ">คณะสถาปัตยกรรมศาสตร์และการออกแบบ</SelectItem>
-                    <SelectItem value="บริหารธุรกิจ">คณะบริหารธุรกิจ</SelectItem>
-                    <SelectItem value="ศิลปศาสตร์">คณะศิลปศาสตร์</SelectItem>
-                    <SelectItem value="เทคโนโลยีการเกษตร">คณะเทคโนโลยีการเกษตร</SelectItem>
-                    <SelectItem value="อื่นๆ">อื่นๆ</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
+
 
               <div className="space-y-2">
                 <Label htmlFor="password">รหัสผ่าน</Label>
