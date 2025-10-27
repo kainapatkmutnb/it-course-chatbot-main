@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg">IT Assistant</h3>
+                  <h3 className="font-bold text-lg">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot</h3>
                   <p className="text-sm text-muted-foreground">Professional IT Guidance</p>
                 </div>
               </div>
