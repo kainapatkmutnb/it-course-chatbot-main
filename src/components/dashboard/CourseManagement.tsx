@@ -308,6 +308,9 @@ const CourseManagement: React.FC = () => {
         mainCategory: course.mainCategory,
         subCategory: course.subCategory
       });
+      // Set the year and semester from the course
+      setSelectedYear(course.year.toString());
+      setSelectedSemester(course.semester.toString());
       setIsEditDialogOpen(true);
     }, 50);
   }, []);
@@ -326,7 +329,9 @@ const CourseManagement: React.FC = () => {
         corequisites: courseForm.corequisites ? courseForm.corequisites.split(',').map(c => c.trim()) : [],
         category: courseForm.category,
         mainCategory: courseForm.mainCategory,
-        subCategory: courseForm.subCategory
+        subCategory: courseForm.subCategory,
+        year: parseInt(selectedYear),
+        semester: parseInt(selectedSemester)
       };
 
       await firebaseService.updateCourse(
@@ -785,6 +790,33 @@ const CourseManagement: React.FC = () => {
                 value={courseForm.credits}
                 onChange={(e) => setCourseForm({...courseForm, credits: parseInt(e.target.value)})}
               />
+            </div>
+            <div>
+              <Label htmlFor="edit-year">ชั้นปี</Label>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger>
+                  <SelectValue placeholder="เลือกชั้นปี" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">ปี 1</SelectItem>
+                  <SelectItem value="2">ปี 2</SelectItem>
+                  <SelectItem value="3">ปี 3</SelectItem>
+                  <SelectItem value="4">ปี 4</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-semester">ภาคเรียน</Label>
+              <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                <SelectTrigger>
+                  <SelectValue placeholder="เลือกภาคเรียน" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">ภาคเรียนที่ 1</SelectItem>
+                  <SelectItem value="2">ภาคเรียนที่ 2</SelectItem>
+                  <SelectItem value="3">ภาคฤดูร้อน</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-2">
               <Label htmlFor="edit-name">ชื่อวิชา</Label>
