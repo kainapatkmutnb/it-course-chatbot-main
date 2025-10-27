@@ -25,6 +25,11 @@
   font-display: swap;
 }
 
+/* ตั้งค่าให้ภาษาไทยใช้เฉพาะฟอนต์ Sukhumvit Set */
+:lang(th) {
+  font-family: 'Sukhumvit Set', sans-serif !important;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
