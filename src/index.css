@@ -26,8 +26,22 @@
 }
 
 /* ตั้งค่าให้ภาษาไทยใช้เฉพาะฟอนต์ Sukhumvit Set */
-:lang(th) {
-  font-family: 'Sukhumvit Set', sans-serif !important;
+:is(*) {
+  font-family: 'Sukhumvit Set', sans-serif;
+}
+
+/* กำหนดให้ตัวอักษรไทยใช้ฟอนต์ Sukhumvit Set เสมอ */
+*:has(:not(code, pre)) {
+  font-family: 'Sukhumvit Set', sans-serif;
+}
+
+/* ใช้ unicode range เพื่อกำหนดฟอนต์สำหรับตัวอักษรไทยโดยเฉพาะ */
+@font-face {
+  font-family: 'Thai Text';
+  src: url('/fonts/sukhumvit-set/SukhumvitSet-Medium.ttf') format('truetype');
+  font-weight: normal;
+  unicode-range: U+0E00-0E7F; /* ช่วง unicode ของภาษาไทย */
+  font-display: swap;
 }
 
 @tailwind base;
