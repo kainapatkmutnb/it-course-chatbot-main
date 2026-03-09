@@ -44,7 +44,7 @@
 #n8n-chat [class*="chatWindowHeader"] h1,
 #n8n-chat [class*="chatWindowHeader"] [class*="title"] {
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 18px !important;
+  font-size: 20px !important;
   font-weight: 700 !important;
   letter-spacing: -0.3px !important;
   color: #ffffff !important;
@@ -57,7 +57,7 @@
 #n8n-chat [class*="chatWindowHeader"] p,
 #n8n-chat [class*="chatWindowHeader"] [class*="subtitle"] {
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 13px !important;
+  font-size: 15px !important;
   color: rgba(255,255,255,0.75) !important;
   font-weight: 400 !important;
   margin-top: 4px !important;
@@ -93,7 +93,7 @@
   border-radius: 12px !important;
   padding: 14px 36px !important;
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 15px !important;
+  font-size: 17px !important;
   font-weight: 600 !important;
   color: #fff !important;
   box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
@@ -119,7 +119,7 @@
   padding: 12px 16px !important;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08) !important;
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   line-height: 1.7 !important;
   color: #1e293b !important;
   max-width: 80% !important;
@@ -134,7 +134,7 @@
   padding: 12px 16px !important;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   line-height: 1.7 !important;
   color: #ffffff !important;
   max-width: 75% !important;
@@ -157,7 +157,7 @@
   border-radius: 12px !important;
   padding: 10px 14px !important;
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 14px !important;
+  font-size: 16px !important;
   color: #1e293b !important;
   background: #f8faff !important;
   resize: none !important;
@@ -194,7 +194,7 @@
 #n8n-chat [class*="footer"],
 #n8n-chat .chat-footer {
   font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 11px !important;
+  font-size: 13px !important;
   color: #94a3b8 !important;
   text-align: center !important;
   padding: 8px !important;
