@@ -51,6 +51,8 @@ export interface Course {
   instructor?: string;
   maxStudents?: number;
   currentStudents?: number;
+  program?: string;
+  curriculumYear?: string;
 }
 
 export interface StudyPlan {

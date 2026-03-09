@@ -93,11 +93,17 @@ export const getHybridCoursesForSemester = async (
       };
     });
 
-    // Add new courses from Firebase that don't exist in base curriculum
-    const baseCoursesCodes = new Set(baseCourses.map(course => course.code));
-    
-    // Filter Firebase courses for this specific semester and program
-    const newFirebaseCourses = allFirebaseCourses.filter(course => {
+    // Final collection of hybrid courses
+    const finalHybridCoursesMap = new Map<string, HybridCourse>();
+
+    // 1. Add base courses (already merged with Firebase updates if found in Map)
+    hybridCourses.forEach(course => {
+      finalHybridCoursesMap.set(course.code, course);
+    });
+
+    // 2. Add new courses from Firebase (those not in base curriculum)
+    // We deduplicate by code here as well
+    allFirebaseCourses.forEach(course => {
       // Check if course belongs to this semester/year/program
       const belongsToSemester = (
         course.program === programCode &&
@@ -108,22 +114,18 @@ export const getHybridCoursesForSemester = async (
         // Also include courses from specific curriculum path
         specificFirebaseCourses.some(specCourse => specCourse.code === course.code)
       );
-      
-      return !baseCoursesCodes.has(course.code) && belongsToSemester;
+
+      if (!finalHybridCoursesMap.has(course.code) && belongsToSemester) {
+        finalHybridCoursesMap.set(course.code, {
+          ...course,
+          semester: course.semester ?? parseInt(semester),
+          year: course.year ?? parseInt(year),
+          isUpdatedFromFirebase: true
+        } as HybridCourse);
+      }
     });
 
-    // Add new courses to the hybrid courses array
-    const newHybridCourses: HybridCourse[] = newFirebaseCourses.map(course => ({
-      ...course,
-      semester: course.semester ?? parseInt(semester),
-      year: course.year ?? parseInt(year),
-      isUpdatedFromFirebase: true
-    }));
-
-    // Combine courses - admin/staff added courses (newHybridCourses) will be at the bottom
-    const allHybridCourses = [...hybridCourses, ...newHybridCourses];
-
-    return allHybridCourses;
+    return Array.from(finalHybridCoursesMap.values());
   } catch (error) {
     console.error('Error getting hybrid courses:', error);
     // Fallback to base curriculum data if Firebase fails
