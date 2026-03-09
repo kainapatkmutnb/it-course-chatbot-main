@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDepartments, useCourses } from '@/hooks/useFirebaseData';
 import { generateCoursesForSemester, courseDatabase } from '@/services/completeCurriculumData';
@@ -22,6 +24,13 @@ import {
   CourseFilter
 } from '@/services/courseService';
 import { 
+  checkPrerequisites, 
+  getRecommendedCourses, 
+  getCoursesWithPrereqWarnings,
+  normalizeCourseCode,
+  RecommendedCourse 
+} from '@/utils/prerequisiteUtils';
+import { 
   Plus, 
   Edit, 
   Trash2, 
@@ -34,6 +43,9 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  AlertTriangle,
+  Lightbulb,
+  ChevronRight,
   Trophy
 } from 'lucide-react';
 import { Course, StudentCourse } from '@/types/course';
@@ -124,6 +136,11 @@ const StudyPlanManager: React.FC = () => {
   // New state for year and semester filtering
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
+
+  // State for prerequisite warning dialog
+  const [prereqWarningOpen, setPrereqWarningOpen] = useState(false);
+  const [prereqWarningData, setPrereqWarningData] = useState<{ missingNames: string[]; pendingCourse: any } | null>(null);
+  const [showRecommendations, setShowRecommendations] = useState(true);
 
   // Initialize available programs and curriculum years
   useEffect(() => {
@@ -339,8 +356,7 @@ const StudyPlanManager: React.FC = () => {
     setCustomPlan(prev => ({ ...prev, totalCredits: total }));
   }, [customPlan.courses]);
 
-  // Add new course to plan
-  // Modified add course function to handle curriculum selection
+  // Add new course to plan (with prerequisite validation)
   const addCourse = () => {
     let courseData: any = {};
 
@@ -384,6 +400,24 @@ const StudyPlanManager: React.FC = () => {
       status: newCourse.status || 'planned'
     };
 
+    // ตรวจสอบ prerequisites ก่อนเพิ่มวิชา
+    const prereqCheck = checkPrerequisites(course, customPlan.courses);
+    if (!prereqCheck.isValid) {
+      // แสดง warning dialog
+      setPrereqWarningData({
+        missingNames: prereqCheck.missingPrereqNames,
+        pendingCourse: course
+      });
+      setPrereqWarningOpen(true);
+      return;
+    }
+
+    // ถ้า prerequisites ครบ → เพิ่มวิชาเลย
+    doAddCourse(course);
+  };
+
+  // ฟังก์ชันเพิ่มวิชาจริง (ใช้ร่วมกับ warning confirm)
+  const doAddCourse = (course: CustomCourse) => {
     setCustomPlan(prev => ({
       ...prev,
       courses: [...prev.courses, course],
@@ -403,6 +437,15 @@ const StudyPlanManager: React.FC = () => {
     });
     setSelectedCourseFromCurriculum('');
     setIsAddCourseOpen(false);
+  };
+
+  // ยืนยันเพิ่มวิชาถึงแม้ prerequisite ไม่ครบ
+  const confirmAddDespiteWarning = () => {
+    if (prereqWarningData?.pendingCourse) {
+      doAddCourse(prereqWarningData.pendingCourse);
+    }
+    setPrereqWarningOpen(false);
+    setPrereqWarningData(null);
   };
 
   const addCourseFromCurriculum = () => {
@@ -505,6 +548,17 @@ const StudyPlanManager: React.FC = () => {
   const completedCredits = completedCourses.reduce((sum, c) => sum + c.credits, 0);
   const gpaResult = calculateGPA(completedCourses.filter(c => c.grade));
 
+  // วิชาที่แนะนำ (คำนวณจาก completed courses + หลักสูตร)
+  const recommendedCourses = useMemo(() => {
+    if (completedCourses.length === 0) return [];
+    return getRecommendedCourses(customPlan.courses, availableCourses);
+  }, [customPlan.courses, availableCourses, completedCourses.length]);
+
+  // ตรวจสอบวิชาที่ผิดลำดับ
+  const prereqWarnings = useMemo(() => {
+    return getCoursesWithPrereqWarnings(customPlan.courses);
+  }, [customPlan.courses]);
+
   // Function to update course grade
   const updateCourseGrade = (courseId: string, grade: string) => {
     setCustomPlan(prev => ({
@@ -514,6 +568,31 @@ const StudyPlanManager: React.FC = () => {
           ? { ...course, grade }
           : course
       ),
+      updatedAt: new Date()
+    }));
+  };
+
+  // เพิ่มวิชาจากรายการแนะนำ
+  const addRecommendedCourse = (rec: RecommendedCourse) => {
+    const course: CustomCourse = {
+      id: `course_${Date.now()}`,
+      courseId: `course_${Date.now()}`,
+      code: rec.code,
+      name: rec.name,
+      credits: rec.credits,
+      year: rec.year,
+      semester: rec.semester,
+      status: 'planned',
+      type: rec.category === 'core' ? 'required' : rec.category === 'general' ? 'general' : 'elective',
+      description: rec.description || '',
+      mainCategory: rec.mainCategory,
+      subCategory: rec.subCategory,
+      prerequisites: rec.prerequisites,
+      corequisites: rec.corequisites
+    };
+    setCustomPlan(prev => ({
+      ...prev,
+      courses: [...prev.courses, course],
       updatedAt: new Date()
     }));
   };
@@ -916,6 +995,91 @@ const StudyPlanManager: React.FC = () => {
         </Card>
       </div>
 
+      {/* Prerequisite Warning AlertDialog */}
+      <AlertDialog open={prereqWarningOpen} onOpenChange={setPrereqWarningOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              แจ้งเตือน: วิชาที่ต้องเรียนก่อนยังไม่ครบ
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>วิชา <strong>{prereqWarningData?.pendingCourse?.name}</strong> มีเงื่อนไขวิชาที่ต้องเรียนก่อนดังนี้:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  {prereqWarningData?.missingNames.map((name, i) => (
+                    <li key={i} className="text-red-600 font-medium">{name}</li>
+                  ))}
+                </ul>
+                <p className="text-sm text-muted-foreground">คุณยังไม่ได้ลงทะเบียนเรียนหรือยังเรียนไม่ผ่านวิชาเหล่านี้ ต้องการเพิ่มวิชานี้ลงในแผนอยู่ดีหรือไม่?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setPrereqWarningOpen(false); setPrereqWarningData(null); }}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAddDespiteWarning} className="bg-yellow-600 hover:bg-yellow-700">เพิ่มอยู่ดี</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Recommended Courses Section */}
+      {recommendedCourses.length > 0 && (
+        <Card className="border-green-200 bg-green-50/30">
+          <CardHeader className="pb-3 cursor-pointer" onClick={() => setShowRecommendations(!showRecommendations)}>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Lightbulb className="w-5 h-5 text-green-600" />
+                <span className="text-green-800">วิชาที่แนะนำ (ปลดล็อคแล้ว)</span>
+                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">{recommendedCourses.length} วิชา</Badge>
+              </div>
+              <ChevronRight className={`w-5 h-5 text-green-600 transition-transform ${showRecommendations ? 'rotate-90' : ''}`} />
+            </CardTitle>
+            <CardDescription className="text-green-700">วิชาเหล่านี้ปลดล็อคแล้วจากรายวิชาที่คุณเรียนจบ สามารถลงทะเบียนได้เลย</CardDescription>
+          </CardHeader>
+          {showRecommendations && (
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {recommendedCourses.slice(0, 8).map((rec) => (
+                  <div key={rec.code} className="flex items-center justify-between p-3 rounded-lg border border-green-200 bg-white">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm truncate">{rec.name}</h4>
+                        <Badge variant="outline" className="text-xs shrink-0">{rec.credits} หน่วยกิต</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{rec.code}</p>
+                      <p className="text-xs text-green-600 mt-1">
+                        ปี {rec.year} เทอม {rec.semester}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline" className="ml-2 shrink-0 text-green-700 border-green-300 hover:bg-green-100" onClick={() => addRecommendedCourse(rec)}>
+                      <Plus className="w-3 h-3 mr-1" />
+                      เพิ่ม
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              {recommendedCourses.length > 8 && (
+                <p className="text-sm text-green-600 mt-3 text-center">และอีก {recommendedCourses.length - 8} วิชา</p>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      {/* Prerequisite Warnings Summary */}
+      {prereqWarnings.size > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center space-x-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              <span className="text-yellow-800">แจ้งเตือนลำดับวิชา</span>
+              <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-300">{prereqWarnings.size} วิชา</Badge>
+            </CardTitle>
+            <CardDescription className="text-yellow-700">มีวิชาในแผนที่ยังไม่ผ่านวิชาที่ต้องเรียนก่อน (prerequisites)</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -1017,10 +1181,27 @@ const StudyPlanManager: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {courses.map((course) => (
-                      <div key={course.id} className="flex items-center justify-between p-4 rounded-lg border">
+                    {courses.map((course) => {
+                      const courseWarnings = prereqWarnings.get(course.code);
+                      return (
+                      <div key={course.id} className={`flex items-center justify-between p-4 rounded-lg border ${courseWarnings ? 'border-yellow-300 bg-yellow-50/50' : ''}`}>
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
+                            {courseWarnings && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs">
+                                    <p className="font-medium mb-1">ยังไม่ผ่านวิชาที่ต้องเรียนก่อน:</p>
+                                    <ul className="list-disc pl-4 text-sm">
+                                      {courseWarnings.map((w, i) => <li key={i}>{w}</li>)}
+                                    </ul>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                             <h4 className="font-medium">{course.name}</h4>
                             <Badge 
                               variant={
@@ -1120,7 +1301,8 @@ const StudyPlanManager: React.FC = () => {
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 </CardContent>
               </Card>
