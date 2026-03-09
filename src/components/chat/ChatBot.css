@@ -1,0 +1,242 @@
+/* ============================================================
+   IT Course ChatBot - Premium Theme Override
+   ============================================================ */
+
+/* ----- Import Google Fonts ----- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
+
+/* ----- Chat Window Container ----- */
+#n8n-chat .chat-window,
+#n8n-chat .n8n-chat__window {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 60px rgba(37, 99, 235, 0.2), 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(99, 149, 255, 0.2) !important;
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* ----- Header ----- */
+#n8n-chat .chat-window-header,
+#n8n-chat .n8n-chat__window--header {
+  background: linear-gradient(135deg, #1a2a6c 0%, #2563eb 60%, #4f46e5 100%) !important;
+  padding: 20px 24px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#n8n-chat .chat-window-header::before,
+#n8n-chat .n8n-chat__window--header::before {
+  content: '' !important;
+  position: absolute !important;
+  top: -50% !important;
+  right: -20% !important;
+  width: 300px !important;
+  height: 300px !important;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%) !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+}
+
+/* ----- Header Title ----- */
+#n8n-chat .chat-window-header h1,
+#n8n-chat .chat-window-header .title,
+#n8n-chat [class*="chatWindowHeader"] h1,
+#n8n-chat [class*="chatWindowHeader"] [class*="title"] {
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.3px !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.15) !important;
+}
+
+/* ----- Header Subtitle ----- */
+#n8n-chat .chat-window-header p,
+#n8n-chat .chat-window-header .subtitle,
+#n8n-chat [class*="chatWindowHeader"] p,
+#n8n-chat [class*="chatWindowHeader"] [class*="subtitle"] {
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 13px !important;
+  color: rgba(255,255,255,0.75) !important;
+  font-weight: 400 !important;
+  margin-top: 4px !important;
+}
+
+/* ----- Chat Body / Message Area ----- */
+#n8n-chat .chat-messages-list,
+#n8n-chat [class*="chatMessages"],
+#n8n-chat [class*="messages"] {
+  background: linear-gradient(180deg, #f0f4ff 0%, #f8faff 100%) !important;
+  padding: 16px !important;
+  gap: 12px !important;
+}
+
+/* ----- Welcome Screen ----- */
+#n8n-chat [class*="welcome"],
+#n8n-chat .welcome-screen {
+  background: linear-gradient(180deg, #f0f4ff 0%, #f8faff 100%) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 20px !important;
+}
+
+/* ----- Get Started Button ----- */
+#n8n-chat [class*="getStarted"],
+#n8n-chat button[class*="new"],
+#n8n-chat .new-conversation-button,
+#n8n-chat [class*="start"] button {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 14px 36px !important;
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  letter-spacing: 0.3px !important;
+}
+
+#n8n-chat [class*="getStarted"]:hover,
+#n8n-chat button[class*="new"]:hover,
+#n8n-chat .new-conversation-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5) !important;
+}
+
+/* ----- Bot Messages (Left) ----- */
+#n8n-chat [class*="botMessage"],
+#n8n-chat .chat-message-bot,
+#n8n-chat [data-role="bot"] {
+  background: #ffffff !important;
+  border: 1px solid rgba(37, 99, 235, 0.12) !important;
+  border-radius: 16px 16px 16px 4px !important;
+  padding: 12px 16px !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08) !important;
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: #1e293b !important;
+  max-width: 80% !important;
+}
+
+/* ----- User Messages (Right) ----- */
+#n8n-chat [class*="userMessage"],
+#n8n-chat .chat-message-user,
+#n8n-chat [data-role="user"] {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  border-radius: 16px 16px 4px 16px !important;
+  padding: 12px 16px !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: #ffffff !important;
+  max-width: 75% !important;
+}
+
+/* ----- Input Area ----- */
+#n8n-chat [class*="input"],
+#n8n-chat .chat-input,
+#n8n-chat [class*="inputArea"] {
+  background: #ffffff !important;
+  border-top: 1px solid rgba(37, 99, 235, 0.1) !important;
+  padding: 12px 16px !important;
+}
+
+/* ----- Input Text Field ----- */
+#n8n-chat textarea,
+#n8n-chat input[type="text"],
+#n8n-chat [class*="input"] textarea {
+  border: 1.5px solid rgba(37, 99, 235, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  background: #f8faff !important;
+  resize: none !important;
+  transition: border-color 0.2s !important;
+}
+
+#n8n-chat textarea:focus,
+#n8n-chat input[type="text"]:focus {
+  border-color: #2563eb !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+  background: #fff !important;
+}
+
+/* ----- Send Button ----- */
+#n8n-chat [class*="sendButton"],
+#n8n-chat button[type="submit"],
+#n8n-chat [class*="send"] button {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  border-radius: 10px !important;
+  border: none !important;
+  padding: 8px 14px !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35) !important;
+}
+
+#n8n-chat [class*="sendButton"]:hover,
+#n8n-chat button[type="submit"]:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5) !important;
+}
+
+/* ----- Footer ----- */
+#n8n-chat [class*="footer"],
+#n8n-chat .chat-footer {
+  font-family: 'Noto Sans Thai', sans-serif !important;
+  font-size: 11px !important;
+  color: #94a3b8 !important;
+  text-align: center !important;
+  padding: 8px !important;
+  background: #f8faff !important;
+}
+
+/* ----- Scrollbar ----- */
+#n8n-chat [class*="messages"]::-webkit-scrollbar {
+  width: 5px !important;
+}
+#n8n-chat [class*="messages"]::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+#n8n-chat [class*="messages"]::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.25) !important;
+  border-radius: 999px !important;
+}
+#n8n-chat [class*="messages"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.45) !important;
+}
+
+/* ----- Toggle / Launcher Button ----- */
+#n8n-chat .chat-toggle,
+#n8n-chat [class*="toggle"],
+#n8n-chat [class*="launcher"] {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45) !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+}
+
+#n8n-chat .chat-toggle:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 28px rgba(37, 99, 235, 0.6) !important;
+}
+
+/* ----- Animations ----- */
+@keyframes chatFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+#n8n-chat .chat-window {
+  animation: chatFadeIn 0.25s ease forwards !important;
+}
