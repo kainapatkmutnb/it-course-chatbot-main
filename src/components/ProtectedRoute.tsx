@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: UserRole;
+  // BUG-04 fix: add requiredRoles (array) which is what App.tsx actually passes
+  requiredRoles?: UserRole[];
   requiredPermission?: string;
   redirectTo?: string;
 }
@@ -14,6 +16,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
+  requiredRoles,
   requiredPermission,
   redirectTo = '/login'
 }) => {
@@ -46,9 +49,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Check role requirement
+  // BUG-04 fix: check requiredRoles array — admin bypasses all role restrictions
+  if (requiredRoles && requiredRoles.length > 0 && user.role !== 'admin') {
+    if (!requiredRoles.includes(user.role as UserRole)) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">ไม่มีสิทธิ์เข้าถึง</h2>
+            <p className="text-gray-600">คุณไม่มีสิทธิ์เข้าถึงหน้านี้</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Check single role requirement (legacy support)
   if (requiredRole && user.role !== requiredRole) {
-    // Allow admin to access all roles
     if (user.role !== 'admin') {
       return (
         <div className="flex items-center justify-center min-h-screen">

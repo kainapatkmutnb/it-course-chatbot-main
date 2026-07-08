@@ -1,7 +1,7 @@
 import { db as database, auth } from '@/config/firebase';
 import { ref, get, set, push, update, remove, onValue, off } from 'firebase/database';
 import { createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 // Firebase config for secondary app (for admin user creation)
@@ -15,8 +15,8 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Create secondary Firebase app for admin operations
-const adminApp = initializeApp(firebaseConfig, 'admin-app');
+// BUG-12 fix: guard against re-initialization during Vite HMR
+const adminApp = getApps().find(a => a.name === 'admin-app') ?? initializeApp(firebaseConfig, 'admin-app');
 const adminAuth = getAuth(adminApp);
 
 // Types
@@ -175,15 +175,16 @@ class FirebaseService {
         // Sign out from admin auth to prevent auto-login
         await signOut(adminAuth);
         
-        // Create user record in Realtime Database with Firebase Auth UID
-        const userRef = ref(database, `users/${firebaseUser.uid}`);
+        // BUG-03 fix: destructure password out instead of delete (works in strict mode)
+        const { password: _pw, ...userWithoutPassword } = userData;
         const userWithTimestamp = {
-          ...userData,
+          ...userWithoutPassword,
           createdAt: new Date().toISOString(),
           isActive: true
         };
-        delete userWithTimestamp.password; // Don't store password in database
         
+        // Create user record in Realtime Database with Firebase Auth UID
+        const userRef = ref(database, `users/${firebaseUser.uid}`);
         await set(userRef, userWithTimestamp);
         return firebaseUser.uid;
       } else {
@@ -603,9 +604,11 @@ class FirebaseService {
           .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort newest first
         
         const totalCount = allLogs.length;
-        const totalPages = Math.ceil(totalCount / limit);
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
+        // BUG-10 fix: guard against division by zero
+        const effectiveLimit = limit > 0 ? limit : 50;
+        const totalPages = Math.ceil(totalCount / effectiveLimit);
+        const startIndex = (page - 1) * effectiveLimit;
+        const endIndex = startIndex + effectiveLimit;
         const logs = allLogs.slice(startIndex, endIndex);
         
         return { logs, totalCount, totalPages };

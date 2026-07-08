@@ -36,7 +36,15 @@ const Login: React.FC = () => {
       // Navigate to dashboard without specific role, let RoleBasedRoute handle the redirect
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      // BUG-11 fix: sanitize error messages — don't expose raw Firebase errors
+      const code = err?.code || '';
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else if (typeof err?.message === 'string' && err.message.includes('Only @kmutnb')) {
+        setError('กรุณาใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th เท่านั้น');
+      } else {
+        setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง');
+      }
     }
   };
 
@@ -48,7 +56,15 @@ const Login: React.FC = () => {
       // Navigate to dashboard without specific role, let RoleBasedRoute handle the redirect
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      // BUG-11 fix: sanitize Google login errors
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+        // User cancelled — no need to show error
+      } else if (typeof err?.message === 'string' && err.message.includes('Only @kmutnb')) {
+        setError('กรุณาใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th เท่านั้น');
+      } else {
+        setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบด้วย Google กรุณาลองใหม่อีกครั้ง');
+      }
     }
   };
 

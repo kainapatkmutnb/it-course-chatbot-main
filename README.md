@@ -136,3 +136,43 @@ src/
 - จำกัดสิทธิ์การสมัครและเข้าใช้งานเฉพาะอีเมลภายใต้โดเมนสถาบัน `@kmutnb.ac.th` และ `@email.kmutnb.ac.th` เท่านั้น
 - มีการเข้ารหัสและตรวจสอบตัวตนผ่าน Firebase Authentication ทุกเซสชัน
 - บันทึกพฤติกรรมการเขียนหรือแก้ไขฐานข้อมูลวิชาผ่าน Audit Logs
+
+---
+
+## 🔧 การแก้ไขข้อผิดพลาดและปรับปรุงระบบ (Bug Fixes & Improvements)
+
+### Security
+
+| # | รายละเอียด | ไฟล์ที่แก้ไข |
+|---|-----------|-------------|
+| BUG-01 | `setUser()` ไม่ได้ inject `id` จาก Firebase key ทำให้ `user.id` เป็น `undefined` ทั่วระบบ | `AuthContext.tsx` |
+| BUG-02 | `Date` object ถูก serialize เป็น `{}` ใน Firebase — เปลี่ยนเป็น `.toISOString()` | `AuthContext.tsx` |
+| BUG-03 | `delete userWithTimestamp.password` ไม่ work ใน strict TypeScript — แก้เป็น destructure | `firebaseService.ts` |
+| BUG-04 | prop `requiredRoles` (array) ไม่มีใน interface ของ `ProtectedRoute` ทำให้ role check ไม่ทำงาน (authorization bypass) | `ProtectedRoute.tsx` |
+| BUG-11 | แสดง raw Firebase error message ต่อผู้ใช้โดยตรง — เปลี่ยนเป็น message ภาษาไทยที่ปลอดภัย | `Login.tsx` |
+
+### Performance
+
+| # | รายละเอียด | ไฟล์ที่แก้ไข |
+|---|-----------|-------------|
+| BUG-07 | เรียก `getCourses()` 2 ครั้งแบบ sequential ต่อ semester — เปลี่ยนเป็น `Promise.all()` parallel | `hybridCourseService.ts` |
+
+### Stability / UX
+
+| # | รายละเอียด | ไฟล์ที่แก้ไข |
+|---|-----------|-------------|
+| BUG-05 | `createChat()` ถูกเรียกซ้ำทุกครั้งที่ `studyPlan` / `gpaData` เปลี่ยน — ใช้ `useRef` guard | `ChatBot.tsx` |
+| BUG-08 | `isLoading` ค้าง `true` หลัง login สำเร็จจนปุ่ม disabled — เพิ่ม `setIsLoading(false)` ก่อน toast | `AuthContext.tsx` |
+| BUG-09 | Hook `useStudyPlan` / `useStudentGPAAndCredits` รับ `undefined` แทน `string` | `StudentDashboard.tsx` |
+| BUG-10 | Pagination คำนวณ `Math.ceil(n / 0)` → `Infinity` — เพิ่ม guard `effectiveLimit` | `firebaseService.ts` |
+| BUG-12 | `initializeApp('admin-app')` crash ใน Vite HMR เมื่อ module reload ซ้ำ | `firebaseService.ts` |
+
+### UI / Branding
+
+| รายละเอียด | ไฟล์ที่แก้ไข |
+|-----------|-------------|
+| เปลี่ยน favicon จาก Lovable เป็น icon ธีม IT/Bot ใหม่ | `index.html`, `public/favicon-it.jpg` |
+| ลบ Lovable branding ออกจาก meta tags ทั้งหมด | `index.html` |
+| แก้ footer ทับ chatbot toggle — เพิ่ม `padding-right` | `Footer.tsx` |
+| ลบ GitHub icon ออกจาก footer | `Footer.tsx` |
+| อัปเดต ExternalLink ใน footer ให้ชี้ไป `https://www.fitm.kmutnb.ac.th/` | `Footer.tsx` |

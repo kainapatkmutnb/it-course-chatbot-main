@@ -5,7 +5,6 @@ import ChatBot from '@/components/chat/ChatBot';
 import { 
   MessageCircle, 
   Bot, 
-  Github, 
   Mail, 
   Phone,
   MapPin,
@@ -87,28 +86,20 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Section */}
-          <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          {/* Bottom Section — padding-right เพื่อไม่ทับ chatbot toggle */}
+          <div className="border-t mt-8 pt-6 pb-2 flex flex-col md:flex-row justify-between items-center pr-20">
             <p className="text-sm text-muted-foreground">
               © 2024 IT Assistant. สงวนลิขสิทธิ์ทุกประการ
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <a 
-                href="https://github.com" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a 
-                href="mailto:info@kmutnb.ac.th" 
+                href="mailto:fitm@fitm.kmutnb.ac.th" 
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Mail className="w-5 h-5" />
               </a>
               <a 
-                href="https://kmutnb.ac.th" 
+                href="https://www.fitm.kmutnb.ac.th/" 
                 className="text-muted-foreground hover:text-primary transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"

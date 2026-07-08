@@ -49,16 +49,18 @@ const StudentDashboard: React.FC = () => {
   const currentDepartment = user?.department || detectedDepartment;
   
   // Use Firebase data instead of mock data
-  const { studyPlan, loading: studyPlanLoading, error: studyPlanError } = useStudyPlan(user?.id);
+  // BUG-09 fix: pass empty string fallback so hooks receive string, not undefined
+  const { studyPlan, loading: studyPlanLoading, error: studyPlanError } = useStudyPlan(user?.id || '');
   
   // Use new hook to get GPA and credits from Firebase
+  // BUG-09 fix: pass empty string fallback
   const { 
     data: gpaData, 
     loading: gpaLoading, 
     error: gpaError, 
     refreshGPAAndCredits, 
     updateGPAAndCredits 
-  } = useStudentGPAAndCredits(user?.id);
+  } = useStudentGPAAndCredits(user?.id || '');
 
   // Profile editing functions
   const handleEditProfile = () => {

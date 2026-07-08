@@ -38,16 +38,16 @@ export const getHybridCoursesForSemester = async (
       courseCount
     );
 
-    // Get all Firebase courses from general collection
-    const allFirebaseCourses = await firebaseService.getCourses();
-    
-    // Get specific curriculum courses from Firebase
-    const specificFirebaseCourses = await firebaseService.getCourses(
-      programCode, 
-      curriculumYear, 
-      parseInt(year), 
-      parseInt(semester)
-    );
+    // BUG-07 fix: fetch both in parallel instead of sequentially (was 2 serial reads)
+    const [allFirebaseCourses, specificFirebaseCourses] = await Promise.all([
+      firebaseService.getCourses(),
+      firebaseService.getCourses(
+        programCode,
+        curriculumYear,
+        parseInt(year),
+        parseInt(semester)
+      )
+    ]);
     
     // Create a map of Firebase courses by code for quick lookup
     const firebaseCoursesMap = new Map<string, any>();

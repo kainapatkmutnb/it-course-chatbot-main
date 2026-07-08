@@ -42,8 +42,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userSnapshot = await get(userRef);
           
           if (userSnapshot.exists()) {
-            // User exists, get their data
-            const userData = userSnapshot.val() as User;
+            // User exists, get their data — BUG-01 fix: inject id from Firebase key
+            const userData = { id: firebaseUser.uid, ...userSnapshot.val() } as User;
             setUser(userData);
             
             // Update last login
@@ -60,8 +60,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               role,
               ...(firebaseUser.photoURL && { profilePicture: firebaseUser.photoURL }),
               isActive: true,
-              createdAt: new Date(),
-              lastLogin: new Date()
+              // BUG-02 fix: Firebase cannot serialize Date objects — use ISO strings
+              createdAt: new Date().toISOString() as unknown as Date,
+              lastLogin: new Date().toISOString() as unknown as Date
             };
             
             await set(userRef, newUser);
@@ -131,6 +132,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
+      // BUG-08 fix: clear loading before toast so button doesn't stay disabled
+      setIsLoading(false);
       toast({
         title: 'เข้าสู่ระบบสำเร็จ',
         description: 'ยินดีต้อนรับเข้าสู่ระบบ',
@@ -246,6 +249,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
+      // BUG-08 fix: clear loading before toast
+      setIsLoading(false);
       toast({
         title: 'เข้าสู่ระบบสำเร็จ',
         description: `ยินดีต้อนรับ ${result.user.displayName}`,
@@ -361,8 +366,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         employeeId: userData.employeeId,
         department: userData.department,
         isActive: true,
-        createdAt: new Date(),
-        lastLogin: new Date()
+        // BUG-02 fix: Firebase cannot serialize Date objects — use ISO strings
+        createdAt: new Date().toISOString() as unknown as Date,
+        lastLogin: new Date().toISOString() as unknown as Date
       };
       
       const userRef = ref(db, `users/${result.user.uid}`);

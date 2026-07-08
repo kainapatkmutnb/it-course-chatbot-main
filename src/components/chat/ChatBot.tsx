@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import '@n8n/chat/style.css';
 import { createChat } from '@n8n/chat';
 import './ChatBot.css';
@@ -11,6 +11,8 @@ const ChatBot: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [curriculumCourses, setCurriculumCourses] = useState<Course[]>([]);
   const [curriculumLoading, setCurriculumLoading] = useState(false);
+  // BUG-05 fix: track whether chat has been initialized to prevent re-initialization
+  const chatInitializedRef = useRef(false);
 
   const { user, isLoading: authLoading } = useAuth();
   const { studyPlan, loading: studyPlanLoading } = useStudyPlan(user?.id || '');
@@ -47,8 +49,9 @@ const ChatBot: React.FC = () => {
   const dataIsLoading = authLoading || (!!user && (studyPlanLoading || gpaLoading || curriculumLoading));
 
   useEffect(() => {
-    // Only initialize when basic auth loading and necessary data loading finishes
+    // BUG-05 fix: only initialize once when data loading is complete
     if (dataIsLoading) return;
+    if (chatInitializedRef.current) return;
 
     const initializeChat = async () => {
       try {
@@ -130,6 +133,8 @@ const ChatBot: React.FC = () => {
           loadPreviousSession: false, // Set to false to prevent caching old session memories
           enableStreaming: false,
         });
+
+        chatInitializedRef.current = true;
       } catch (error) {
         console.error('Chat initialization error:', error);
         setChatError('ขออภัย ระบบแชทบอทไม่สามารถเชื่อมต่อได้ในขณะนี้');
@@ -150,8 +155,10 @@ const ChatBot: React.FC = () => {
       if (shadowRoot) {
         shadowRoot.remove();
       }
+      chatInitializedRef.current = false;
     };
-  }, [dataIsLoading, user, studyPlan, gpaData, curriculumCourses]);
+  // BUG-05 fix: only re-run when dataIsLoading changes (not every data update)
+  }, [dataIsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (dataIsLoading || isInitializing) {
     return (
