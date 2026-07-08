@@ -107,3 +107,6 @@ firestore-debug.log
 
 # Local development files
 temp-debug.js
+
+# Superpowers agent directories
+.superpowers/
