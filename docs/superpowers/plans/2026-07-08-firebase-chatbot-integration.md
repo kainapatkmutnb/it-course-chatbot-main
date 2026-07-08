@@ -1,15 +1,44 @@
+# Firebase Chatbot Integration Implementation Plan (with Curriculum Data & Guest Mode)
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Modify the frontend `ChatBot.tsx` component to fetch the standard curriculum courses list for logged-in students and pass it in the `metadata` payload, in addition to personal study plans and Guest Mode.
+
+**Architecture:** Parse `studyPlan.curriculum` to get the program code and cohort year (e.g. `IT-67`). Call `getCoursesByProgram(program, curriculumYear)` to fetch all required standard courses, and map them to `metadata.curriculumCourses`.
+
+## Global Constraints
+
+- Do not perform git push or commits yet, as requested by the user.
+- Use exact React hooks from `@/hooks/useFirebaseData`.
+- Use `getCoursesByProgram` from `@/services/courseService` to fetch standard curriculum data.
+
+---
+
+### Task 3: Implement Standard Curriculum Metadata in ChatBot
+
+**Files:**
+- Modify: [ChatBot.tsx](file:///c:/Users/guy26/Desktop/it-course-chatbot-main/src/components/chat/ChatBot.tsx)
+
+**Interfaces:**
+- Consumes: `getCoursesByProgram` from `@/services/courseService`.
+- Produces: Chat widget initialized with student profile, personal study plan, and standard curriculum course details.
+
+- [ ] **Step 1: Modify ChatBot.tsx to load and map curriculum courses**
+
+Update `ChatBot.tsx` to handle curriculum loading states and dynamic import of the course service.
+
+```typescript
 import React, { useEffect, useState } from "react";
 import '@n8n/chat/style.css';
 import { createChat } from '@n8n/chat';
 import './ChatBot.css';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
-import { Course } from '@/types/course';
 
 const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [curriculumCourses, setCurriculumCourses] = useState<Course[]>([]);
+  const [curriculumCourses, setCurriculumCourses] = useState<any[]>([]);
   const [curriculumLoading, setCurriculumLoading] = useState(false);
 
   const { user, isLoading: authLoading } = useAuth();
@@ -187,3 +216,9 @@ const ChatBot: React.FC = () => {
 };
 
 export default ChatBot;
+```
+
+- [ ] **Step 2: Run local lint check to make sure code compiles and has no type errors**
+
+Run: `npm run lint` or check build with `npm run build`
+Expected: Successfully completes with no typescript errors in ChatBot.tsx.
