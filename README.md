@@ -176,3 +176,4 @@ src/
 | แก้ footer ทับ chatbot toggle — เพิ่ม `padding-right` | `Footer.tsx` |
 | ลบ GitHub icon ออกจาก footer | `Footer.tsx` |
 | อัปเดต ExternalLink ใน footer ให้ชี้ไป `https://www.fitm.kmutnb.ac.th/` | `Footer.tsx` |
+| ย้าย Toast notification (shadcn + Sonner) จาก bottom-right → bottom-left ไม่ทับ chatbot toggle | `toast.tsx`, `App.tsx` |
