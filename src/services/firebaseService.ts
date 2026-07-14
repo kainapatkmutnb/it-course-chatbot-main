@@ -363,10 +363,22 @@ class FirebaseService {
       
       if (snapshot.exists()) {
         const coursesData = snapshot.val();
-        return Object.keys(coursesData).map(key => ({
+        let coursesList = Object.keys(coursesData).map(key => ({
           id: key,
           ...coursesData[key]
         }));
+        
+        // Filter by program and curriculumYear if we fetched from global courses node
+        if (!(program && curriculumYear && year && semester)) {
+          if (program) {
+            coursesList = coursesList.filter((c: any) => c.program === program);
+          }
+          if (curriculumYear) {
+            coursesList = coursesList.filter((c: any) => c.curriculumYear === curriculumYear);
+          }
+        }
+        
+        return coursesList;
       }
       return [];
     } catch (error) {

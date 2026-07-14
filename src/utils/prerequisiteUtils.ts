@@ -95,10 +95,10 @@ export const checkPrerequisites = (
     return { isValid: true, missingPrereqs: [], missingPrereqNames: [] };
   }
 
-  // สร้าง Set ของ course code (normalized) ที่ completed ในแผน
+  // สร้าง Set ของ course code (normalized) ที่ completed ในแผน (ไม่นับเกรด F, I, W, U)
   const completedCodes = new Set(
     planCourses
-      .filter(c => c.status === 'completed')
+      .filter(c => c.status === 'completed' && c.grade !== 'F' && c.grade !== 'I' && c.grade !== 'W' && c.grade !== 'U')
       .map(c => normalizeCourseCode(c.code))
   );
 
@@ -136,10 +136,10 @@ export const getCoursesWithPrereqWarnings = (
 ): Map<string, string[]> => {
   const warnings = new Map<string, string[]>();
 
-  // สร้าง Set ของ course code (normalized) ที่ completed
+  // สร้าง Set ของ course code (normalized) ที่ completed (ไม่นับเกรด F, I, W, U)
   const completedCodes = new Set(
     planCourses
-      .filter(c => c.status === 'completed')
+      .filter(c => c.status === 'completed' && c.grade !== 'F' && c.grade !== 'I' && c.grade !== 'W' && c.grade !== 'U')
       .map(c => normalizeCourseCode(c.code))
   );
 
@@ -186,10 +186,10 @@ export const getRecommendedCourses = (
   planCourses: SimpleCourse[],
   allCurriculumCourses: SimpleCourse[]
 ): RecommendedCourse[] => {
-  // สร้าง Set ของ course code (normalized) ที่ completed
+  // สร้าง Set ของ course code (normalized) ที่ completed (ไม่นับเกรด F, I, W, U)
   const completedCodes = new Set(
     planCourses
-      .filter(c => c.status === 'completed')
+      .filter(c => c.status === 'completed' && c.grade !== 'F' && c.grade !== 'I' && c.grade !== 'W' && c.grade !== 'U')
       .map(c => normalizeCourseCode(c.code))
   );
 

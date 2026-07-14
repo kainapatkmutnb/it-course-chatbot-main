@@ -111,13 +111,21 @@ const StudentDashboard: React.FC = () => {
   //   ) : [];
 
   // Calculate statistics from real data
-  const completedCourses = studyPlan?.courses?.filter(course => course.status === 'completed') || [];
+  const completedCourses = studyPlan?.courses?.filter(course => 
+    course.status === 'completed' && 
+    course.grade !== 'F' && 
+    course.grade !== 'U' && 
+    course.grade !== 'I' && 
+    course.grade !== 'W'
+  ) || [];
   const inProgressCourses = studyPlan?.courses?.filter(course => course.status === 'in_progress') || [];
   const plannedCourses = studyPlan?.courses?.filter(course => course.status === 'planned') || [];
   
-  // Calculate GPA from completed courses
+  // Calculate GPA from completed or failed courses
   const calculateGPA = () => {
-    const gradedCourses = completedCourses.filter(course => course.grade);
+    const gradedCourses = (studyPlan?.courses || []).filter(course => 
+      (course.status === 'completed' || course.status === 'failed') && course.grade
+    );
     if (gradedCourses.length === 0) return 0;
 
     const gradePoints: { [key: string]: number } = {

@@ -49,6 +49,7 @@ import {
   Trophy
 } from 'lucide-react';
 import { Course, StudentCourse } from '@/types/course';
+import { extractDepartmentFromStudentInfo } from '@/services/departmentService';
 import { 
   calculateGPA, 
   getGradePoint, 
@@ -144,7 +145,7 @@ const StudyPlanManager: React.FC = () => {
 
   // Initialize available programs and curriculum years
   useEffect(() => {
-    const programs = Object.keys(courseDatabase);
+    const programs = Object.keys(courseDatabase).filter(p => p !== 'INE-COOP');
     setAvailablePrograms(programs);
     
     if (programs.length > 0 && !programs.includes(selectedProgram)) {
@@ -152,12 +153,57 @@ const StudyPlanManager: React.FC = () => {
     }
   }, []);
 
+  // Set default program and curriculum year based on user's department and student ID
+  useEffect(() => {
+    if (user) {
+      // Get department from user profile or student ID
+      const dept = user.department || '';
+      let detectedDept = dept;
+      if (!detectedDept) {
+        const studentId = user.studentId || '';
+        const email = user.email || '';
+        detectedDept = extractDepartmentFromStudentInfo(studentId, email);
+      }
+      
+      let finalDept = detectedDept || 'IT';
+      if (finalDept === 'INE-COOP') {
+        finalDept = 'INE';
+      }
+      
+      if (courseDatabase[finalDept]) {
+        setSelectedProgram(finalDept);
+        
+        // Also detect curriculum year from student ID
+        const studentId = user.studentId || '';
+        const match = studentId.match(/^s?(\d{2})/);
+        if (match) {
+          const entryYear = parseInt(match[1]);
+          let yearVal = '67';
+          if (finalDept === 'ITI') {
+            yearVal = entryYear >= 66 ? '66' : '61';
+          } else if (finalDept === 'ITT') {
+            yearVal = '67';
+          } else {
+            yearVal = entryYear >= 67 ? '67' : '62';
+          }
+          
+          const availableYears = Object.keys(courseDatabase[finalDept] || {});
+          if (availableYears.includes(yearVal)) {
+            setSelectedCurriculumYear(yearVal);
+          } else if (availableYears.length > 0) {
+            setSelectedCurriculumYear(availableYears[0]);
+          }
+        }
+      }
+    }
+  }, [user]);
+
   // Update available curriculum years when program changes
   useEffect(() => {
     const curriculumYears = Object.keys(courseDatabase[selectedProgram] || {});
     setAvailableCurriculumYears(curriculumYears);
     
-    if (curriculumYears.length > 0 && !selectedCurriculumYear) {
+    if (curriculumYears.length > 0 && (!selectedCurriculumYear || !curriculumYears.includes(selectedCurriculumYear))) {
       setSelectedCurriculumYear(curriculumYears[0]);
     }
   }, [selectedProgram]);
@@ -393,11 +439,22 @@ const StudyPlanManager: React.FC = () => {
       };
     }
 
+    let finalStatus = newCourse.status || 'planned';
+    let finalGrade = newCourse.grade;
+    if (finalStatus === 'failed') {
+      finalGrade = 'F';
+    } else if (finalStatus === 'completed' && (!finalGrade || finalGrade === 'F' || finalGrade === 'U')) {
+      finalGrade = 'C'; // default passing grade
+    } else if (finalStatus === 'planned' || finalStatus === 'in_progress') {
+      finalGrade = undefined;
+    }
+
     const course: CustomCourse = {
       id: `course_${Date.now()}`,
       courseId: `course_${Date.now()}`,
       ...courseData,
-      status: newCourse.status || 'planned'
+      status: finalStatus,
+      grade: finalGrade
     };
 
     // ตรวจสอบ prerequisites ก่อนเพิ่มวิชา
@@ -487,11 +544,26 @@ const StudyPlanManager: React.FC = () => {
   const updateCourse = () => {
     if (!editingCourse || !newCourse.code || !newCourse.name) return;
 
+    let finalStatus = newCourse.status || 'planned';
+    let finalGrade = newCourse.grade;
+    if (finalStatus === 'failed') {
+      finalGrade = 'F';
+    } else if (finalStatus === 'completed' && (!finalGrade || finalGrade === 'F' || finalGrade === 'U')) {
+      finalGrade = 'C'; // default passing grade
+    } else if (finalStatus === 'planned' || finalStatus === 'in_progress') {
+      finalGrade = undefined;
+    }
+
     setCustomPlan(prev => ({
       ...prev,
       courses: prev.courses.map(course => 
         course.id === editingCourse.id 
-          ? { ...course, ...newCourse } as CustomCourse
+          ? { 
+              ...course, 
+              ...newCourse, 
+              status: finalStatus, 
+              grade: finalGrade 
+            } as CustomCourse
           : course
       ),
       updatedAt: new Date()
@@ -542,11 +614,17 @@ const StudyPlanManager: React.FC = () => {
   }, {} as Record<string, CustomCourse[]>);
 
   // Calculate statistics
-  const completedCourses = customPlan.courses.filter(c => c.status === 'completed');
+  const completedCourses = customPlan.courses.filter(c => 
+    c.status === 'completed' && 
+    c.grade !== 'F' && 
+    c.grade !== 'U' && 
+    c.grade !== 'I' && 
+    c.grade !== 'W'
+  );
   const inProgressCourses = customPlan.courses.filter(c => c.status === 'in_progress');
   const plannedCourses = customPlan.courses.filter(c => c.status === 'planned');
   const completedCredits = completedCourses.reduce((sum, c) => sum + c.credits, 0);
-  const gpaResult = calculateGPA(completedCourses.filter(c => c.grade));
+  const gpaResult = calculateGPA(customPlan.courses.filter(c => (c.status === 'completed' || c.status === 'failed') && c.grade));
 
   // วิชาที่แนะนำ (คำนวณจาก completed courses + หลักสูตร)
   const recommendedCourses = useMemo(() => {
@@ -563,11 +641,18 @@ const StudyPlanManager: React.FC = () => {
   const updateCourseGrade = (courseId: string, grade: string) => {
     setCustomPlan(prev => ({
       ...prev,
-      courses: prev.courses.map(course => 
-        course.id === courseId 
-          ? { ...course, grade }
-          : course
-      ),
+      courses: prev.courses.map(course => {
+        if (course.id === courseId) {
+          let newStatus = course.status;
+          if (grade === 'F' || grade === 'U') {
+            newStatus = 'failed';
+          } else if (course.status === 'failed' && (grade !== 'F' && grade !== 'U' && grade !== 'I' && grade !== 'W')) {
+            newStatus = 'completed';
+          }
+          return { ...course, grade, status: newStatus };
+        }
+        return course;
+      }),
       updatedAt: new Date()
     }));
   };
@@ -1204,14 +1289,17 @@ const StudyPlanManager: React.FC = () => {
                             )}
                             <h4 className="font-medium">{course.name}</h4>
                             <Badge 
-                              variant={
-                                course.status === 'completed' ? 'default' :
-                                course.status === 'in_progress' ? 'secondary' :
-                                'outline'
+                              variant="outline"
+                              className={
+                                course.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' :
+                                course.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' :
+                                course.status === 'failed' ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' :
+                                'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100'
                               }
                             >
                               {course.status === 'completed' ? 'เรียนจบแล้ว' :
                                course.status === 'in_progress' ? 'กำลังเรียน' :
+                               course.status === 'failed' ? 'เรียนไม่ผ่าน' :
                                'วางแผนเรียน'}
                             </Badge>
                             {course.grade && (
@@ -1266,8 +1354,8 @@ const StudyPlanManager: React.FC = () => {
                              course.type === 'elective' ? 'เลือก' : 'ศึกษาทั่วไป'}
                           </Badge>
                           
-                          {/* Grade Input for completed courses */}
-                          {course.status === 'completed' && (
+                          {/* Grade Input for completed or failed courses */}
+                          {(course.status === 'completed' || course.status === 'failed') && (
                             <Select
                               value={course.grade || ''}
                               onValueChange={(grade) => updateCourseGrade(course.id, grade)}

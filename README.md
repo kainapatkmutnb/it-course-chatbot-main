@@ -166,11 +166,14 @@ src/
 | BUG-09 | Hook `useStudyPlan` / `useStudentGPAAndCredits` รับ `undefined` แทน `string` | `StudentDashboard.tsx` |
 | BUG-10 | Pagination คำนวณ `Math.ceil(n / 0)` → `Infinity` — เพิ่ม guard `effectiveLimit` | `firebaseService.ts` |
 | BUG-12 | `initializeApp('admin-app')` crash ใน Vite HMR เมื่อ module reload ซ้ำ | `firebaseService.ts` |
+| BUG-13 | ดึงข้อมูลวิชา IT ปะปนในแผนการเรียนของนักศึกษา INE — เพิ่มระบบกรองตามหลักสูตรและสาขาวิชา | `firebaseService.ts`, `StudyPlanManager.tsx` |
+| BUG-14 | แสดงสถานะวิชาเรียนไม่ผ่านเป็น "วางแผนเรียน" และนับรายวิชาที่มีเกรด F/U เป็นวิชาที่เรียนผ่านสำเร็จ — ปรับปรุงระบบ Badge แสดงผล แยกระดับเกรด และซิงค์สถานะเกรดตกอัตโนมัติ | `StudyPlanManager.tsx`, `prerequisiteUtils.ts`, `StudentDashboard.tsx`, `StudentDetailView.tsx` |
 
 ### UI / Branding
 
 | รายละเอียด | ไฟล์ที่แก้ไข |
 |-----------|-------------|
+| ปรับปรุงสี Badge แสดงสถานะแผนการเรียนด้วยชุดสีพาสเทลพรีเมียม (พาสเทลเขียว, ส้ม, แดง, ฟ้า) | `StudyPlanManager.tsx` |
 | เปลี่ยน favicon จาก Lovable เป็น icon ธีม IT/Bot ใหม่ | `index.html`, `public/favicon-it.jpg` |
 | ลบ Lovable branding ออกจาก meta tags ทั้งหมด | `index.html` |
 | แก้ footer ทับ chatbot toggle — เพิ่ม `padding-right` | `Footer.tsx` |

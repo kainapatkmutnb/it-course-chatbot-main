@@ -168,11 +168,23 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const getStudentProgress = () => {
     if (!student) return { completed: 0, inProgress: 0, failed: 0, totalCredits: 0, progressPercentage: 0 };
     
-    const completed = studentCourses.filter(sc => sc.status === 'completed').length;
+    const completed = studentCourses.filter(sc => 
+      sc.status === 'completed' && 
+      sc.grade !== 'F' && 
+      sc.grade !== 'U' && 
+      sc.grade !== 'I' && 
+      sc.grade !== 'W'
+    ).length;
     const inProgress = studentCourses.filter(sc => sc.status === 'in_progress').length;
-    const failed = studentCourses.filter(sc => sc.status === 'failed').length;
+    const failed = studentCourses.filter(sc => sc.status === 'failed' || sc.grade === 'F' || sc.grade === 'U').length;
     const totalCredits = studentCourses
-      .filter(sc => sc.status === 'completed')
+      .filter(sc => 
+        sc.status === 'completed' && 
+        sc.grade !== 'F' && 
+        sc.grade !== 'U' && 
+        sc.grade !== 'I' && 
+        sc.grade !== 'W'
+      )
       .reduce((sum, sc) => {
         const course = allCourses.find(c => c.id === sc.courseId);
         return sum + (course?.credits || 0);
