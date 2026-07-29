@@ -184,13 +184,15 @@ const StudyPlanManager: React.FC = () => {
 
       if (!target) continue;
 
-      const grade = (target.grade || '').trim();
+      const grade = (target.grade || '').trim().toUpperCase();
       if (!grade) {
         missing.push(target.code);
         continue;
       }
-      if (grade === 'F') {
+      if (grade === 'F' || grade === 'U') {
         failed.push(target.code);
+      } else if (grade === 'I' || grade === 'W') {
+        missing.push(target.code);
       }
     }
 
@@ -206,18 +208,44 @@ const StudyPlanManager: React.FC = () => {
         
         if (existingPlan && existingPlan.program && existingPlan.curriculumYear) {
           const convertedCourses: StudentCourse[] = (existingPlan.courses || []).map((course: any) => {
+            let code = course.code || 'N/A';
             const originalName = course.originalName || course.name || 'N/A';
-            const code = course.code || 'N/A';
+            
+            // Auto-correct wrong course code for language elective 3 in INE 62
+            if (existingPlan.program === 'INE' && 
+                (existingPlan.curriculumYear === '62' || existingPlan.curriculumYear === '62 สหกิจ') &&
+                course.year === 2 && 
+                course.semester === 1 && 
+                (code.trim() === 'INE-080303xxx' || code.trim() === '080303xxx')) {
+              code = 'INE-080103xxx  ';
+            }
+
             const subCategory = course.subCategory;
             const internship = isInternshipCourse({ code, originalName, subCategory });
-            const status = course.status || 'planned';
+            let status = course.status || 'planned';
+            let grade = course.grade || '';
 
-            let grade = course.grade;
             if (internship) {
-              if (status === 'completed') {
+              if (status === 'completed' && !grade) {
                 grade = 'S';
               } else if (grade !== 'S') {
                 grade = '';
+              }
+            }
+
+            // Sync status with grade if grade is set
+            if (grade) {
+              if (grade === 'F' || grade === 'U') {
+                status = 'failed';
+              } else if (grade === 'I' || grade === 'W') {
+                status = 'in_progress';
+              } else {
+                status = 'completed'; // A, B+, B, C+, C, D+, D, S
+              }
+            } else {
+              // No grade: cannot be completed or failed
+              if (status === 'completed' || status === 'failed') {
+                status = 'planned';
               }
             }
 
@@ -281,15 +309,26 @@ const StudyPlanManager: React.FC = () => {
       return;
     }
     
-    const updatedCourses = studyPlan.courses.map(c => 
-      c.id === courseId 
-        ? { 
-            ...c, 
-            grade,
-            status: grade && grade !== 'F' ? 'completed' : grade === 'F' ? 'failed' : 'planned'
-          }
-        : c
-    );
+    const updatedCourses = studyPlan.courses.map(c => {
+      if (c.id !== courseId) return c;
+      
+      let status: 'planned' | 'in_progress' | 'completed' | 'failed' = 'planned';
+      if (grade) {
+        if (grade === 'F' || grade === 'U') {
+          status = 'failed';
+        } else if (grade === 'I' || grade === 'W') {
+          status = 'in_progress';
+        } else {
+          status = 'completed'; // A, B+, B, C+, C, D+, D, S
+        }
+      }
+      
+      return {
+        ...c,
+        grade,
+        status
+      };
+    });
     
     const newTotalCredits = updatedCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
     
@@ -671,6 +710,20 @@ const StudyPlanManager: React.FC = () => {
                                     วิชาก่อนเรียนติด F: {issues.failed.join(', ')}
                                   </div>
                                 );
+                              }
+                              if (course.prerequisites && course.prerequisites.length > 0) {
+                                const validPrereqs = course.prerequisites.filter(p => 
+                                  !p.includes('โดยความเห็นชอบ') && 
+                                  !p.includes('ความเห็นชอบของภาควิชา') && 
+                                  !p.includes('ตามความเห็นชอบ')
+                                );
+                                if (validPrereqs.length > 0) {
+                                  return (
+                                    <div className="text-xs text-green-600 mt-1 font-medium">
+                                      สามารถลงเกรดได้ เนื่องจากผ่านวิชา {validPrereqs.join(', ')} แล้ว
+                                    </div>
+                                  );
+                                }
                               }
                               return null;
                             })()}

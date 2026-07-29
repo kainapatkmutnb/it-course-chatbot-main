@@ -14,6 +14,7 @@ import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { getDepartments, extractDepartmentFromStudentInfo } from '@/services/departmentService';
 import { Department } from '@/types/course';
 import StudyPlanManager from '@/components/study-plan/StudyPlanManager';
+import StudyPlanProgress from '@/components/study-plan/StudyPlanProgress';
 import { 
   AlertCircle,
   Target,
@@ -25,7 +26,8 @@ import {
   Clock,
   Edit,
   Save,
-  X
+  X,
+  Map
 } from 'lucide-react';
 
 
@@ -205,9 +207,9 @@ const StudentDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="study-plan" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="study-plan">จัดการแผนการเรียน</TabsTrigger>
-            {/* Removed curriculum tab trigger */}
+            <TabsTrigger value="study-progress">การวางแผนการเรียน</TabsTrigger>
             <TabsTrigger value="profile">โปรไฟล์</TabsTrigger>
           </TabsList>
 
@@ -216,7 +218,10 @@ const StudentDashboard: React.FC = () => {
             <StudyPlanManager />
           </TabsContent>
 
-          {/* Removed Curriculum Tab and its content */}
+          {/* Study Plan Progress Tab */}
+          <TabsContent value="study-progress" className="space-y-6">
+            <StudyPlanProgress />
+          </TabsContent>
           
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
