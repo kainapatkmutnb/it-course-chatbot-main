@@ -110,7 +110,7 @@ const Courses: React.FC = () => {
               curriculumYear, 
               year.toString(), 
               semester.toString(), 
-              7
+              0  // NO FALLBACK DUMMY COURSES
             );
             // Keep original order - newest courses will be at the bottom
             setAllCourses(courses);

@@ -1,7 +1,7 @@
 import { db as database, auth } from '@/config/firebase';
 import { ref, get, set, push, update, remove, onValue, off } from 'firebase/database';
-import { createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
+import { createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword, type Auth as FirebaseAuth } from 'firebase/auth';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 // Firebase config for secondary app (for admin user creation)
@@ -15,9 +15,22 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Create secondary Firebase app for admin operations
-const adminApp = initializeApp(firebaseConfig, 'admin-app');
-const adminAuth = getAuth(adminApp);
+const adminAppName = 'admin-app';
+let adminAuth: FirebaseAuth | null = null;
+
+const getAdminAuth = (): FirebaseAuth | null => {
+  if (adminAuth) return adminAuth;
+  try {
+    const adminApp = getApps().some(app => app.name === adminAppName)
+      ? getApp(adminAppName)
+      : initializeApp(firebaseConfig, adminAppName);
+    adminAuth = getAuth(adminApp);
+    return adminAuth;
+  } catch (error) {
+    console.warn('Admin Firebase app initialization failed:', error);
+    return null;
+  }
+};
 
 // Types
 export interface User {
@@ -56,10 +69,14 @@ export interface Course {
 export interface StudyPlan {
   id: string;
   studentId: string;
-  curriculum: string;
+  studentEmail: string;
+  program: string;
+  curriculumYear: string;
+  isLocked: boolean;
+  curriculum?: string;
   totalCredits: number;
-  completedCredits: number;
-  gpa: number;
+  completedCredits?: number;
+  gpa?: number;
   courses: StudyPlanCourse[];
   createdAt: Date;
   updatedAt: Date;
@@ -67,15 +84,22 @@ export interface StudyPlan {
 
 export interface StudyPlanCourse {
   id: string;
-  courseId: string;
+  courseId?: string;
   code: string;
-  name: string;
+  originalName: string;
+  customName?: string;
+  name?: string;
   credits: number;
   year: number;
   semester: number;
   status: 'planned' | 'in_progress' | 'completed' | 'failed';
   grade?: string;
-  type: 'required' | 'elective';
+  type?: 'required' | 'elective' | 'general';
+  category: 'core' | 'major' | 'elective' | 'general' | 'free';
+  mainCategory?: string;
+  subCategory?: string;
+  prerequisites?: string[];
+  isElective?: boolean;
 }
 
 export interface AuditLog {
@@ -114,6 +138,28 @@ export interface CurriculumSemester {
 
 // Firebase Service Class
 class FirebaseService {
+  private sanitizeForFirebase(value: any): any {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+    if (value instanceof Date) return value.toISOString();
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => this.sanitizeForFirebase(item))
+        .filter((item) => item !== undefined);
+    }
+    if (typeof value === 'object') {
+      const result: Record<string, any> = {};
+      for (const [key, val] of Object.entries(value)) {
+        const sanitized = this.sanitizeForFirebase(val);
+        if (sanitized !== undefined) {
+          result[key] = sanitized;
+        }
+      }
+      return result;
+    }
+    return value;
+  }
+
   // Users
   async getUsers(): Promise<User[]> {
     try {
@@ -161,8 +207,13 @@ class FirebaseService {
     try {
       // If password is provided, create user in Firebase Auth first
       if (userData.password) {
+        const adminAuthInstance = getAdminAuth();
+        if (!adminAuthInstance) {
+          throw new Error('Admin authentication is not available');
+        }
+
         // Use adminAuth (secondary app) to avoid affecting current user session
-        const userCredential = await createUserWithEmailAndPassword(adminAuth, userData.email, userData.password);
+        const userCredential = await createUserWithEmailAndPassword(adminAuthInstance, userData.email, userData.password);
         const firebaseUser = userCredential.user;
         
         // Update display name in Firebase Auth
@@ -171,7 +222,7 @@ class FirebaseService {
         });
         
         // Sign out from admin auth to prevent auto-login
-        await signOut(adminAuth);
+        await signOut(adminAuthInstance);
         
         // Create user record in Realtime Database with Firebase Auth UID
         const userRef = ref(database, `users/${firebaseUser.uid}`);
@@ -435,6 +486,134 @@ class FirebaseService {
     }
   }
 
+  // ============================================================
+  // CLEANUP: ลบวิชาที่ corrupted / invalid (ชื่อ 'div', 'span', HTML tag, dummy course) ออกจาก Firebase
+  // - สแกนทั้งคอลเลกชัน `courses/` (ทั่วไป) และ `curriculum/` (เฉพาะหลักสูตร)
+  // - Delete ทีละรายการอัตโนมัติ เมื่อเจอ invalid courses
+  // ============================================================
+  private isInvalidFirebaseCourse(course: any): boolean {
+    if (!course) return false;
+    if (!course.code || typeof course.code !== 'string') return true;
+    if (!course.name || typeof course.name !== 'string') return true;
+
+    const trimmedName = course.name.trim();
+    const trimmedCode = course.code.trim();
+
+    if (trimmedName.length === 0) return true;
+    if (trimmedCode.length === 0) return true;
+
+    const htmlTagBlacklist = new Set([
+      'div', 'span', 'p', 'a', 'ul', 'li', 'ol', 'table', 'tr', 'td', 'th',
+      'input', 'button', 'form', 'label', 'img', 'svg', 'script', 'style',
+      'header', 'footer', 'section', 'article', 'aside', 'nav', 'main',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'hr', 'iframe', 'meta',
+      'link', 'title', 'head', 'body', 'html'
+    ]);
+    // ✅ ตรวจสอบทั้ง name และ code (ก่อนหน้าเช็คแค่ name — นี่แหละคือบัค!)
+    if (htmlTagBlacklist.has(trimmedName.toLowerCase())) return true;
+    if (htmlTagBlacklist.has(trimmedCode.toLowerCase())) return true;
+
+    if (/^Course\s+\d+\s*-\s*Year/i.test(trimmedName)) return true;
+
+    if (course.credits === undefined || course.credits === null) return true;
+    if (typeof course.credits === 'number' && course.credits <= 0) return true;
+
+    return false;
+  }
+
+  async cleanupInvalidCurriculumEntries(): Promise<{
+    deletedFromGeneral: number;
+    deletedFromCurriculum: number;
+    deletedCourseIds: string[];
+  }> {
+    const deletedCourseIds: string[] = [];
+    let deletedFromGeneral = 0;
+    let deletedFromCurriculum = 0;
+
+    try {
+      // ==============================================
+      // 1) สแกนและลบที่คอลเลกชัน `courses/` (ทั่วไป)
+      // ==============================================
+      try {
+        const generalCoursesSnap = await get(ref(database, 'courses'));
+        if (generalCoursesSnap.exists()) {
+          const generalData = generalCoursesSnap.val() as Record<string, any>;
+          const invalidGeneralEntries = Object.entries(generalData).filter(
+            ([, course]) => this.isInvalidFirebaseCourse(course)
+          );
+
+          for (const [courseId] of invalidGeneralEntries) {
+            try {
+              await remove(ref(database, `courses/${courseId}`));
+              deletedFromGeneral++;
+              if (!deletedCourseIds.includes(courseId)) deletedCourseIds.push(courseId);
+              console.warn(`[Firebase Cleanup] ลบวิชา invalid ที่ courses/${courseId}`);
+            } catch (err) {
+              console.error(`[Firebase Cleanup] ลบ ${courseId} ไม่สำเร็จ:`, err);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[Firebase Cleanup] สแกนคอลเลกชัน courses/ ไม่สำเร็จ:', e);
+      }
+
+      // ==============================================
+      // 2) สแกนและลบที่ `curriculum/<program>/<curriculumYear>/...` (เฉพาะหลักสูตร)
+      //    ลงรายละเอียดทุกปี / เทอม / courses
+      // ==============================================
+      try {
+        const curriculumRootSnap = await get(ref(database, 'curriculum'));
+        if (curriculumRootSnap.exists()) {
+          const programs = curriculumRootSnap.val() as Record<string, any>;
+          for (const [program, curricula] of Object.entries(programs)) {
+            if (!curricula || typeof curricula !== 'object') continue;
+            for (const [curriculumYear, years] of Object.entries(curricula as Record<string, any>)) {
+              if (!years || typeof years !== 'object') continue;
+              for (const [year, semesters] of Object.entries(years as Record<string, any>)) {
+                if (!semesters || typeof semesters !== 'object') continue;
+                for (const [semester, semesterNodes] of Object.entries(semesters as Record<string, any>)) {
+                  const courseMap = semesterNodes?.courses;
+                  if (!courseMap || typeof courseMap !== 'object') continue;
+
+                  const invalidEntries = Object.entries(courseMap as Record<string, any>).filter(
+                    ([, course]) => this.isInvalidFirebaseCourse(course)
+                  );
+
+                  for (const [courseId] of invalidEntries) {
+                    try {
+                      const targetRef = ref(
+                        database,
+                        `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${courseId}`
+                      );
+                      await remove(targetRef);
+                      deletedFromCurriculum++;
+                      if (!deletedCourseIds.includes(courseId)) deletedCourseIds.push(courseId);
+                      console.warn(
+                        `[Firebase Cleanup] ลบวิชา invalid ที่ curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${courseId}`
+                      );
+                    } catch (err) {
+                      console.error('[Firebase Cleanup] ลบ curriculum course ไม่สำเร็จ:', err);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[Firebase Cleanup] สแกน curriculum/ ไม่สำเร็จ:', e);
+      }
+
+      console.info(
+        `[Firebase Cleanup] สำเร็จ: ลบ ${deletedFromGeneral} รายการจาก courses/ และ ${deletedFromCurriculum} รายการจาก curriculum/`
+      );
+    } catch (overallError) {
+      console.error('[Firebase Cleanup] Error ภายใน:', overallError);
+    }
+
+    return { deletedFromGeneral, deletedFromCurriculum, deletedCourseIds };
+  }
+
   // Study Plans
   async getStudyPlanByStudentId(studentId: string): Promise<StudyPlan | null> {
     try {
@@ -443,12 +622,16 @@ class FirebaseService {
       
       if (snapshot.exists()) {
         const studyPlansData = snapshot.val();
-        const studyPlanKey = Object.keys(studyPlansData).find(
-          key => studyPlansData[key].studentId === studentId
-        );
-        
-        if (studyPlanKey) {
-          const studyPlan = studyPlansData[studyPlanKey];
+        const matches = Object.entries(studyPlansData)
+          .filter(([, plan]) => plan?.studentId === studentId)
+          .map(([key, plan]) => {
+            const ts = Date.parse(plan?.updatedAt ?? plan?.createdAt ?? '');
+            return { key, plan, ts: Number.isFinite(ts) ? ts : 0 };
+          })
+          .sort((a, b) => b.ts - a.ts);
+
+        if (matches.length > 0) {
+          const { key: studyPlanKey, plan: studyPlan } = matches[0];
           return {
             id: studyPlanKey,
             ...studyPlan,
@@ -469,11 +652,11 @@ class FirebaseService {
       const studyPlansRef = ref(database, 'studyPlans');
       const newStudyPlanRef = push(studyPlansRef);
       
-      const studyPlanWithTimestamp = {
+      const studyPlanWithTimestamp = this.sanitizeForFirebase({
         ...studyPlanData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      };
+      });
       
       await set(newStudyPlanRef, studyPlanWithTimestamp);
       return newStudyPlanRef.key;
@@ -486,13 +669,39 @@ class FirebaseService {
   async updateStudyPlan(studyPlanId: string, updates: Partial<StudyPlan>): Promise<boolean> {
     try {
       const studyPlanRef = ref(database, `studyPlans/${studyPlanId}`);
-      await update(studyPlanRef, {
+      const sanitizedUpdates = this.sanitizeForFirebase({
         ...updates,
         updatedAt: new Date().toISOString()
       });
+      await update(studyPlanRef, sanitizedUpdates);
       return true;
     } catch (error) {
       console.error('Error updating study plan:', error);
+      return false;
+    }
+  }
+
+  async deleteStudyPlansByStudentId(studentId: string): Promise<boolean> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+
+      if (!snapshot.exists()) {
+        return true;
+      }
+
+      const studyPlansData = snapshot.val();
+      const keysToDelete = Object.keys(studyPlansData).filter(
+        key => studyPlansData[key]?.studentId === studentId
+      );
+
+      await Promise.all(
+        keysToDelete.map((key) => remove(ref(database, `studyPlans/${key}`)))
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting study plans:', error);
       return false;
     }
   }

@@ -1,7 +1,8 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Course } from '@/types/course';
 import { getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseService';
 import { useCourses } from '@/hooks/useFirebaseData';
+import { firebaseService } from '@/services/firebaseService';
 
 interface CurriculumTimelineFlowchartProps {
   selectedDepartment: string;
@@ -17,6 +18,39 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
   const [timelineData, setTimelineData] = useState<{ [year: number]: { [semester: number]: HybridCourse[] } }>({});
   const [isLoading, setIsLoading] = useState(true);
   const { courses: firebaseCourses } = useCourses(); // Add courses dependency for re-rendering
+
+  // ✅ FLAG: ป้องกัน HMR ทำ Firebase cleanup ซ้ำหลายรอบ
+  const cleanupRanRef = useRef(false);
+  const [cleanupNonce, setCleanupNonce] = useState(0); // Re-trigger โหลดข้อมูลใหม่หลัง cleanup
+
+  // ============================================================
+  // AUTO CLEANUP — ทำงานครั้งเดียวเมื่อ component mount
+  // สั่งลบวิชา 'div' / invalid courses (INE 62, IT 67 ฯลฯ) ใน Firebase โดยตรง
+  // ถ้ามีอะไรถูกลบจริง → setNonce จะ trigger โหลดข้อมูลใหม่
+  // ============================================================
+  useEffect(() => {
+    if (cleanupRanRef.current) return;
+    cleanupRanRef.current = true;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await firebaseService.cleanupInvalidCurriculumEntries();
+        const totalDeleted = result.deletedFromGeneral + result.deletedFromCurriculum;
+        console.info('[Timeline] Firebase cleanup result:', result);
+        if (!cancelled && totalDeleted > 0) {
+          console.info(`[Timeline] ลบวิชา corrupted ${totalDeleted} รายการเสร็จ — reload ข้อมูลใหม่`);
+          setCleanupNonce(n => n + 1);
+        }
+      } catch (e) {
+        console.error('[Timeline] Firebase cleanup failed:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load hybrid course data (static + Firebase updates)
   useEffect(() => {
@@ -55,7 +89,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
     if (selectedCurriculum) {
       loadCurriculumData();
     }
-  }, [selectedCurriculum, firebaseCourses]); // Add firebaseCourses as dependency
+  }, [selectedCurriculum, firebaseCourses, cleanupNonce]); // เพิ่ม cleanupNonce เพื่อ reload หลังลบ
 
   const calculateSemesterCredits = (courses: HybridCourse[]) => {
     return courses.reduce((sum, course) => sum + course.credits, 0);
@@ -72,6 +106,40 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
   // Remove prefix from course code (INE-, INET-, IT-, ITI-, ITT-)
   const removeCodePrefix = (code: string) => {
     return code.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '');
+  };
+
+  // Safety filter: Remove invalid/corrupted courses at render layer
+  // This is the LAST LINE OF DEFENSE to prevent phantom "div" or dummy courses
+  const sanitizeCourses = (courses: HybridCourse[]): HybridCourse[] => {
+    const htmlTagBlacklist = new Set([
+      'div', 'span', 'p', 'a', 'ul', 'li', 'ol', 'table', 'tr', 'td', 'th',
+      'input', 'button', 'form', 'label', 'img', 'svg', 'script', 'style',
+      'header', 'footer', 'section', 'article', 'aside', 'nav', 'main',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'hr', 'iframe', 'meta',
+      'link', 'title', 'head', 'body', 'html'
+    ]);
+
+    return (courses || []).filter(course => {
+      if (!course) return false;
+      if (!course.code || typeof course.code !== 'string') return false;
+      if (!course.name || typeof course.name !== 'string') return false;
+
+      const trimmedName = course.name.trim();
+      const trimmedCode = course.code.trim();
+
+      if (trimmedName.length === 0) return false;
+      if (trimmedCode.length === 0) return false;
+
+      // ✅ ตรวจสอบทั้ง name และ code (บัคก่อนหน้าเช็คแค่ name — ทำให้วิชา code='div' ผ่าน!)
+      if (htmlTagBlacklist.has(trimmedName.toLowerCase())) return false;
+      if (htmlTagBlacklist.has(trimmedCode.toLowerCase())) return false;
+
+      if (/^Course\s+\d+\s*-\s*Year/i.test(trimmedName)) return false;
+      if (course.credits === undefined || course.credits === null) return false;
+      if (typeof course.credits === 'number' && course.credits <= 0) return false;
+
+      return true;
+    });
   };
 
   // Create a flat list of all semesters for easier layout
@@ -93,7 +161,10 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
       .forEach(([year, semesters]) => {
         Object.entries(semesters)
           .sort(([a], [b]) => Number(a) - Number(b))
-          .forEach(([semester, courses]) => {
+          .forEach(([semester, rawCourses]) => {
+            // Apply final sanitization filter at render time
+            const courses = sanitizeCourses(rawCourses);
+
             let label = `เทอมที่ ${semester}`;
             let isInternship = false;
 

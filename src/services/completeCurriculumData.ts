@@ -46,7 +46,7 @@ export const generateCoursesForSemester = (
   curriculumYear: string, 
   year: string, 
   semester: string, 
-  courseCount: number = 6
+  courseCount: number = 0
 ) => {
   const semesterKey = `${year}-${semester}`;
   const programData = courseDatabase?.[programCode];
@@ -398,7 +398,6 @@ courseDatabase = {
       '4-2': [
         { code: 'IT-060243203', name: 'โครงงานเทคโนโลยีสารสนเทศ 2', credits: 3, category: 'core', mainCategory: 'หมวดวิชาเฉพาะ', subCategory: 'กลุ่มวิชาแกน' ,description: 'โครงงานเทคโนโลยีสารสนเทศ การค้นคว้า การแก้ปัญหา และการประยุกต์ใช้เทคโนโลยีสารสนเทศกับงานด้านต่าง ๆ ในภาคราชการ ธุรกิจ และอุตสาหกรรม การจัดทำรายงานปริญญานิพนธ์และผ่านการสอบ',prerequisites:['060243202 โครงงานเทคโนโลยีสารสนเทศ 1']},
         { code: 'IT-xxxxxxxx        ', name: 'วิชาเลือกเสรี', credits: 3, category: 'free', mainCategory: 'หมวดวิชาเลือกเสรี', description:'ให้เลือกเรียนจากรายวิชาในหลักสูตร ระดับปริญญาตรีที่มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือเปิดสอน' },
-        { code: 'IT-xxxxxxxx         ', name: 'วิชาเลือกเสรี', credits: 3, category: 'free', mainCategory: 'หมวดวิชาเลือกเสรี', description:'ให้เลือกเรียนจากรายวิชาในหลักสูตร ระดับปริญญาตรีที่มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือเปิดสอน' },
 
       ]
     }

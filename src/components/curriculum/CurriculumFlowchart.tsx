@@ -67,9 +67,9 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
       for (let year = 1; year <= maxYear; year++) {
         grouped[year] = {};
         
-        // Regular semesters (1 and 2)
+        // Regular semesters (1 and 2) - courseCount=0 (NO FALLBACK DUMMY COURSES)
         for (let semester = 1; semester <= 2; semester++) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 0);
           if (courses.length > 0) {
             grouped[year][semester] = courses;
           }
@@ -77,21 +77,21 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
         
         // Special semester 3 for specific programs (skip for co-op curricula)
         if (!isCoopCurriculum && (programCode === 'IT' || programCode === 'INE') && year === 3) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 0);
           if (courses.length > 0) {
             grouped[year][3] = courses;
           }
         }
         
         if (programCode === 'INET' && year === 2) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 0);
           if (courses.length > 0) {
             grouped[year][3] = courses;
           }
         }
         
         if (programCode === 'ITI' && year === 1) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 0);
           if (courses.length > 0) {
             grouped[year][3] = courses;
           }
