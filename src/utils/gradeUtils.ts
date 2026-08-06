@@ -39,19 +39,28 @@ export const calculateGPA = (courses: Array<{
   let completedCredits = 0;
 
   courses.forEach(course => {
-    if (course.status === 'completed' && course.grade) {
-      const gradePoint = getGradePoint(course.grade);
-      
-      // Only count grades that affect GPA (exclude S, U, I, W)
-      if (!['S', 'U', 'I', 'W'].includes(course.grade)) {
-        totalCredits += course.credits;
-        totalGradePoints += course.credits * gradePoint;
-      }
-      
-      // Count completed credits (including S grade)
-      if (course.grade !== 'F' && course.grade !== 'I' && course.grade !== 'W') {
-        completedCredits += course.credits;
-      }
+    const grade = (course.grade || '').trim();
+    if (!grade) return;
+
+    const gradePoint = getGradePoint(grade);
+    
+    // ===============================================================
+    // GPA credits (ตัวหารเกรดรวม) = วิชาที่มีเกรด A-F / D+ / D เท่านั้น
+    // - S, U, I, W: ไม่นำเข้าสูตร GPA
+    // ===============================================================
+    if (isGradeCountedInGPA(grade)) {
+      totalCredits += course.credits;
+      totalGradePoints += course.credits * gradePoint;
+    }
+    
+    // ===============================================================
+    // Completed credits (หน่วยกิตที่ผ่านแล้ว)
+    // - S = ผ่าน ✅ นับหน่วยกิต
+    // - A+, A, B+, B, C+, C, D+, D ✅ นับหน่วยกิต
+    // - U, F, I, W, (-) ❌ ไม่นับหน่วยกิต
+    // ===============================================================
+    if (countsAsCompletedCredits(grade)) {
+      completedCredits += course.credits;
     }
   });
 
@@ -74,6 +83,24 @@ export const getAvailableGrades = (): string[] => {
 export const isPassingGrade = (grade: string): boolean => {
   const gradePoint = getGradePoint(grade);
   return gradePoint >= 1.0 || ['S'].includes(grade);
+};
+
+// Check if grade counts in GPA (exclude S, U, I, W from GPA calculation)
+export const isGradeCountedInGPA = (grade: string): boolean => {
+  if (!grade) return false;
+  return !['S', 'U', 'I', 'W'].includes(grade);
+};
+
+// Check if completed credits should count (S and above D+ pass)
+// - S: ผ่าน (นับหน่วยกิต)
+// - A, B+, B, C+, C, D+, D: ผ่าน (นับหน่วยกิต)
+// - U, F, I, W, null/empty: ไม่ผ่าน / ไม่นับหน่วยกิต
+export const countsAsCompletedCredits = (grade?: string): boolean => {
+  if (!grade) return false;
+  if (grade === 'S') return true;
+  if (['U', 'F', 'I', 'W'].includes(grade)) return false;
+  const gradePoint = getGradePoint(grade);
+  return gradePoint >= 1.0; // D or better counts as completed
 };
 
 // Get grade color for UI display
