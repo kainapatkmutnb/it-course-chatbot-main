@@ -1,283 +1,138 @@
-# IT Assistant - ระบบช่วยเหลือด้านเทคโนโลยีสารสนเทศ
+# IT Assistant
 
-ระบบช่วยเหลือและจัดการหลักสูตรสำหรับนักศึกษาและบุคลากรคณะเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
+ระบบวางแผนการเรียนและช่วยเหลือข้อมูลหลักสูตร คณะเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)
 
-## ✨ ฟีเจอร์หลัก
+---
 
-### 🔐 ระบบการยืนยันตัวตน
-- เข้าสู่ระบบด้วย Google Account (@kmutnb.ac.th)
-- เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน
-- ระบบจัดการบทบาทผู้ใช้ 4 ประเภท: นักศึกษา, อาจารย์, บุคลากร, ผู้ดูแลระบบ
+## 🔍 ภาพรวมระบบ (System Architecture)
 
-### ✨ ฟีเจอร์หลัก
+ระบบประกอบด้วยเว็บแอปพลิเคชัน (React + TypeScript) ทำหน้าที่จัดการข้อมูลโครงสร้างการเรียน ดึงข้อมูลประวัติส่วนตัวและแผนการเรียนจาก Firebase Realtime Database ส่งต่อไปยังระบบประมวลผลคำถามด้วย AI Agent ผ่าน n8n Webhook และค้นหาเงื่อนไขรายวิชาด้วย Pinecone Vector Database (RAG)
 
-### 🔐 ระบบยืนยันตัวตนและการจัดการบทบาท
-- **นักศึกษา**: ดูแผนการเรียน, จัดการรายวิชาส่วนตัว, บันทึกปีการศึกษา, ใช้ระบบแผนภูมิหลักสูตร
-- **อาจารย์**: ดูข้อมูลนักศึกษา, จัดการรายวิชาที่สอน, ดูรายละเอียดนักศึกษา, แก้ไขข้อมูลนักศึกษา, ติดตามความก้าวหน้าของนักศึกษา
-- **บุคลากร**: จัดการข้อมูลรายวิชา, กำหนดเงื่อนไขรายวิชา (Prerequisites และ Corequisites), จัดการหลักสูตร
-- **ผู้ดูแลระบบ**: จัดการผู้ใช้, สถิติระบบ, ประวัติการใช้งาน (Audit Logs), จัดการข้อมูลรายวิชา, จัดการเงื่อนไขรายวิชา
-
-### 📚 ระบบจัดการหลักสูตรและรายวิชา
-- ข้อมูลรายวิชาครบถ้วน (รหัสวิชา, ชื่อวิชา, หน่วยกิต, คำอธิบาย, หมวดหมู่)
-- การจัดหมวดหมู่รายวิชา (วิชาทั่วไป, วิชาเฉพาะ, วิชาเลือก, วิชาเสรี)
-- ระบบเงื่อนไขรายวิชา (Prerequisites และ Corequisites) แบบ Real-time
-- แผนการเรียนตามหลักสูตรหลายปีการศึกษา
-- ระบบค้นหาและกรองรายวิชาขั้นสูง
-- การจัดการรายวิชาแบบ CRUD (Create, Read, Update, Delete)
-
-### 📊 ระบบแผนภูมิหลักสูตร (Curriculum Flowchart)
-- **แผนภูมิแบบ Grid**: แสดงรายวิชาจัดเรียงตามปีและภาคการศึกษา
-- **แผนภูมิแบบ Timeline**: แสดงความต่อเนื่องของหลักสูตรตามเวลา
-- **เส้นเชื่อมโยงเงื่อนไขวิชา**: แสดงความสัมพันธ์ระหว่างรายวิชาแบบ Visual
-- **การอัปเดตแบบ Real-time**: เมื่อมีการเปลี่ยนแปลงเงื่อนไขวิชาจะอัปเดตทันที
-- **ระบบกรองตามหลักสูตร**: เลือกดูหลักสูตรและปีการศึกษาที่ต้องการ
-- **สรุปข้อมูลหลักสูตร**: แสดงจำนวนหน่วยกิตรวม, จำนวนวิชา, และสถิติต่างๆ
-
-### 🎯 ระบบแผนการเรียนส่วนบุคคล
-- สร้างและจัดการแผนการเรียนส่วนบุคคล
-- ติดตามความคืบหน้าการเรียนแบบ Real-time
-- คำนวณ GPA และหน่วยกิตสะสมอัตโนมัติ
-- สถานะรายวิชา (วางแผน, กำลังเรียน, ผ่านแล้ว, ไม่ผ่าน, ถอน)
-- **ระบบกรองข้อมูล**: Dropdown filters สำหรับกรองรายวิชาตามปีและภาคการศึกษา
-- **การบันทึกข้อมูล**: บันทึกปีการศึกษาของนักศึกษาแบบถาวร
-- **การคำนวณเกรด**: ระบบคำนวณเกรดและ GPA ตามมาตรฐาน KMUTNB
-
-### 👨‍🎓 ระบบจัดการนักศึกษา
-- ดูรายละเอียดนักศึกษาแบบละเอียด (ข้อมูลส่วนตัว, แผนการเรียน, ผลการเรียน)
-- แก้ไขและบันทึกปีการศึกษาของนักศึกษา
-- ติดตามแผนการเรียนของนักศึกษาแบบ Real-time
-- ระบบกรองและค้นหานักศึกษา
-- การจัดการข้อมูลนักศึกษาแบบ Batch
-
-### 🤖 ระบบ Chatbot AI
-- ระบบแชทบอทสำหรับตอบคำถามเกี่ยวกับหลักสูตรและรายวิชา
-- การให้คำแนะนำการวางแผนการเรียน
-- ระบบค้นหาข้อมูลรายวิชาผ่าน Natural Language
-
-### 📈 ระบบรายงานและสถิติ
-- สถิติผู้ใช้งานระบบแบบ Real-time
-- รายงานการใช้งาน (Audit Logs) พร้อมระบบค้นหา
-- ข้อมูลสถิติรายวิชาและนักศึกษา
-- Dashboard แสดงข้อมูลสำคัญของระบบ
-- ระบบ Export ข้อมูลเป็น CSV/Excel
-
-## 🛠️ เทคโนโลยีที่ใช้
-
-### Frontend
-- **React 18** - UI Framework
-- **TypeScript** - Type Safety
-- **Vite** - Build Tool และ Development Server
-- **Tailwind CSS** - Styling Framework
-- **shadcn/ui** - UI Components Library (Radix UI)
-- **React Router DOM** - Navigation และ Routing
-- **Lucide React** - Icon Library
-- **React Hook Form** - Form Management
-- **Zod** - Schema Validation
-- **Recharts** - Data Visualization และ Charts
-- **html2canvas & jsPDF** - Export และ PDF Generation
-
-### Backend & Database
-- **Firebase** - Backend as a Service
-  - **Firebase Authentication** - ระบบยืนยันตัวตน
-  - **Firebase Realtime Database** - ฐานข้อมูลแบบ Real-time
-  - **Firebase Hosting** - Web Hosting
-
-### State Management & Data Fetching
-- **TanStack React Query** - Data Fetching และ State Management
-- **React Context API** - Global State Management
-
-### UI/UX Libraries
-- **Radix UI** - Headless UI Components
-- **Class Variance Authority (CVA)** - Component Variants
-- **Tailwind Merge** - CSS Class Merging
-- **Sonner** - Toast Notifications
-- **Next Themes** - Theme Management
-- **Embla Carousel** - Carousel Components
-
-### Development Tools
-- **ESLint** - Code Linting
-- **TypeScript ESLint** - TypeScript Linting
-- **Autoprefixer** - CSS Prefixing
-- **PostCSS** - CSS Processing
-
-## 🚀 การติดตั้งและใช้งาน
-
-### ข้อกำหนดเบื้องต้น
-- **Node.js** (เวอร์ชัน 18 หรือใหม่กว่า)
-- **npm** หรือ **yarn** Package Manager
-- **Firebase Project** พร้อม Realtime Database และ Authentication
-
-### ขั้นตอนการติดตั้ง
-
-1. **Clone Repository**
-```bash
-git clone <repository-url>
-cd it-course-chatbot-main
+```mermaid
+graph TD
+    Client[React SPA Client] <--> |Auth / Realtime DB| Firebase[(Firebase Database)]
+    Client --> |Secure Webhook + Student Metadata| n8n[n8n Workflow Webhook]
+    n8n <--> |Query Context| AIAgent[n8n AI Agent Node]
+    AIAgent <--> |Context Retrieval| Pinecone[(Pinecone Vector Store RAG)]
+    AIAgent <--> |Processing| LLM[OpenAI Chat Model]
 ```
 
-2. **ติดตั้ง Dependencies**
-```bash
-npm install
-```
+---
 
-3. **ตั้งค่า Environment Variables**
-สร้างไฟล์ `.env` ในโฟลเดอร์ root และเพิ่มข้อมูล Firebase Configuration:
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_DATABASE_URL=your_database_url
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
+## ⚡ คุณลักษณะสำคัญ (Core Features)
 
-4. **เริ่มต้นข้อมูลใน Firebase (ถ้าจำเป็น)**
-```bash
-node initialize-firebase-data.cjs
-```
+### 1. ระบบจัดการแผนการเรียนส่วนบุคคล
+- **Interactive Study Plan:** วางแผนรายวิชาเรียน ติดตามความก้าวหน้ารายเทอมและรายปี
+- **Academic Calculator:** คำนวณเกรดเฉลี่ยสะสม (GPA) และยอดสะสมหน่วยกิตอัตโนมัติตามเกณฑ์สถาบัน
+- **Dynamic Status Tracking:** บันทึกสถานะรายวิชาแบบละเอียด (วางแผนเรียน, กำลังศึกษา, ผ่านแล้ว, ไม่ผ่าน หรือถอนรายวิชา)
 
-5. **เริ่มต้น Development Server**
-```bash
-npm run dev
-```
+### 2. แผนภูมิโครงสร้างหลักสูตร (Curriculum Flowchart)
+- **Visual Chart Configurations:** แสดงรายวิชาในรูปแบบตารางเรียนมาตรฐาน (Grid View) หรือไทม์ไลน์ความสัมพันธ์ (Timeline View)
+- **Interactive Prerequisite Lines:** แสดงเส้นเชื่อมโยงวิชาบังคับก่อนหน้า (Prerequisites) และวิชาเรียนควบคู่ (Corequisites) แบบ Visual
 
-6. **Build สำหรับ Production**
-```bash
-npm run build
-```
+### 3. ระบบแชทบอทอัจฉริยะ (n8n AI Assistant & Firebase Integration)
+- **Context-Aware Responses:** บอทรับข้อมูลโปรไฟล์นักศึกษาและเกรดเฉลี่ยสะสมแบบ Real-time เพื่อตอบคำถามประวัติการเรียนส่วนตัว
+- **Automated Curriculum Comparison:** เปรียบเทียบแผนการเรียนจริงของนักศึกษากับหลักสูตรมาตรฐาน เพื่อหาและรายงานรายวิชาบังคับที่ยังไม่ได้ศึกษา
+- **Role-Based Security Guard:** กรองสิทธิ์การเข้าถึงข้อมูลรายวิชา หากเป็นผู้เยี่ยมชม (Guest Mode) ระบบจะจำกัดการดูข้อมูลส่วนตัว และค้นหาข้อมูลวิชาเรียนทั่วไปผ่าน Pinecone RAG เท่านั้น
 
-7. **Preview Production Build**
-```bash
-npm run preview
-```
+---
 
-แอปพลิเคชันจะทำงานที่ `http://localhost:5173`
+## 👥 ตารางสิทธิ์เข้าใช้งานระบบ (Role & Permissions Matrix)
 
-## 👥 บทบาทผู้ใช้และสิทธิ์การเข้าถึง
+| บทบาทผู้ใช้ (Role) | สิทธิ์การทำงานหลัก |
+| :--- | :--- |
+| **นักศึกษา (Student)** | - จัดการแผนการเรียนส่วนตัว<br>- บันทึกปีการศึกษาและข้อมูลรายวิชาเรียนผ่าน<br>- ใช้งานแชทบอท AI แบบรู้จำข้อมูลส่วนตัว |
+| **อาจารย์ (Instructor)** | - เข้าถึงรายชื่อและข้อมูลนักศึกษาที่รับผิดชอบ<br>- ติดตามความก้าวหน้าแผนการเรียนและแก้ไขสถานะข้อมูลนักศึกษา |
+| **บุคลากร (Staff)** | - บริหารจัดการโครงสร้างรายวิชาส่วนกลาง<br>- กำหนดเงื่อนไขวิชาเรียน (Prerequisites/Corequisites) |
+| **ผู้ดูแลระบบ (Admin)** | - ตรวจสอบความปลอดภัยระบบผ่านระบบ Audit Logs<br>- บริหารจัดการบัญชีผู้ใช้งานและจัดการสิทธิ์ทั้งหมด |
 
-### นักศึกษา (Student)
-- อีเมล: `s[รหัสนักศึกษา]@email.kmutnb.ac.th`
-- สิทธิ์: ดูแผนการเรียน, จัดการรายวิชาส่วนตัว, บันทึกปีการศึกษา
+---
 
-### อาจารย์ (Instructor)
-- อีเมล: `instructor@kmutnb.ac.th`
-- สิทธิ์: ดูข้อมูลนักศึกษา, จัดการรายวิชาที่สอน, ดูรายละเอียดนักศึกษา, แก้ไขข้อมูลนักศึกษา
+## 🛠️ เทคโนโลยีที่ใช้ (Tech Stack)
 
-### บุคลากร (Staff)
-- อีเมล: `staff@kmutnb.ac.th`
-- สิทธิ์: จัดการข้อมูลรายวิชา, กำหนดเงื่อนไข
+### หน้าบ้าน (Frontend)
+- **Core:** React 18, TypeScript, Vite
+- **Styling:** Tailwind CSS, shadcn/ui (Radix UI)
+- **Routing & State:** React Router DOM, TanStack React Query (React Query v5)
+- **Visualization & Export:** Recharts, html2canvas, jsPDF
 
-### ผู้ดูแลระบบ (Admin)
-- อีเมล: `admin@kmutnb.ac.th`
-- สิทธิ์: จัดการผู้ใช้, ดูสถิติระบบ, ประวัติการใช้งาน, จัดการข้อมูลรายวิชา, จัดการเงื่อนไขรายวิชา
+### หลังบ้าน (Backend & Database)
+- **Database & Auth:** Firebase Authentication, Firebase Realtime Database
+- **Hosting:** Firebase Hosting
 
-## 📁 โครงสร้างโปรเจกต์
+### ระบบ AI & Chatbot
+- **Workflow Automation:** n8n Workflow Webhook
+- **Vector Database:** Pinecone Vector Store (RAG)
+- **LLM Engine:** OpenAI Chat Model (`gpt-5-nano` / `gpt-4o-mini`)
 
-```
+---
+
+## 🚀 การติดตั้งและใช้งาน (Installation Guide)
+
+### ข้อกำหนดเบื้องต้น (Prerequisites)
+- **Node.js** (เวอร์ชัน 18 ขึ้นไป)
+- **Firebase Project** ที่เปิดใช้งาน Realtime Database และ Authentication
+- **n8n Webhook URL** (สำหรับการใช้แชทบอท AI)
+
+### ขั้นตอนการทำงาน
+
+1. **ดาวน์โหลดโครงการและติดตั้ง Dependencies**
+   ```bash
+   git clone <repository-url>
+   cd it-course-chatbot-main
+   npm install
+   ```
+
+2. **ตั้งค่าไฟล์สภาพแวดล้อม (Environment Variables)**
+   สร้างไฟล์ `.env` ไว้ที่โฟลเดอร์หลัก (Root Directory) และระบุข้อมูลดังนี้:
+   ```env
+   VITE_FIREBASE_API_KEY=your_firebase_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   VITE_FIREBASE_DATABASE_URL=your_firebase_database_url
+   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+   VITE_FIREBASE_APP_ID=your_firebase_app_id
+   VITE_N8N_WEBHOOK_URL=your_n8n_chat_webhook_url
+   ```
+
+3. **นำเข้าข้อมูลหลักสูตรเริ่มต้นสู่ Firebase**
+   ```bash
+   node initialize-firebase-data.cjs
+   ```
+
+4. **เริ่มการทำงานระบบสำหรับพัฒนาพัฒนา (Local Development)**
+   ```bash
+   npm run dev
+   ```
+   *ระบบจะเปิดใช้งานที่ URL: `http://localhost:8080`*
+
+5. **การตรวจสอบและสร้างไฟล์โปรดักชัน (Production Build)**
+   ```bash
+   npm run lint   # ตรวจสอบความถูกต้องของโค้ด
+   npm run build  # คอมไพล์ไฟล์สำหรับ Production
+   ```
+
+---
+
+## 📁 โครงสร้างโฟลเดอร์ที่สำคัญ (Key Directory Structure)
+
+```text
 src/
-├── components/          # React Components
-│   ├── ProtectedRoute.tsx       # Route Protection Component
-│   ├── RoleBasedRoute.tsx       # Role-based Access Control
-│   ├── chat/                    # Chatbot Components
-│   │   └── ChatBot.tsx          # AI Chatbot Interface
-│   ├── curriculum/              # Curriculum Components
-│   │   ├── CurriculumFlowchart.tsx      # Grid-style Flowchart
-│   │   └── CurriculumTimelineFlowchart.tsx  # Timeline-style Flowchart
-│   ├── dashboard/               # Dashboard Components สำหรับแต่ละบทบาท
-│   │   ├── StudentDashboard.tsx         # Dashboard นักศึกษา
-│   │   ├── InstructorDashboard.tsx      # Dashboard อาจารย์
-│   │   ├── StaffDashboard.tsx           # Dashboard บุคลากร
-│   │   ├── AdminDashboard.tsx           # Dashboard ผู้ดูแลระบบ
-│   │   ├── StudentDetailView.tsx        # รายละเอียดนักศึกษา
-│   │   └── CourseManagement.tsx         # จัดการรายวิชา
-│   ├── study-plan/              # Study Plan Management Components
-│   │   └── StudyPlanManager.tsx         # จัดการแผนการเรียน
-│   ├── layout/                  # Layout Components
-│   │   ├── Header.tsx           # Header Component
-│   │   └── Footer.tsx           # Footer Component
-│   └── ui/                      # UI Components (shadcn/ui)
-├── pages/                       # Page Components
-│   ├── Home.tsx                 # หน้าแรก
-│   ├── Login.tsx                # หน้าเข้าสู่ระบบ
-│   ├── Register.tsx             # หน้าสมัครสมาชิก
-│   ├── Courses.tsx              # หน้ารายวิชา
-│   ├── CurriculumDashboard.tsx  # หน้าแผนภูมิหลักสูตร
-│   ├── DashboardRouter.tsx      # Router สำหรับ Dashboard
-│   ├── Index.tsx                # หน้าหลัก
-│   └── NotFound.tsx             # หน้า 404
-├── contexts/                    # React Contexts
-│   └── AuthContext.tsx          # Authentication Context
-├── hooks/                       # Custom Hooks
-│   ├── useFirebaseData.ts       # Firebase Data Hooks
-│   ├── use-toast.ts             # Toast Hook
-│   └── use-mobile.tsx           # Mobile Detection Hook
-├── services/                    # API Services
-│   ├── firebaseService.ts       # Firebase Service
-│   ├── courseService.ts         # Course Service
-│   ├── departmentService.ts     # Department Service
-│   ├── hybridCourseService.ts   # Hybrid Course Service
-│   └── completeCurriculumData.ts # Complete Curriculum Data
-├── types/                       # TypeScript Types
-│   ├── auth.ts                  # Authentication Types
-│   ├── course.ts                # Course Types
-│   └── chat.ts                  # Chat Types
-├── utils/                       # Utility Functions
-│   ├── gradeUtils.ts            # Grade Calculation Utils
-│   ├── pdfExport.ts             # PDF Export Utils
-│   └── firestoreUtils.ts        # Firestore Utils
-├── config/                      # Configuration Files
-│   └── firebase.ts              # Firebase Configuration
-└── lib/                         # Library Functions
-    └── utils.ts                 # General Utilities
+├── components/          # ส่วนประกอบอินเทอร์เฟซหลัก
+│   ├── chat/            # หน้าต่างอินเทอร์เฟซแชทบอท (ChatBot.tsx)
+│   ├── curriculum/      # หน้าแสดงแผนผังวิชาเรียนแบบ Grid และ Timeline
+│   ├── dashboard/       # แดชบอร์ดตามบทบาทผู้ใช้งาน (Student, Instructor, Staff, Admin)
+│   └── study-plan/      # ส่วนจัดการและบันทึกผลแผนการเรียน
+├── contexts/            # ระบบสเตตและจัดการการล็อกอิน (AuthContext.tsx)
+├── hooks/               # ตัวดึงข้อมูลความสัมพันธ์ของนักศึกษาและเกรดเฉลี่ย (useFirebaseData.ts)
+├── services/            # บริการ API เชื่อมโยงข้อมูล Firebase และ Hybrid Course
+└── types/               # การกำหนดชนิดตัวแปรและข้อมูล (Types)
 ```
 
-## 🔧 คำสั่งที่สำคัญ
+---
 
-```bash
-# Development
-npm run dev              # เริ่ม development server
-npm run build           # Build สำหรับ production
-npm run preview         # Preview production build
-npm run lint            # ตรวจสอบ code quality
-
-# Firebase
-node initialize-firebase-data.cjs  # เริ่มต้นข้อมูลใน Firebase
-```
-
-## 🌐 การ Deploy
-
-### Firebase Hosting
-1. ติดตั้ง Firebase CLI
-```bash
-npm install -g firebase-tools
-```
-
-2. Login และเลือก Project
-```bash
-firebase login
-firebase use --add
-```
-
-3. Build และ Deploy
-```bash
-npm run build
-firebase deploy
-```
-
-## 🔒 ความปลอดภัย
-
-- ระบบจำกัดการเข้าถึงเฉพาะอีเมล @kmutnb.ac.th และ @email.kmutnb.ac.th
-- การยืนยันตัวตนผ่าน Firebase Authentication
-- ระบบ Role-based Access Control
-- บันทึกประวัติการใช้งาน (Audit Logs)
-
-## 📞 การสนับสนุน
-
-สำหรับข้อสงสัยหรือปัญหาการใช้งาน กรุณาติดต่อ:
-- คณะเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
-
-## 📄 License
-
-โปรเจกต์นี้พัฒนาขึ้นเพื่อใช้ภายในคณะเทคโนโลยีสารสนเทศ KMUTNB
-# it-course-chatbot-main
+## 🔒 กฎความมั่นคงปลอดภัย (Security Policies)
+- จำกัดสิทธิ์การสมัครและเข้าใช้งานเฉพาะอีเมลภายใต้โดเมนสถาบัน `@kmutnb.ac.th` และ `@email.kmutnb.ac.th` เท่านั้น
+- มีการเข้ารหัสและตรวจสอบตัวตนผ่าน Firebase Authentication ทุกเซสชัน
+- บันทึกพฤติกรรมการเขียนหรือแก้ไขฐานข้อมูลวิชาผ่าน Audit Logs
