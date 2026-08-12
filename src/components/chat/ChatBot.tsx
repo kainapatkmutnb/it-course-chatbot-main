@@ -18,6 +18,23 @@ const ChatBot: React.FC = () => {
   const { studyPlan, loading: studyPlanLoading } = useStudyPlan(user?.id || '');
   const { data: gpaData, loading: gpaLoading } = useStudentGPAAndCredits(user?.id || '');
 
+  // DEBUG: Log GPA and credits data
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('📊 [ChatBot Debug]', {
+        userId: user.id,
+        gpaData,
+        studyPlan: {
+          id: studyPlan?.id,
+          studentId: studyPlan?.studentId,
+          completedCredits: studyPlan?.completedCredits,
+          totalCredits: studyPlan?.totalCredits,
+          courseCount: studyPlan?.courses?.length
+        }
+      });
+    }
+  }, [gpaData, studyPlan, user, authLoading]);
+
   // Fetch standard curriculum courses if student is logged in
   useEffect(() => {
     if (authLoading || studyPlanLoading || !user || !studyPlan?.curriculum) {
@@ -70,6 +87,17 @@ const ChatBot: React.FC = () => {
               'ผมคือ AI Assistant มีอะไรให้ช่วยเหลือเกี่ยวกับหลักสูตรและรายวิชาไหมครับ?'
             ];
 
+        // Extract completed course codes (grades D and above, including S for internship)
+        const completedCourseCodes = studyPlan?.courses
+          ?.filter(c => c.status === 'completed' && c.grade && {
+            'A': true, 'A-': true, 'A+': true,
+            'B': true, 'B+': true, 'B-': true,
+            'C': true, 'C+': true, 'C-': true,
+            'D': true, 'D+': true, 'D-': true,
+            'S': true  // Success grade for internship (ฝึกงาน)
+          }[c.grade.toUpperCase()])
+          .map(c => c.code) || [];
+
         const metadata = user 
           ? {
               userId: user.id || '',
@@ -80,6 +108,8 @@ const ChatBot: React.FC = () => {
               gpa: gpaData?.gpa || 0,
               completedCredits: gpaData?.completedCredits || 0,
               totalCredits: gpaData?.totalCredits || 0,
+              gradePassingThreshold: 'D',  // D and above counts as passing
+              completedCourseCodes: completedCourseCodes,  // List of passed course codes
               studyPlan: studyPlan?.courses ? studyPlan.courses.map(c => ({
                 code: c.code,
                 name: c.name,

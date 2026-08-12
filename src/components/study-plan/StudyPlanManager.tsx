@@ -607,21 +607,87 @@ const StudyPlanManager: React.FC = () => {
         };
       });
 
+      // Calculate completedCredits and totalCredits
+      const completedCredits = coursesForFirebase
+        .filter(c => c.status === 'completed')
+        .reduce((sum, c) => sum + (c.credits || 0), 0);
+
+      const totalCredits = coursesForFirebase.reduce((sum, c) => sum + (c.credits || 0), 0);
+
+      // Calculate GPA from completed courses (gpa is not stored in StudyPlan, calculate on-demand)
+      // @ts-ignore - calculateGPA internal function for saving to Firebase
+      const calculateGPAForSaving = (): number => {
+        const gradedCourses = coursesForFirebase.filter(c => c.status === 'completed' && c.grade);
+        if (gradedCourses.length === 0) return 0;
+        
+        // Map grade letters to grade points
+        const gradeMap = new Map<string, number>([
+          ['A', 4.0], ['A-', 3.7], ['A+', 4.0],
+          ['B+', 3.5], ['B', 3.0], ['B-', 2.7],
+          ['C+', 2.5], ['C', 2.0], ['C-', 1.7],
+          ['D+', 1.5], ['D', 1.0], ['D-', 0.7],
+          ['F', 0.0], ['S', 0.0]  // S (success) for internship counts as completed but no grade points
+        ]);
+        
+        const totalPoints = gradedCourses.reduce((sum, course) => {
+          const gradeUpper = (course.grade || '').toUpperCase();
+          const points = gradeMap.get(gradeUpper) ?? 0;
+          return sum + (points * course.credits);
+        }, 0);
+        
+        const totalCreditsGraded = gradedCourses.reduce((sum, course) => sum + course.credits, 0);
+        return totalCreditsGraded > 0 ? totalPoints / totalCreditsGraded : 0;
+      };
+
+      const calculatedGPA = calculateGPAForSaving();
+
+      // DEBUG: Log the data being saved
+      console.log('🔍 [StudyPlan Save Debug]', {
+        completedCredits,
+        totalCredits,
+        calculatedGPA,
+        courseCount: coursesForFirebase.length,
+        completedCount: coursesForFirebase.filter(c => c.status === 'completed').length,
+        studentId: studyPlan.studentId
+      });
+
+      // Update study plan in Firebase
       const planId = studyPlan.id && !studyPlan.id.startsWith('plan-') ? studyPlan.id : null;
       if (planId) {
         await firebaseService.updateStudyPlan(planId, {
           ...updates,
-          courses: coursesForFirebase
+          courses: coursesForFirebase,
+          completedCredits,
+          totalCredits
         });
+        // Sync GPA and credits to Firebase
+        const syncResult = await firebaseService.updateStudentGPAAndCredits(
+          studyPlan.studentId,
+          calculatedGPA,
+          completedCredits
+        );
+        console.log('✅ [GPA/Credits Synced]', { calculatedGPA, completedCredits, syncResult });
         return;
       }
 
       const existingPlan = await firebaseService.getStudyPlanByStudentId(studyPlan.studentId);
-      if (!existingPlan) return;
+      if (!existingPlan) {
+        console.warn('⚠️ Study plan not found for student:', studyPlan.studentId);
+        return;
+      }
       await firebaseService.updateStudyPlan(existingPlan.id, {
         ...updates,
-        courses: coursesForFirebase
+        courses: coursesForFirebase,
+        completedCredits,
+        totalCredits
       });
+      // Update GPA and credits
+      const syncResult2 = await firebaseService.updateStudentGPAAndCredits(
+        existingPlan.studentId,
+        calculatedGPA,
+        completedCredits
+      );
+      console.log('✅ [GPA/Credits Synced (alternative)]', { calculatedGPA, completedCredits, syncResult2 });
     } catch (err) {
       console.error('Error saving to Firebase:', err);
     }

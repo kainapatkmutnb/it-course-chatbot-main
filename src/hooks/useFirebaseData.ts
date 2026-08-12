@@ -165,21 +165,55 @@ export const useStudentGPAAndCredits = (studentId: string) => {
       return;
     }
 
-    const fetchGPAAndCredits = async () => {
+    let unsubscribe: (() => void) | null = null;
+
+    const setupStudyPlanListener = () => {
       try {
         setLoading(true);
-        const gpaAndCreditsData = await firebaseService.getStudentGPAAndCredits(studentId);
-        setData(gpaAndCreditsData);
-        setError(null);
+        
+        // Set up real-time listener for studyPlans to watch for GPA/credits changes
+        const studyPlansRef = ref(database, 'studyPlans');
+        unsubscribe = onValue(studyPlansRef, (snapshot) => {
+          try {
+            const data = snapshot.val();
+            if (data) {
+              // Find the study plan for this student
+              const studyPlan = Object.values(data).find((plan: any) => plan?.studentId === studentId);
+              if (studyPlan) {
+                setData({
+                  gpa: (studyPlan as any).gpa || 0,
+                  totalCredits: (studyPlan as any).totalCredits || 0,
+                  completedCredits: (studyPlan as any).completedCredits || 0
+                });
+              }
+            }
+            setError(null);
+          } catch (err) {
+            setError('Failed to process GPA and credits data');
+            console.error('Error processing GPA and credits data:', err);
+          } finally {
+            setLoading(false);
+          }
+        }, (err) => {
+          setError('Failed to fetch GPA and credits');
+          console.error('Error setting up real-time listener:', err);
+          setLoading(false);
+        });
       } catch (err) {
-        setError('Failed to fetch GPA and credits');
-        console.error('Error fetching GPA and credits:', err);
-      } finally {
+        setError('Failed to setup real-time listener');
+        console.error('Error setting up real-time listener:', err);
         setLoading(false);
       }
     };
 
-    fetchGPAAndCredits();
+    setupStudyPlanListener();
+
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [studentId]);
 
   const refreshGPAAndCredits = async () => {
