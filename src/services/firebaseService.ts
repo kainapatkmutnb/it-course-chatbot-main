@@ -1,0 +1,1119 @@
+import { db as database, auth } from '@/config/firebase';
+import { ref, get, set, push, update, remove, onValue, off } from 'firebase/database';
+import { createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword, type Auth as FirebaseAuth } from 'firebase/auth';
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+
+// Firebase config for secondary app (for admin user creation)
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://it-chatbot-f663e-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+const adminAppName = 'admin-app';
+let adminAuth: FirebaseAuth | null = null;
+
+const getAdminAuth = (): FirebaseAuth | null => {
+  if (adminAuth) return adminAuth;
+  try {
+    const adminApp = getApps().some(app => app.name === adminAppName)
+      ? getApp(adminAppName)
+      : initializeApp(firebaseConfig, adminAppName);
+    adminAuth = getAuth(adminApp);
+    return adminAuth;
+  } catch (error) {
+    console.warn('Admin Firebase app initialization failed:', error);
+    return null;
+  }
+};
+
+// Types
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'instructor' | 'staff' | 'admin';
+  profilePicture?: string;
+  department?: string;
+  studentId?: string;
+  advisorId?: string; // ID of the instructor supervising this student
+  createdAt: Date;
+  lastLogin?: Date;
+  isActive: boolean;
+}
+
+export interface Course {
+  id: string;
+  code: string;
+  name: string;
+  credits: number;
+  description: string;
+  category: 'general' | 'core' | 'elective' | 'major' | 'free';
+  mainCategory: string;
+  subCategory: string;
+  prerequisites: string[];
+  corequisites: string[];
+  semester?: number;
+  year?: number;
+  isActive: boolean;
+  instructor?: string;
+  maxStudents?: number;
+  currentStudents?: number;
+}
+
+export interface StudyPlan {
+  id: string;
+  studentId: string;
+  studentEmail: string;
+  program: string;
+  curriculumYear: string;
+  isLocked: boolean;
+  curriculum?: string;
+  totalCredits: number;
+  completedCredits?: number;
+  gpa?: number;
+  courses: StudyPlanCourse[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudyPlanCourse {
+  id: string;
+  courseId?: string;
+  code: string;
+  originalName: string;
+  customName?: string;
+  name?: string;
+  credits: number;
+  year: number;
+  semester: number;
+  status: 'planned' | 'in_progress' | 'completed' | 'failed';
+  grade?: string;
+  type?: 'required' | 'elective' | 'general';
+  category: 'core' | 'major' | 'elective' | 'general' | 'free';
+  mainCategory?: string;
+  subCategory?: string;
+  prerequisites?: string[];
+  isElective?: boolean;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  action: string;
+  details: string;
+  ipAddress: string;
+  timestamp: Date;
+  category: 'user' | 'course' | 'system' | 'auth';
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  curricula: Curriculum[];
+}
+
+export interface Curriculum {
+  id: string;
+  name: string;
+  year: number;
+  totalCredits: number;
+  departmentId: string;
+  semesters: CurriculumSemester[];
+  isActive: boolean;
+}
+
+export interface CurriculumSemester {
+  year: number;
+  semester: number;
+  courses: Course[];
+}
+
+// Firebase Service Class
+class FirebaseService {
+  private sanitizeForFirebase(value: any): any {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+    if (value instanceof Date) return value.toISOString();
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => this.sanitizeForFirebase(item))
+        .filter((item) => item !== undefined);
+    }
+    if (typeof value === 'object') {
+      const result: Record<string, any> = {};
+      for (const [key, val] of Object.entries(value)) {
+        const sanitized = this.sanitizeForFirebase(val);
+        if (sanitized !== undefined) {
+          result[key] = sanitized;
+        }
+      }
+      return result;
+    }
+    return value;
+  }
+
+  // Users
+  async getUsers(): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        return Object.keys(usersData).map(key => ({
+          id: key,
+          ...usersData[key],
+          createdAt: new Date(usersData[key].createdAt),
+          lastLogin: usersData[key].lastLogin ? new Date(usersData[key].lastLogin) : undefined
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+  }
+
+  async getUserById(userId: string): Promise<User | null> {
+    try {
+      const userRef = ref(database, `users/${userId}`);
+      const snapshot = await get(userRef);
+      
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        return {
+          id: userId,
+          ...userData,
+          createdAt: new Date(userData.createdAt),
+          lastLogin: userData.lastLogin ? new Date(userData.lastLogin) : undefined
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      return null;
+    }
+  }
+
+  async createUser(userData: Omit<User, 'id' | 'createdAt'> & { password?: string }): Promise<string | null> {
+    try {
+      // If password is provided, create user in Firebase Auth first
+      if (userData.password) {
+        const adminAuthInstance = getAdminAuth();
+        if (!adminAuthInstance) {
+          throw new Error('Admin authentication is not available');
+        }
+
+        // Use adminAuth (secondary app) to avoid affecting current user session
+        const userCredential = await createUserWithEmailAndPassword(adminAuthInstance, userData.email, userData.password);
+        const firebaseUser = userCredential.user;
+        
+        // Update display name in Firebase Auth
+        await updateProfile(firebaseUser, {
+          displayName: userData.name
+        });
+        
+        // Sign out from admin auth to prevent auto-login
+        await signOut(adminAuthInstance);
+        
+        // Create user record in Realtime Database with Firebase Auth UID
+        const userRef = ref(database, `users/${firebaseUser.uid}`);
+        const userWithTimestamp = {
+          ...userData,
+          createdAt: new Date().toISOString(),
+          isActive: true
+        };
+        delete userWithTimestamp.password; // Don't store password in database
+        
+        await set(userRef, userWithTimestamp);
+        return firebaseUser.uid;
+      } else {
+        // Original behavior - only create in Realtime Database
+        const usersRef = ref(database, 'users');
+        const newUserRef = push(usersRef);
+        
+        const userWithTimestamp = {
+          ...userData,
+          createdAt: new Date().toISOString(),
+          isActive: true
+        };
+        
+        await set(newUserRef, userWithTimestamp);
+        return newUserRef.key;
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return null;
+    }
+  }
+
+  async updateUser(userId: string, updates: Partial<User>): Promise<boolean> {
+    try {
+      const userRef = ref(database, `users/${userId}`);
+      await update(userRef, updates);
+      return true;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return false;
+    }
+  }
+
+  async updateUserRole(userId: string, newRole: 'student' | 'instructor' | 'staff' | 'admin', adminUserId: string): Promise<boolean> {
+    try {
+      // Get current user data first
+      const userRef = ref(database, `users/${userId}`);
+      const userSnapshot = await get(userRef);
+      
+      if (!userSnapshot.exists()) {
+        throw new Error('User not found');
+      }
+      
+      const currentUser = userSnapshot.val();
+      const oldRole = currentUser.role;
+      
+      // Update user role
+      await update(userRef, { 
+        role: newRole,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Create audit log for role change
+      await this.createAuditLog({
+        action: 'เปลี่ยนบทบาทผู้ใช้',
+        details: `เปลี่ยนบทบาทผู้ใช้ ${currentUser.name} (${currentUser.email}) จาก ${oldRole} เป็น ${newRole}`,
+        userId: adminUserId,
+        ipAddress: 'localhost',
+        category: 'user'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return false;
+    }
+  }
+
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      const userRef = ref(database, `users/${userId}`);
+      await remove(userRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
+
+  // Assign student to instructor
+  async assignStudentToInstructor(studentId: string, instructorId: string): Promise<boolean> {
+    try {
+      const studentRef = ref(database, `users/${studentId}`);
+      await update(studentRef, { 
+        advisorId: instructorId,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Create audit log for student assignment
+      await this.createAuditLog({
+        action: 'มอบหมายนักศึกษา',
+        details: `มอบหมายนักศึกษา ID: ${studentId} ให้อาจารย์ ID: ${instructorId}`,
+        userId: instructorId,
+        ipAddress: 'localhost',
+        category: 'user'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error assigning student to instructor:', error);
+      return false;
+    }
+  }
+
+  // Remove student from instructor
+  async removeStudentFromInstructor(studentId: string, instructorId: string): Promise<boolean> {
+    try {
+      const studentRef = ref(database, `users/${studentId}`);
+      await update(studentRef, { 
+        advisorId: null,
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Create audit log for student removal
+      await this.createAuditLog({
+        action: 'ยกเลิกการมอบหมายนักศึกษา',
+        details: `ยกเลิกการมอบหมายนักศึกษา ID: ${studentId} จากอาจารย์ ID: ${instructorId}`,
+        userId: instructorId,
+        ipAddress: 'localhost',
+        category: 'user'
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error removing student from instructor:', error);
+      return false;
+    }
+  }
+
+  // Courses
+  async getCourseById(courseId: string): Promise<Course | null> {
+    try {
+      const courseRef = ref(database, `courses/${courseId}`);
+      const snapshot = await get(courseRef);
+      
+      if (snapshot.exists()) {
+        return {
+          id: courseId,
+          ...snapshot.val()
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching course:', error);
+      return null;
+    }
+  }
+
+  async createCourse(courseData: Omit<Course, 'id'>): Promise<string | null> {
+    try {
+      const coursesRef = ref(database, 'courses');
+      const newCourseRef = push(coursesRef);
+      
+      await set(newCourseRef, courseData);
+      return newCourseRef.key;
+    } catch (error) {
+      console.error('Error creating course:', error);
+      return null;
+    }
+  }
+
+  // Curriculum-specific course management
+  async getCourses(program?: string, curriculumYear?: string, year?: number, semester?: number): Promise<Course[]> {
+    try {
+      let coursesRef;
+      
+      if (program && curriculumYear && year && semester) {
+        // Get courses for specific curriculum path
+        coursesRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses`);
+      } else {
+        // Get all courses
+        coursesRef = ref(database, 'courses');
+      }
+      
+      const snapshot = await get(coursesRef);
+      
+      if (snapshot.exists()) {
+        const coursesData = snapshot.val();
+        return Object.keys(coursesData).map(key => ({
+          id: key,
+          ...coursesData[key]
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      return [];
+    }
+  }
+
+  async addCourse(program: string, curriculumYear: string, year: number, semester: number, course: Course): Promise<boolean> {
+    try {
+      // Add to curriculum-specific path
+      const curriculumCourseRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${course.id}`);
+      await set(curriculumCourseRef, course);
+      
+      // Also add to general courses collection for global access
+      const generalCourseRef = ref(database, `courses/${course.id}`);
+      await set(generalCourseRef, {
+        ...course,
+        program,
+        curriculumYear,
+        year,
+        semester
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error adding course:', error);
+      return false;
+    }
+  }
+
+  async updateCourse(program: string, curriculumYear: string, year: number, semester: number, course: Course): Promise<boolean> {
+    try {
+      // Update in curriculum-specific path
+      const curriculumCourseRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${course.id}`);
+      await update(curriculumCourseRef, course);
+      
+      // Update in general courses collection
+      const generalCourseRef = ref(database, `courses/${course.id}`);
+      await update(generalCourseRef, {
+        ...course,
+        program,
+        curriculumYear,
+        year,
+        semester
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating course:', error);
+      return false;
+    }
+  }
+
+  async deleteCourse(program: string, curriculumYear: string, year: number, semester: number, courseId: string): Promise<boolean> {
+    try {
+      // Remove from curriculum-specific path
+      const curriculumCourseRef = ref(database, `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${courseId}`);
+      await remove(curriculumCourseRef);
+      
+      // Remove from general courses collection
+      const generalCourseRef = ref(database, `courses/${courseId}`);
+      await remove(generalCourseRef);
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      return false;
+    }
+  }
+
+  // ============================================================
+  // CLEANUP: ลบวิชาที่ corrupted / invalid (ชื่อ 'div', 'span', HTML tag, dummy course) ออกจาก Firebase
+  // - สแกนทั้งคอลเลกชัน `courses/` (ทั่วไป) และ `curriculum/` (เฉพาะหลักสูตร)
+  // - Delete ทีละรายการอัตโนมัติ เมื่อเจอ invalid courses
+  // ============================================================
+  private isInvalidFirebaseCourse(course: any): boolean {
+    if (!course) return false;
+    if (!course.code || typeof course.code !== 'string') return true;
+    if (!course.name || typeof course.name !== 'string') return true;
+
+    const trimmedName = course.name.trim();
+    const trimmedCode = course.code.trim();
+
+    if (trimmedName.length === 0) return true;
+    if (trimmedCode.length === 0) return true;
+
+    const htmlTagBlacklist = new Set([
+      'div', 'span', 'p', 'a', 'ul', 'li', 'ol', 'table', 'tr', 'td', 'th',
+      'input', 'button', 'form', 'label', 'img', 'svg', 'script', 'style',
+      'header', 'footer', 'section', 'article', 'aside', 'nav', 'main',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'hr', 'iframe', 'meta',
+      'link', 'title', 'head', 'body', 'html'
+    ]);
+    // ✅ ตรวจสอบทั้ง name และ code (ก่อนหน้าเช็คแค่ name — นี่แหละคือบัค!)
+    if (htmlTagBlacklist.has(trimmedName.toLowerCase())) return true;
+    if (htmlTagBlacklist.has(trimmedCode.toLowerCase())) return true;
+
+    if (/^Course\s+\d+\s*-\s*Year/i.test(trimmedName)) return true;
+
+    if (course.credits === undefined || course.credits === null) return true;
+    if (typeof course.credits === 'number' && course.credits <= 0) return true;
+
+    return false;
+  }
+
+  async cleanupInvalidCurriculumEntries(): Promise<{
+    deletedFromGeneral: number;
+    deletedFromCurriculum: number;
+    deletedCourseIds: string[];
+  }> {
+    const deletedCourseIds: string[] = [];
+    let deletedFromGeneral = 0;
+    let deletedFromCurriculum = 0;
+
+    try {
+      // ==============================================
+      // 1) สแกนและลบที่คอลเลกชัน `courses/` (ทั่วไป)
+      // ==============================================
+      try {
+        const generalCoursesSnap = await get(ref(database, 'courses'));
+        if (generalCoursesSnap.exists()) {
+          const generalData = generalCoursesSnap.val() as Record<string, any>;
+          const invalidGeneralEntries = Object.entries(generalData).filter(
+            ([, course]) => this.isInvalidFirebaseCourse(course)
+          );
+
+          for (const [courseId] of invalidGeneralEntries) {
+            try {
+              await remove(ref(database, `courses/${courseId}`));
+              deletedFromGeneral++;
+              if (!deletedCourseIds.includes(courseId)) deletedCourseIds.push(courseId);
+              console.warn(`[Firebase Cleanup] ลบวิชา invalid ที่ courses/${courseId}`);
+            } catch (err) {
+              console.error(`[Firebase Cleanup] ลบ ${courseId} ไม่สำเร็จ:`, err);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[Firebase Cleanup] สแกนคอลเลกชัน courses/ ไม่สำเร็จ:', e);
+      }
+
+      // ==============================================
+      // 2) สแกนและลบที่ `curriculum/<program>/<curriculumYear>/...` (เฉพาะหลักสูตร)
+      //    ลงรายละเอียดทุกปี / เทอม / courses
+      // ==============================================
+      try {
+        const curriculumRootSnap = await get(ref(database, 'curriculum'));
+        if (curriculumRootSnap.exists()) {
+          const programs = curriculumRootSnap.val() as Record<string, any>;
+          for (const [program, curricula] of Object.entries(programs)) {
+            if (!curricula || typeof curricula !== 'object') continue;
+            for (const [curriculumYear, years] of Object.entries(curricula as Record<string, any>)) {
+              if (!years || typeof years !== 'object') continue;
+              for (const [year, semesters] of Object.entries(years as Record<string, any>)) {
+                if (!semesters || typeof semesters !== 'object') continue;
+                for (const [semester, semesterNodes] of Object.entries(semesters as Record<string, any>)) {
+                  const courseMap = semesterNodes?.courses;
+                  if (!courseMap || typeof courseMap !== 'object') continue;
+
+                  const invalidEntries = Object.entries(courseMap as Record<string, any>).filter(
+                    ([, course]) => this.isInvalidFirebaseCourse(course)
+                  );
+
+                  for (const [courseId] of invalidEntries) {
+                    try {
+                      const targetRef = ref(
+                        database,
+                        `curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${courseId}`
+                      );
+                      await remove(targetRef);
+                      deletedFromCurriculum++;
+                      if (!deletedCourseIds.includes(courseId)) deletedCourseIds.push(courseId);
+                      console.warn(
+                        `[Firebase Cleanup] ลบวิชา invalid ที่ curriculum/${program}/${curriculumYear}/${year}/${semester}/courses/${courseId}`
+                      );
+                    } catch (err) {
+                      console.error('[Firebase Cleanup] ลบ curriculum course ไม่สำเร็จ:', err);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[Firebase Cleanup] สแกน curriculum/ ไม่สำเร็จ:', e);
+      }
+
+      console.info(
+        `[Firebase Cleanup] สำเร็จ: ลบ ${deletedFromGeneral} รายการจาก courses/ และ ${deletedFromCurriculum} รายการจาก curriculum/`
+      );
+    } catch (overallError) {
+      console.error('[Firebase Cleanup] Error ภายใน:', overallError);
+    }
+
+    return { deletedFromGeneral, deletedFromCurriculum, deletedCourseIds };
+  }
+
+  // Study Plans
+  async getStudyPlanByStudentId(studentId: string): Promise<StudyPlan | null> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        const matches = Object.entries(studyPlansData)
+          .filter(([, plan]) => plan?.studentId === studentId)
+          .map(([key, plan]) => {
+            const ts = Date.parse(plan?.updatedAt ?? plan?.createdAt ?? '');
+            return { key, plan, ts: Number.isFinite(ts) ? ts : 0 };
+          })
+          .sort((a, b) => b.ts - a.ts);
+
+        if (matches.length > 0) {
+          const { key: studyPlanKey, plan: studyPlan } = matches[0];
+          return {
+            id: studyPlanKey,
+            ...studyPlan,
+            createdAt: new Date(studyPlan.createdAt),
+            updatedAt: new Date(studyPlan.updatedAt)
+          };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching study plan:', error);
+      return null;
+    }
+  }
+
+  async createStudyPlan(studyPlanData: Omit<StudyPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const newStudyPlanRef = push(studyPlansRef);
+      
+      const studyPlanWithTimestamp = this.sanitizeForFirebase({
+        ...studyPlanData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      
+      await set(newStudyPlanRef, studyPlanWithTimestamp);
+      return newStudyPlanRef.key;
+    } catch (error) {
+      console.error('Error creating study plan:', error);
+      return null;
+    }
+  }
+
+  async updateStudyPlan(studyPlanId: string, updates: Partial<StudyPlan>): Promise<boolean> {
+    try {
+      const studyPlanRef = ref(database, `studyPlans/${studyPlanId}`);
+      const sanitizedUpdates = this.sanitizeForFirebase({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      });
+      await update(studyPlanRef, sanitizedUpdates);
+      return true;
+    } catch (error) {
+      console.error('Error updating study plan:', error);
+      return false;
+    }
+  }
+
+  async deleteStudyPlansByStudentId(studentId: string): Promise<boolean> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+
+      if (!snapshot.exists()) {
+        return true;
+      }
+
+      const studyPlansData = snapshot.val();
+      const keysToDelete = Object.keys(studyPlansData).filter(
+        key => studyPlansData[key]?.studentId === studentId
+      );
+
+      await Promise.all(
+        keysToDelete.map((key) => remove(ref(database, `studyPlans/${key}`)))
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting study plans:', error);
+      return false;
+    }
+  }
+
+  // New method to get student's GPA and total credits from Firebase
+  async getStudentGPAAndCredits(studentId: string): Promise<{ gpa: number; totalCredits: number; completedCredits: number } | null> {
+    try {
+      const studyPlan = await this.getStudyPlanByStudentId(studentId);
+      if (!studyPlan) {
+        return null;
+      }
+
+      // Return the GPA and credits directly from Firebase StudyPlan
+      return {
+        gpa: studyPlan.gpa || 0,
+        totalCredits: studyPlan.totalCredits || 0,
+        completedCredits: studyPlan.completedCredits || 0
+      };
+    } catch (error) {
+      console.error('Error fetching student GPA and credits:', error);
+      return null;
+    }
+  }
+
+  // Method to update student's GPA and completed credits in Firebase
+  async updateStudentGPAAndCredits(studentId: string, gpa: number, completedCredits: number): Promise<boolean> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        const studyPlanKey = Object.keys(studyPlansData).find(
+          key => studyPlansData[key].studentId === studentId
+        );
+        
+        if (studyPlanKey) {
+          const studyPlanRef = ref(database, `studyPlans/${studyPlanKey}`);
+          await update(studyPlanRef, {
+            gpa: gpa,
+            completedCredits: completedCredits,
+            updatedAt: new Date().toISOString()
+          });
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Error updating student GPA and credits:', error);
+      return false;
+    }
+  }
+
+  // Departments and Curricula
+  async getDepartments(): Promise<Department[]> {
+    try {
+      const departmentsRef = ref(database, 'departments');
+      const snapshot = await get(departmentsRef);
+      
+      if (snapshot.exists()) {
+        const departmentsData = snapshot.val();
+        return Object.keys(departmentsData).map(key => ({
+          id: key,
+          ...departmentsData[key]
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      return [];
+    }
+  }
+
+  async getCurriculumById(curriculumId: string): Promise<Curriculum | null> {
+    try {
+      const curriculumRef = ref(database, `curricula/${curriculumId}`);
+      const snapshot = await get(curriculumRef);
+      
+      if (snapshot.exists()) {
+        return {
+          id: curriculumId,
+          ...snapshot.val()
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching curriculum:', error);
+      return null;
+    }
+  }
+
+  // Audit Logs
+  async getAuditLogs(limit: number = 50, page: number = 1): Promise<{ logs: AuditLog[], totalCount: number, totalPages: number }> {
+    try {
+      const auditLogsRef = ref(database, 'auditLogs');
+      const snapshot = await get(auditLogsRef);
+      
+      if (snapshot.exists()) {
+        const auditLogsData = snapshot.val();
+        const allLogs = Object.keys(auditLogsData)
+          .map(key => ({
+            id: key,
+            ...auditLogsData[key],
+            timestamp: new Date(auditLogsData[key].timestamp)
+          }))
+          .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort newest first
+        
+        const totalCount = allLogs.length;
+        const totalPages = Math.ceil(totalCount / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const logs = allLogs.slice(startIndex, endIndex);
+        
+        return { logs, totalCount, totalPages };
+      }
+      return { logs: [], totalCount: 0, totalPages: 0 };
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      return { logs: [], totalCount: 0, totalPages: 0 };
+    }
+  }
+
+  async createAuditLog(logData: Omit<AuditLog, 'id' | 'timestamp'>): Promise<string | null> {
+    try {
+      const auditLogsRef = ref(database, 'auditLogs');
+      const newLogRef = push(auditLogsRef);
+      
+      const logWithTimestamp = {
+        ...logData,
+        timestamp: new Date().toISOString()
+      };
+      
+      await set(newLogRef, logWithTimestamp);
+      return newLogRef.key;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      return null;
+    }
+  }
+
+  async deleteAuditLog(logId: string): Promise<boolean> {
+    try {
+      const auditLogRef = ref(database, `auditLogs/${logId}`);
+      await remove(auditLogRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting audit log:', error);
+      return false;
+    }
+  }
+
+  // Statistics
+  async getSystemStats() {
+    try {
+      const [users, courses, studyPlans, auditLogs] = await Promise.all([
+        this.getUsers(),
+        this.getCourses(),
+        this.getStudyPlans(),
+        this.getAuditLogs(10)
+      ]);
+
+      const activeUsers = users.filter(user => user.isActive).length;
+      const activeCourses = courses.filter(course => course.isActive).length;
+      const totalStudents = users.filter(user => user.role === 'student').length;
+
+      return {
+        totalUsers: users.length,
+        activeUsers,
+        totalCourses: courses.length,
+        activeCourses,
+        totalStudents,
+        totalStudyPlans: studyPlans.length,
+        recentActivities: auditLogs.logs.length
+      };
+    } catch (error) {
+      console.error('Error fetching system stats:', error);
+      return {
+        totalUsers: 0,
+        activeUsers: 0,
+        totalCourses: 0,
+        activeCourses: 0,
+        totalStudents: 0,
+        totalStudyPlans: 0,
+        recentActivities: 0
+      };
+    }
+  }
+
+  async getStudyPlans(): Promise<StudyPlan[]> {
+    try {
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        return Object.keys(studyPlansData).map(key => ({
+          id: key,
+          ...studyPlansData[key],
+          createdAt: new Date(studyPlansData[key].createdAt),
+          updatedAt: new Date(studyPlansData[key].updatedAt)
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching study plans:', error);
+      return [];
+    }
+  }
+
+  // Instructor-specific functions
+  async getStudentsByInstructor(instructorId: string): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const students = Object.keys(usersData)
+          .map(key => ({
+            id: key,
+            ...usersData[key]
+          }))
+          .filter(user => 
+            user.role === 'student' && 
+            user.advisorId === instructorId &&
+            user.isActive !== false
+          );
+        
+        return students;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching students by instructor:', error);
+      return [];
+    }
+  }
+
+  async getAvailableStudents(instructorId: string): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const allStudents = Object.keys(usersData)
+          .map(key => ({
+            id: key,
+            ...usersData[key]
+          }))
+          .filter(user => {
+            // Check if user is a student and active
+            const isStudent = user.role === 'student';
+            const isActive = user.isActive !== false;
+            
+            console.log(`Student ${user.name}: isStudent=${isStudent}, isActive=${isActive}, advisorId=${user.advisorId}`);
+            
+            // Return all active students (both with and without advisors)
+            return isStudent && isActive;
+          });
+        
+        console.log('All students found:', allStudents.length);
+        return allStudents;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching available students:', error);
+      return [];
+    }
+  }
+
+  async getStudentGradeStatistics(studentIds: string[]): Promise<{
+    averageGPA: number;
+    totalCredits: number;
+    completedCredits: number;
+    studentsWithGPA: { studentId: string; gpa: number; credits: number }[];
+  }> {
+    try {
+      if (studentIds.length === 0) {
+        return {
+          averageGPA: 0,
+          totalCredits: 0,
+          completedCredits: 0,
+          studentsWithGPA: []
+        };
+      }
+
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        const relevantPlans = Object.keys(studyPlansData)
+          .map(key => ({
+            id: key,
+            ...studyPlansData[key]
+          }))
+          .filter(plan => studentIds.includes(plan.studentId));
+
+        let totalGPA = 0;
+        let totalCredits = 0;
+        let totalCompletedCredits = 0;
+        const studentsWithGPA: { studentId: string; gpa: number; credits: number }[] = [];
+
+        relevantPlans.forEach(plan => {
+          const gpa = plan.gpa || 0;
+          const credits = plan.totalCredits || 0;
+          const completedCredits = plan.completedCredits || 0;
+
+          totalGPA += gpa;
+          totalCredits += credits;
+          totalCompletedCredits += completedCredits;
+
+          studentsWithGPA.push({
+            studentId: plan.studentId,
+            gpa: gpa,
+            credits: credits
+          });
+        });
+
+        return {
+          averageGPA: relevantPlans.length > 0 ? totalGPA / relevantPlans.length : 0,
+          totalCredits: totalCredits,
+          completedCredits: totalCompletedCredits,
+          studentsWithGPA: studentsWithGPA
+        };
+      }
+
+      return {
+        averageGPA: 0,
+        totalCredits: 0,
+        completedCredits: 0,
+        studentsWithGPA: []
+      };
+    } catch (error) {
+      console.error('Error fetching student grade statistics:', error);
+      return {
+        averageGPA: 0,
+        totalCredits: 0,
+        completedCredits: 0,
+        studentsWithGPA: []
+      };
+    }
+  }
+
+  async getAllStudents(): Promise<User[]> {
+    try {
+      const usersRef = ref(database, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const students = Object.keys(usersData)
+          .map(key => ({
+            id: key,
+            ...usersData[key]
+          }))
+          .filter(user => 
+            user.role === 'student' &&
+            user.isActive !== false
+          );
+        
+        return students;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching all students:', error);
+      return [];
+    }
+  }
+
+  // Get student courses/enrollments
+  async getStudentCourses(studentId: string): Promise<any[]> {
+    try {
+      console.log('🔍 Fetching student courses from Firebase for ID:', studentId);
+      
+      // First, try to get from study plan
+      const studyPlan = await this.getStudyPlanByStudentId(studentId);
+      if (studyPlan && studyPlan.courses) {
+        console.log('📚 Found courses in study plan:', studyPlan.courses.length);
+        return studyPlan.courses.map(course => ({
+          courseId: course.courseId || course.id,
+          studentId: studentId,
+          status: course.status,
+          grade: course.grade,
+          year: course.year,
+          semester: course.semester
+        }));
+      }
+
+      // If no study plan, check for student enrollments collection
+      const enrollmentsRef = ref(database, `studentEnrollments/${studentId}`);
+      const snapshot = await get(enrollmentsRef);
+      
+      if (snapshot.exists()) {
+        const enrollmentsData = snapshot.val();
+        console.log('📚 Found enrollments data:', enrollmentsData);
+        return Object.keys(enrollmentsData).map(key => ({
+          id: key,
+          studentId: studentId,
+          ...enrollmentsData[key]
+        }));
+      }
+
+      console.log('❌ No student courses found');
+      return [];
+    } catch (error) {
+      console.error('❌ Error fetching student courses:', error);
+      return [];
+    }
+  }
+}
+
+// Export singleton instance
+export const firebaseService = new FirebaseService();
+export default firebaseService;
