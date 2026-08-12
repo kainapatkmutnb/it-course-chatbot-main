@@ -18,8 +18,15 @@ export const GRADE_SYSTEM: GradeSystem[] = [
 
 // Get grade point for a specific grade
 export const getGradePoint = (grade: string): number => {
-  const gradeInfo = GRADE_SYSTEM.find(g => g.grade === grade);
-  return gradeInfo ? gradeInfo.gradePoint : 0;
+  const upper = (grade || '').trim().toUpperCase();
+  const gradeInfo = GRADE_SYSTEM.find(g => g.grade.toUpperCase() === upper);
+  if (gradeInfo) return gradeInfo.gradePoint;
+
+  const extendedMap: Record<string, number> = {
+    'A+': 4.0, 'A-': 3.7,
+    'B-': 2.7, 'C-': 1.7, 'D-': 0.7
+  };
+  return extendedMap[upper] ?? 0;
 };
 
 // Get grade description
@@ -88,7 +95,8 @@ export const isPassingGrade = (grade: string): boolean => {
 // Check if grade counts in GPA (exclude S, U, I, W from GPA calculation)
 export const isGradeCountedInGPA = (grade: string): boolean => {
   if (!grade) return false;
-  return !['S', 'U', 'I', 'W'].includes(grade);
+  const upper = grade.trim().toUpperCase();
+  return !['S', 'U', 'I', 'W'].includes(upper);
 };
 
 // Check if completed credits should count (S and above D+ pass)

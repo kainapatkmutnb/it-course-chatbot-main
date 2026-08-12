@@ -21,17 +21,27 @@ graph TD
 
 ## ⚡ คุณลักษณะสำคัญ (Core Features)
 
-### 1. ระบบจัดการแผนการเรียนส่วนบุคคล
-- **Interactive Study Plan:** วางแผนรายวิชาเรียน ติดตามความก้าวหน้ารายเทอมและรายปี
-- **Academic Calculator:** คำนวณเกรดเฉลี่ยสะสม (GPA) และยอดสะสมหน่วยกิตอัตโนมัติตามเกณฑ์สถาบัน
-- **Dynamic Status Tracking:** บันทึกสถานะรายวิชาแบบละเอียด (วางแผนเรียน, กำลังศึกษา, ผ่านแล้ว, ไม่ผ่าน หรือถอนรายวิชา)
+### 1. ระบบจัดการแผนการเรียนส่วนบุคคล (Interactive Study Plan Manager)
+- **Interactive Study Plan:** วางแผนรายวิชาเรียน ติดตามความก้าวหน้ารายเทอมและรายปี ย้ายเทอมวิชาเรียนได้ตามต้องการ
+- **Unified Academic GPA Calculator:** คำนวณเกรดเฉลี่ยสะสม (GPA) ตามเกณฑ์สถาบันอย่างถูกต้อง โดยเกรด `S` (Satisfactory) ให้นับสะสมหน่วยกิต (`completedCredits`) แต่ไม่นำไปหารคิด GPA
+- **Multi-Curriculum Standard Support:** รองรับคำนวณยอดหน่วยกิตรวมตามหลักสูตรจริงของนักศึกษาจาก 5 สาขาวิชา รวม 13 รูปแบบหลักสูตร (`IT-62`, `IT-62 สหกิจ`, `IT-67`, `IT-67 สหกิจ`, `INE-62`, `INE-62 สหกิจ`, `INE-67`, `INE-67 สหกิจ`, `INET-62`, `INET-67`, `ITI-61`, `ITI-66`, `ITT-67`)
+- **Dynamic Course Status Tracking:** บันทึกและปรับเปลี่ยนสถานะรายวิชาได้ยืดหยุ่น 4 สถานะ: `วางแผนเรียน` (Planned), `กำลังเรียน` (In Progress), `เรียนจบแล้ว` (Completed), และ `ไม่ผ่าน` (Failed)
 
-### 2. แผนภูมิโครงสร้างหลักสูตร (Curriculum Flowchart)
+### 2. แผงสถิติการเรียน 5 มิติ (5-Metric Learning Statistics Dashboard & Profile)
+- **Real-Time Academic Metrics:** แสดงสถิติการเรียนของผู้ใช้งานแบบ Real-time ครอบคลุม 5 มิติสำคัญ:
+  1. **หน่วยกิตที่เรียนแล้ว** (Completed Credits)
+  2. **เกรดเฉลี่ยสะสม** (GPA)
+  3. **วิชาที่เรียนผ่านแล้ว** (Completed Courses Count)
+  4. **วิชาที่กำลังเรียน** (In-Progress Courses Count)
+  5. **ความคืบหน้าการศึกษา (%)** (Progress Percentage)
+
+### 3. แผนภูมิโครงสร้างหลักสูตร (Curriculum Flowchart)
 - **Visual Chart Configurations:** แสดงรายวิชาในรูปแบบตารางเรียนมาตรฐาน (Grid View) หรือไทม์ไลน์ความสัมพันธ์ (Timeline View)
 - **Interactive Prerequisite Lines:** แสดงเส้นเชื่อมโยงวิชาบังคับก่อนหน้า (Prerequisites) และวิชาเรียนควบคู่ (Corequisites) แบบ Visual
 
-### 3. ระบบแชทบอทอัจฉริยะ (n8n AI Assistant & Firebase Integration)
-- **Context-Aware Responses:** บอทรับข้อมูลโปรไฟล์นักศึกษาและเกรดเฉลี่ยสะสมแบบ Real-time เพื่อตอบคำถามประวัติการเรียนส่วนตัว
+### 4. ระบบแชทบอทอัจฉริยะแบบ Real-Time Data Sync (n8n AI Assistant & Firebase Integration)
+- **Real-Time Metadata Sync:** ซิงก์ข้อมูลโปรไฟล์, เกรดเฉลี่ย (GPA), ยอดหน่วยกิตผ่าน, รายวิชาที่ผ่าน และวิชาที่กำลังเรียนส่งไปยัง n8n AI Agent แบบ Real-time ทุกครั้งที่มีการอัปเดตแผนการเรียน
+- **Context-Aware Responses:** บอทตอบคำถามสถิติการเรียนส่วนตัว รายวิชาที่ขาด และคำแนะนำการลงทะเบียนวิชาถัดไปได้อย่างแม่นยำตรงกับหน้า Dashboard และ Profile 100%
 - **Automated Curriculum Comparison:** เปรียบเทียบแผนการเรียนจริงของนักศึกษากับหลักสูตรมาตรฐาน เพื่อหาและรายงานรายวิชาบังคับที่ยังไม่ได้ศึกษา
 - **Role-Based Security Guard:** กรองสิทธิ์การเข้าถึงข้อมูลรายวิชา หากเป็นผู้เยี่ยมชม (Guest Mode) ระบบจะจำกัดการดูข้อมูลส่วนตัว และค้นหาข้อมูลวิชาเรียนทั่วไปผ่าน Pinecone RAG เท่านั้น
 

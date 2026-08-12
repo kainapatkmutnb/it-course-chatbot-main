@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
-import { getDepartments, extractDepartmentFromStudentInfo } from '@/services/departmentService';
+import { getDepartments, extractDepartmentFromStudentInfo, getCurriculumTotalCredits } from '@/services/departmentService';
+import { calculateGPA as calculateGPAUtil } from '@/utils/gradeUtils';
 import { Department } from '@/types/course';
 import StudyPlanManager from '@/components/study-plan/StudyPlanManager';
 import StudyPlanProgress from '@/components/study-plan/StudyPlanProgress';
@@ -115,29 +116,14 @@ const StudentDashboard: React.FC = () => {
   const inProgressCourses = studyPlan?.courses?.filter(course => course.status === 'in_progress') || [];
   const plannedCourses = studyPlan?.courses?.filter(course => course.status === 'planned') || [];
   
-  // Calculate GPA from completed courses
-  const calculateGPA = () => {
-    const gradedCourses = completedCourses.filter(course => course.grade);
-    if (gradedCourses.length === 0) return 0;
+  // Calculate GPA and credits from studyPlan using standard calculateGPAUtil
+  const gpaCalcResult = calculateGPAUtil((studyPlan?.courses || []) as any);
+  const requiredCurriculumTotal = getCurriculumTotalCredits(studyPlan?.program, studyPlan?.curriculumYear);
 
-    const gradePoints: { [key: string]: number } = {
-      'A': 4.0, 'B+': 3.5, 'B': 3.0, 'C+': 2.5, 'C': 2.0, 'D+': 1.5, 'D': 1.0, 'F': 0.0
-    };
-
-    const totalPoints = gradedCourses.reduce((sum, course) => {
-      const points = gradePoints[course.grade || 'F'] || 0;
-      return sum + (points * course.credits);
-    }, 0);
-
-    const totalCreditsGraded = gradedCourses.reduce((sum, course) => sum + course.credits, 0);
-    return totalCreditsGraded > 0 ? totalPoints / totalCreditsGraded : 0;
-  };
-  
-  // Use Firebase data for GPA and credits, fallback to calculated values
-  const completedCredits = gpaData?.completedCredits || completedCourses.reduce((sum, course) => sum + course.credits, 0);
-  const totalCredits = gpaData?.totalCredits || studyPlan?.totalCredits || 140;
-  const currentGPA = gpaData?.gpa || calculateGPA();
-  const progressPercentage = (completedCredits / totalCredits) * 100;
+  const completedCredits = gpaData?.completedCredits ?? gpaCalcResult.completedCredits;
+  const totalCredits = studyPlan?.totalCredits || gpaData?.totalCredits || requiredCurriculumTotal;
+  const currentGPA = gpaData?.gpa ?? gpaCalcResult.gpa;
+  const progressPercentage = totalCredits > 0 ? (completedCredits / totalCredits) * 100 : 0;
 
   // Update loading/error conditions to include GPA data
   if (studyPlanLoading || gpaLoading) {
@@ -315,7 +301,7 @@ const StudentDashboard: React.FC = () => {
 
                 <div className="pt-4 border-t">
                   <h3 className="text-lg font-semibold mb-4">สถิติการเรียน</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <div className="text-2xl font-bold text-primary">{completedCredits}</div>
                       <div className="text-sm text-muted-foreground">หน่วยกิตที่เรียนแล้ว</div>
@@ -323,6 +309,10 @@ const StudentDashboard: React.FC = () => {
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <div className="text-2xl font-bold text-success">{currentGPA.toFixed(2)}</div>
                       <div className="text-sm text-muted-foreground">เกรดเฉลี่ย</div>
+                    </div>
+                    <div className="text-center p-4 rounded-lg bg-muted/50">
+                      <div className="text-2xl font-bold text-emerald-600">{completedCourses.length}</div>
+                      <div className="text-sm text-muted-foreground">วิชาที่เรียนผ่านแล้ว</div>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <div className="text-2xl font-bold text-warning">{inProgressCourses.length}</div>

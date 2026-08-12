@@ -32,6 +32,7 @@ import {
   isGradeCountedInGPA,
   isPassingGrade,
 } from '@/utils/gradeUtils';
+import { getCurriculumTotalCredits } from '@/services/departmentService';
 
 interface CurriculumCourse {
   code: string;
@@ -406,23 +407,24 @@ const StudyPlanManager: React.FC = () => {
       if (c.id !== courseId) return c;
 
       let status: 'planned' | 'in_progress' | 'completed' | 'failed' = 'planned';
-      if (grade) {
-        if (grade === 'F') {
-          status = 'failed';
-        } else if (grade === 'U') {
-          // U = ไม่ผ่าน (เช่น ฝึกงานไม่ผ่าน — ใส่ failed และไม่นับหน่วยกิต
+      let finalGrade = grade;
+
+      if (grade === 'in_progress') {
+        status = 'in_progress';
+        finalGrade = '';
+      } else if (grade) {
+        if (grade === 'F' || grade === 'U') {
           status = 'failed';
         } else if (grade === 'I' || grade === 'W') {
           status = 'in_progress';
         } else {
-          // A, B+, B, C+, C, D+, D, S — completed
-          status = 'completed';
+          status = 'completed'; // A, B+, B, C+, C, D+, D, S — completed
         }
       }
 
       return {
         ...c,
-        grade,
+        grade: finalGrade,
         status
       };
     });
@@ -607,45 +609,21 @@ const StudyPlanManager: React.FC = () => {
         };
       });
 
-      // Calculate completedCredits and totalCredits
-      const completedCredits = coursesForFirebase
-        .filter(c => c.status === 'completed')
-        .reduce((sum, c) => sum + (c.credits || 0), 0);
-
-      const totalCredits = coursesForFirebase.reduce((sum, c) => sum + (c.credits || 0), 0);
-
-      // Calculate GPA from completed courses (gpa is not stored in StudyPlan, calculate on-demand)
-      // @ts-ignore - calculateGPA internal function for saving to Firebase
-      const calculateGPAForSaving = (): number => {
-        const gradedCourses = coursesForFirebase.filter(c => c.status === 'completed' && c.grade);
-        if (gradedCourses.length === 0) return 0;
-        
-        // Map grade letters to grade points
-        const gradeMap = new Map<string, number>([
-          ['A', 4.0], ['A-', 3.7], ['A+', 4.0],
-          ['B+', 3.5], ['B', 3.0], ['B-', 2.7],
-          ['C+', 2.5], ['C', 2.0], ['C-', 1.7],
-          ['D+', 1.5], ['D', 1.0], ['D-', 0.7],
-          ['F', 0.0], ['S', 0.0]  // S (success) for internship counts as completed but no grade points
-        ]);
-        
-        const totalPoints = gradedCourses.reduce((sum, course) => {
-          const gradeUpper = (course.grade || '').toUpperCase();
-          const points = gradeMap.get(gradeUpper) ?? 0;
-          return sum + (points * course.credits);
-        }, 0);
-        
-        const totalCreditsGraded = gradedCourses.reduce((sum, course) => sum + course.credits, 0);
-        return totalCreditsGraded > 0 ? totalPoints / totalCreditsGraded : 0;
-      };
-
-      const calculatedGPA = calculateGPAForSaving();
+      // Calculate GPA and credits using standard calculateGPA function
+      const gpaResult = calculateGPA(coursesForFirebase as any);
+      const curriculumRequiredTotal = getCurriculumTotalCredits(studyPlan.program, studyPlan.curriculumYear);
+      const sumCoursesCredits = coursesForFirebase.reduce((sum, c) => sum + (c.credits || 0), 0);
+      const totalCredits = Math.max(curriculumRequiredTotal, sumCoursesCredits);
+      const completedCredits = gpaResult.completedCredits;
+      const calculatedGPA = gpaResult.gpa;
 
       // DEBUG: Log the data being saved
       console.log('🔍 [StudyPlan Save Debug]', {
         completedCredits,
         totalCredits,
         calculatedGPA,
+        program: studyPlan.program,
+        curriculumYear: studyPlan.curriculumYear,
         courseCount: coursesForFirebase.length,
         completedCount: coursesForFirebase.filter(c => c.status === 'completed').length,
         studentId: studyPlan.studentId
@@ -656,9 +634,13 @@ const StudyPlanManager: React.FC = () => {
       if (planId) {
         await firebaseService.updateStudyPlan(planId, {
           ...updates,
+          program: studyPlan.program,
+          curriculumYear: studyPlan.curriculumYear,
+          curriculum: `${studyPlan.program}-${studyPlan.curriculumYear}`,
           courses: coursesForFirebase,
           completedCredits,
-          totalCredits
+          totalCredits,
+          gpa: calculatedGPA
         });
         // Sync GPA and credits to Firebase
         const syncResult = await firebaseService.updateStudentGPAAndCredits(
@@ -677,9 +659,13 @@ const StudyPlanManager: React.FC = () => {
       }
       await firebaseService.updateStudyPlan(existingPlan.id, {
         ...updates,
+        program: studyPlan.program,
+        curriculumYear: studyPlan.curriculumYear,
+        curriculum: `${studyPlan.program}-${studyPlan.curriculumYear}`,
         courses: coursesForFirebase,
         completedCredits,
-        totalCredits
+        totalCredits,
+        gpa: calculatedGPA
       });
       // Update GPA and credits
       const syncResult2 = await firebaseService.updateStudentGPAAndCredits(
@@ -780,6 +766,8 @@ const StudyPlanManager: React.FC = () => {
           isElective: course.category === 'elective' || course.category === 'general' || course.category === 'free' || course.subCategory === 'กลุ่มวิชาชีพ' || ((course.name || '').includes('วิชาเลือก'))
         }));
 
+      const curriculumTotal = getCurriculumTotalCredits(selectedProgram, selectedCurriculumYear);
+
       const newPlan: StudyPlan = {
         id: '',
         studentId: user.id,
@@ -788,7 +776,7 @@ const StudyPlanManager: React.FC = () => {
         curriculumYear: selectedCurriculumYear,
         isLocked: true,
         courses: initialCourses,
-        totalCredits: initialCourses.reduce((sum, c) => sum + (c.credits || 0), 0),
+        totalCredits: curriculumTotal,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -1463,24 +1451,35 @@ const StudyPlanManager: React.FC = () => {
                             )}
 
                             <div className="space-y-1">
-                              <Label className="text-xs">เกรด</Label>
+                              <Label className="text-xs">สถานะ / เกรด</Label>
                               <Select
-                                value={isInternshipCourse(course) ? (course.grade === 'S' ? 'S' : 'none') : (course.grade || 'none')}
+                                value={
+                                  course.status === 'in_progress' && !course.grade
+                                    ? 'in_progress'
+                                    : isInternshipCourse(course)
+                                      ? (course.grade === 'S' ? 'S' : (course.status === 'in_progress' ? 'in_progress' : 'none'))
+                                      : (course.grade || (course.status === 'in_progress' ? 'in_progress' : 'none'))
+                                }
                                 onValueChange={(value) => {
                                   if (isInternshipCourse(course)) {
-                                    updateCourseGrade(course.id, value === 'none' ? '' : 'S');
+                                    if (value === 'in_progress') {
+                                      updateCourseGrade(course.id, 'in_progress');
+                                    } else {
+                                      updateCourseGrade(course.id, value === 'none' ? '' : 'S');
+                                    }
                                     return;
                                   }
                                   updateCourseGrade(course.id, value === 'none' ? '' : value);
                                 }}
                               >
                                 <SelectTrigger className="h-8 text-sm">
-                                  <SelectValue placeholder="เลือกเกรด" />
+                                  <SelectValue placeholder="เลือกสถานะ/เกรด" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="none">-</SelectItem>
+                                  <SelectItem value="none">- (วางแผน)</SelectItem>
+                                  <SelectItem value="in_progress">กำลังเรียน</SelectItem>
                                   {isInternshipCourse(course) ? (
-                                    <SelectItem value="S">S</SelectItem>
+                                    <SelectItem value="S">S (ผ่าน)</SelectItem>
                                   ) : (
                                     getAvailableGrades().map(grade => (
                                       <SelectItem key={grade} value={grade}>

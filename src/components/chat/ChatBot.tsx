@@ -68,12 +68,21 @@ const ChatBot: React.FC = () => {
   useEffect(() => {
     // BUG-05 fix: only initialize once when data loading is complete
     if (dataIsLoading) return;
-    if (chatInitializedRef.current) return;
+    const cleanupChat = () => {
+      const container = document.getElementById('n8n-chat');
+      if (container) {
+        container.innerHTML = '';
+      }
+      const shadowRoots = document.querySelectorAll('n8n-chat');
+      shadowRoots.forEach(el => el.remove());
+      chatInitializedRef.current = false;
+    };
 
     const initializeChat = async () => {
       try {
         setIsInitializing(true);
         setChatError(null);
+        cleanupChat();
         
         const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/dd7276e3-4e2c-48c0-a7b7-ca3647acf777/chat';
 
@@ -104,10 +113,13 @@ const ChatBot: React.FC = () => {
               userName: user.name || '',
               studentId: user.studentId || '',
               role: user.role || '',
-              department: user.department || '',
-              gpa: gpaData?.gpa || 0,
-              completedCredits: gpaData?.completedCredits || 0,
-              totalCredits: gpaData?.totalCredits || 0,
+              department: studyPlan?.program || user.department || '',
+              program: studyPlan?.program || '',
+              curriculumYear: studyPlan?.curriculumYear || '',
+              curriculum: studyPlan?.program && studyPlan?.curriculumYear ? `${studyPlan.program}-${studyPlan.curriculumYear}` : (studyPlan?.curriculum || ''),
+              gpa: gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0,
+              completedCredits: gpaData?.completedCredits ?? studyPlan?.completedCredits ?? 0,
+              totalCredits: studyPlan?.totalCredits || gpaData?.totalCredits || 0,
               gradePassingThreshold: 'D',  // D and above counts as passing
               completedCourseCodes: completedCourseCodes,  // List of passed course codes
               studyPlan: studyPlan?.courses ? studyPlan.courses.map(c => ({
@@ -177,18 +189,16 @@ const ChatBot: React.FC = () => {
 
     // Clean up chat elements upon unmount
     return () => {
-      const container = document.getElementById('n8n-chat');
-      if (container) {
-        container.innerHTML = '';
-      }
-      const shadowRoot = document.querySelector('n8n-chat');
-      if (shadowRoot) {
-        shadowRoot.remove();
-      }
-      chatInitializedRef.current = false;
+      cleanupChat();
     };
-  // BUG-05 fix: only re-run when dataIsLoading changes (not every data update)
-  }, [dataIsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    dataIsLoading,
+    user?.id,
+    gpaData?.gpa,
+    gpaData?.completedCredits,
+    studyPlan?.courses?.length,
+    (studyPlan?.updatedAt as any)?.toString?.()
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (dataIsLoading || isInitializing) {
     return (
