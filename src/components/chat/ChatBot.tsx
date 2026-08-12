@@ -1,45 +1,125 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import '@n8n/chat/style.css';
 import { createChat } from '@n8n/chat';
+import './ChatBot.css';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
+import { Course } from '@/types/course';
 
 const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [curriculumCourses, setCurriculumCourses] = useState<Course[]>([]);
+  const [curriculumLoading, setCurriculumLoading] = useState(false);
+  // BUG-05 fix: track whether chat has been initialized to prevent re-initialization
+  const chatInitializedRef = useRef(false);
+
+  const { user, isLoading: authLoading } = useAuth();
+  const { studyPlan, loading: studyPlanLoading } = useStudyPlan(user?.id || '');
+  const { data: gpaData, loading: gpaLoading } = useStudentGPAAndCredits(user?.id || '');
+
+  // Fetch standard curriculum courses if student is logged in
+  useEffect(() => {
+    if (authLoading || studyPlanLoading || !user || !studyPlan?.curriculum) {
+      setCurriculumCourses([]);
+      return;
+    }
+
+    const fetchCurriculum = async () => {
+      try {
+        setCurriculumLoading(true);
+        const parts = studyPlan.curriculum.split('-');
+        const program = parts[0] || 'IT';
+        const curriculumYear = parts[1] || '67';
+        
+        const { getCoursesByProgram } = await import('@/services/courseService');
+        const courses = await getCoursesByProgram(program, curriculumYear);
+        setCurriculumCourses(courses);
+      } catch (error) {
+        console.error('Error fetching curriculum courses:', error);
+      } finally {
+        setCurriculumLoading(false);
+      }
+    };
+
+    fetchCurriculum();
+  }, [authLoading, studyPlanLoading, user, studyPlan?.curriculum]);
+
+  // Only consider study plan & gpa & curriculum loading when there is a logged-in user
+  const dataIsLoading = authLoading || (!!user && (studyPlanLoading || gpaLoading || curriculumLoading));
 
   useEffect(() => {
+    // BUG-05 fix: only initialize once when data loading is complete
+    if (dataIsLoading) return;
+    if (chatInitializedRef.current) return;
+
     const initializeChat = async () => {
       try {
-        setIsLoading(true);
+        setIsInitializing(true);
         setChatError(null);
         
-        // Check if webhook is available before initializing chat
         const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/dd7276e3-4e2c-48c0-a7b7-ca3647acf777/chat';
-        
-        // Test webhook connectivity
-        try {
-          const response = await fetch(webhookUrl, { 
-            method: 'HEAD',
-            signal: AbortSignal.timeout(3000) // 3 second timeout
-          });
-          
-          // If webhook is not available, show warning but still initialize chat
-          if (!response.ok) {
-            console.warn('Webhook service may not be available, but initializing chat anyway');
-          }
-        } catch (fetchError) {
-          console.warn('Webhook service is not available, but initializing chat anyway:', fetchError);
-          // Don't throw error, just log warning and continue
-        }
+
+        const initialMessages = user 
+          ? [
+              `สวัสดีครับ คุณ ${user.name} 👋`,
+              'ผมคือ AI Assistant ของภาควิชาเทคโนโลยีสารสนเทศ มีอะไรให้ช่วยไหมครับ?'
+            ]
+          : [
+              'สวัสดีครับ 👋 ยินดีต้อนรับสู่ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศ',
+              'ผมคือ AI Assistant มีอะไรให้ช่วยเหลือเกี่ยวกับหลักสูตรและรายวิชาไหมครับ?'
+            ];
+
+        const metadata = user 
+          ? {
+              userId: user.id || '',
+              userName: user.name || '',
+              studentId: user.studentId || '',
+              role: user.role || '',
+              department: user.department || '',
+              gpa: gpaData?.gpa || 0,
+              completedCredits: gpaData?.completedCredits || 0,
+              totalCredits: gpaData?.totalCredits || 0,
+              studyPlan: studyPlan?.courses ? studyPlan.courses.map(c => ({
+                code: c.code,
+                name: c.name,
+                credits: c.credits,
+                year: c.year,
+                semester: c.semester,
+                status: c.status,
+                grade: c.grade || 'N/A'
+              })) : [],
+              curriculumCourses: curriculumCourses.map(c => ({
+                code: c.code,
+                name: c.name,
+                credits: c.credits,
+                category: c.category,
+                year: c.year,
+                semester: c.semester,
+                prerequisites: c.prerequisites || [],
+                corequisites: c.corequisites || []
+              }))
+            }
+          : {
+              userId: 'guest',
+              userName: 'Guest',
+              studentId: 'guest',
+              role: 'guest',
+              department: 'guest',
+              gpa: 0,
+              completedCredits: 0,
+              totalCredits: 0,
+              studyPlan: [],
+              curriculumCourses: []
+            };
 
         createChat({
           webhookUrl,
           mode: 'window',
           showWelcomeScreen: true,
           defaultLanguage: 'en',
-          initialMessages: [
-            'สวัสดีครับ 👋',
-            'ผมคือ AI Assistant ของภาควิชาเทคโนโลยีสารสนเทศ มีอะไรให้ช่วยไหมครับ?'
-          ],
+          initialMessages,
+          metadata,
           i18n: {
             en: {
               title: 'IT Course Assistant 👋',
@@ -50,21 +130,37 @@ const ChatBot: React.FC = () => {
               closeButtonTooltip: 'ปิดแชทบอท',
             },
           },
-          loadPreviousSession: true,
+          loadPreviousSession: false, // Set to false to prevent caching old session memories
           enableStreaming: false,
         });
+
+        chatInitializedRef.current = true;
       } catch (error) {
         console.error('Chat initialization error:', error);
         setChatError('ขออภัย ระบบแชทบอทไม่สามารถเชื่อมต่อได้ในขณะนี้');
       } finally {
-        setIsLoading(false);
+        setIsInitializing(false);
       }
     };
 
     initializeChat();
-  }, []);
 
-  if (isLoading) {
+    // Clean up chat elements upon unmount
+    return () => {
+      const container = document.getElementById('n8n-chat');
+      if (container) {
+        container.innerHTML = '';
+      }
+      const shadowRoot = document.querySelector('n8n-chat');
+      if (shadowRoot) {
+        shadowRoot.remove();
+      }
+      chatInitializedRef.current = false;
+    };
+  // BUG-05 fix: only re-run when dataIsLoading changes (not every data update)
+  }, [dataIsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (dataIsLoading || isInitializing) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
