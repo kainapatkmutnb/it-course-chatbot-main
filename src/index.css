@@ -279,3 +279,40 @@
     @apply bg-muted text-muted-foreground rounded-2xl rounded-bl-md;
   }
 }
+
+/* Global Print Stylesheet */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide non-printable widgets and overlays */
+  #n8n-chat,
+  n8n-chat,
+  .chat-toggle,
+  [class*="toggle"],
+  [class*="launcher"],
+  [class*="chat"],
+  .n8n-chat,
+  [class*="n8n"],
+  header,
+  footer,
+  nav,
+  .sonner-toast,
+  [data-sonner-toaster],
+  [data-radix-popper-content-wrapper] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
+  }
+}

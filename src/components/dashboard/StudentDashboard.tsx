@@ -16,6 +16,7 @@ import { calculateGPA as calculateGPAUtil } from '@/utils/gradeUtils';
 import { Department } from '@/types/course';
 import StudyPlanManager from '@/components/study-plan/StudyPlanManager';
 import StudyPlanProgress from '@/components/study-plan/StudyPlanProgress';
+import StudyPlanReport from '@/components/study-plan/StudyPlanReport';
 import { 
   AlertCircle,
   Target,
@@ -28,7 +29,8 @@ import {
   Edit,
   Save,
   X,
-  Map
+  Map,
+  FileText
 } from 'lucide-react';
 
 
@@ -155,10 +157,10 @@ const StudentDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 gradient-subtle">
-      <div className="container mx-auto space-y-6">
+    <div className="min-h-screen p-6 gradient-subtle print:p-0 print:bg-white">
+      <div className="container mx-auto space-y-6 print:space-y-0 print:max-w-none print:p-0">
         {/* Welcome Section with User Info */}
-        <Card className="shadow-soft border-0 bg-gradient-to-r from-student/10 to-primary/10">
+        <Card className="shadow-soft border-0 bg-gradient-to-r from-student/10 to-primary/10 print:hidden">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
@@ -193,9 +195,10 @@ const StudentDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="study-plan" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4 print:hidden">
             <TabsTrigger value="study-plan">จัดการแผนการเรียน</TabsTrigger>
             <TabsTrigger value="study-progress">การวางแผนการเรียน</TabsTrigger>
+            <TabsTrigger value="report">รายงานแผนการเรียน</TabsTrigger>
             <TabsTrigger value="profile">โปรไฟล์</TabsTrigger>
           </TabsList>
 
@@ -207,6 +210,11 @@ const StudentDashboard: React.FC = () => {
           {/* Study Plan Progress Tab */}
           <TabsContent value="study-progress" className="space-y-6">
             <StudyPlanProgress />
+          </TabsContent>
+          
+          {/* Study Plan Report Tab */}
+          <TabsContent value="report" className="space-y-6">
+            <StudyPlanReport />
           </TabsContent>
           
           {/* Profile Tab */}

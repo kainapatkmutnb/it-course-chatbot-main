@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { User } from '@/types/auth';
 import { getAllCourses, studentCourses } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
-import { ref, update } from 'firebase/database';
 import { db as database } from '@/config/firebase';
+import StudyPlanReport from '@/components/study-plan/StudyPlanReport';
 import { 
   BookOpen, 
   CheckCircle, 
@@ -226,9 +226,9 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const progress = getStudentProgress();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-0">
       {/* Header with Back Button */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 print:hidden">
         {onBack && (
           <Button variant="outline" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -242,7 +242,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
       </div>
 
       {/* Student Info Card */}
-      <Card className="shadow-medium">
+      <Card className="shadow-medium print:hidden">
         <CardContent className="p-6">
           <div className="flex items-start space-x-6">
             <Avatar className="h-24 w-24">
@@ -299,11 +299,24 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
         </CardContent>
       </Card>
 
-      {/* Course Details - Study Plan Only */}
-      <Tabs defaultValue="study-plan" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-1">
-          <TabsTrigger value="study-plan">แผนการเรียน</TabsTrigger>
+      {/* Course Details - Study Plan & Report */}
+      <Tabs defaultValue="report" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 print:hidden">
+          <TabsTrigger value="report">รายงานแผนการเรียน & PDF</TabsTrigger>
+          <TabsTrigger value="study-plan">รายการรายวิชา</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="report" className="space-y-6">
+          <StudyPlanReport 
+            studentId={studentId} 
+            studentUser={student ? {
+              name: student.name,
+              studentId: student.studentId,
+              email: student.email,
+              department: student.department
+            } : undefined} 
+          />
+        </TabsContent>
 
         <TabsContent value="study-plan" className="space-y-6">
           <Card className="shadow-medium">

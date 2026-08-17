@@ -240,3 +240,29 @@
 #n8n-chat .chat-window {
   animation: chatFadeIn 0.25s ease forwards !important;
 }
+
+/* ----- Hide all Chat elements on Print ----- */
+@media print {
+  #n8n-chat,
+  n8n-chat,
+  .chat-toggle,
+  [class*="toggle"],
+  [class*="launcher"],
+  [class*="chat"],
+  .n8n-chat,
+  [class*="n8n"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
+    position: static !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+}
+

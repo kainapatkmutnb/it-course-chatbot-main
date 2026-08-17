@@ -61,7 +61,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-soft">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-soft print:hidden">
       <div className="container mx-auto px-6 flex h-16 items-center justify-between">
         {/* Logo and Brand */}
         <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
