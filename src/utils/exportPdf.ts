@@ -26,7 +26,7 @@ export async function exportElementToPdf(
     backgroundColor: '#ffffff',
     scrollX: 0,
     scrollY: 0,
-    windowWidth: 1200,
+    windowWidth: 794,
     onclone: (clonedDoc, clonedElement) => {
       // Force light theme
       clonedDoc.documentElement.classList.remove('dark');

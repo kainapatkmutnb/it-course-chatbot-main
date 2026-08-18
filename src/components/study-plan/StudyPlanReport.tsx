@@ -285,11 +285,9 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
           <p className="text-xs text-gray-600">
             ภาควิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีและการจัดการอุตสาหกรรม มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
           </p>
-          <div className="pt-1">
-            <span className="inline-block text-xs font-semibold px-3 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              {programLabel}
-            </span>
-          </div>
+          <p className="text-xs md:text-sm font-semibold text-blue-700 pt-0.5">
+            {programLabel}
+          </p>
         </div>
 
         {/* ---- Student Information Grid (pdf-section) ---- */}
