@@ -401,10 +401,11 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
                   {group.label}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-600 font-mono">
+                <span className="font-mono text-gray-600">
                     {group.courses.length} วิชา
                   </span>
-                  <span className="font-bold text-gray-900 font-mono bg-white px-2 py-0.5 rounded border border-gray-300">
+                  <span className="text-gray-400 mx-0.5">|</span>
+                  <span className="font-bold font-mono text-gray-900">
                     {group.totalCredits} หน่วยกิต
                   </span>
                 </div>
