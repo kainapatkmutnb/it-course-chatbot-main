@@ -35,22 +35,22 @@ const STATUS_CONFIG = {
   completed: {
     label: 'ผ่าน',
     textClass: 'text-emerald-700 font-bold dark:text-emerald-400 print:text-emerald-800',
-    dotClass: 'bg-emerald-600',
+    dotClass: 'text-emerald-600',
   },
   failed: {
     label: 'ไม่ผ่าน',
     textClass: 'text-rose-700 font-bold dark:text-rose-400 print:text-rose-800',
-    dotClass: 'bg-rose-600',
+    dotClass: 'text-rose-600',
   },
   in_progress: {
     label: 'กำลังเรียน',
     textClass: 'text-amber-700 font-bold dark:text-amber-400 print:text-amber-800',
-    dotClass: 'bg-amber-500',
+    dotClass: 'text-amber-500',
   },
   planned: {
     label: 'วางแผน',
     textClass: 'text-slate-600 font-semibold dark:text-slate-400 print:text-slate-700',
-    dotClass: 'bg-slate-500',
+    dotClass: 'text-slate-500',
   },
 } as const;
 
@@ -369,7 +369,7 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
                   key={status}
                   className="flex items-center gap-1.5 text-xs whitespace-nowrap"
                 >
-                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${config.dotClass}`} />
+                  <span className={`text-sm leading-none ${config.dotClass}`}>●</span>
                   <span className={config.textClass}>{config.label}</span>
                   <span className="text-[11px] text-gray-600 font-mono">{count} วิชา ({credits} นก.)</span>
                 </div>
