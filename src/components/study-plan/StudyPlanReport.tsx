@@ -359,7 +359,7 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
               ผ่านแล้ว {kpis.completedCredits} จาก {kpis.requiredCredits} นก.
             </span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
             {(Object.keys(STATUS_CONFIG) as Array<keyof typeof STATUS_CONFIG>).map((status) => {
               const config = STATUS_CONFIG[status];
               const count = kpis.counts[status];
@@ -367,13 +367,11 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
               return (
                 <div
                   key={status}
-                  className="flex items-center gap-2 p-2 rounded-md bg-white border border-gray-200 text-xs"
+                  className="flex items-center gap-1.5 text-xs whitespace-nowrap"
                 >
                   <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${config.dotClass}`} />
-                  <div className="leading-normal">
-                    <span className={`mr-1.5 ${config.textClass}`}>{config.label}</span>
-                    <span className="text-[11px] text-gray-600 font-mono">{count} วิชา ({credits} นก.)</span>
-                  </div>
+                  <span className={config.textClass}>{config.label}</span>
+                  <span className="text-[11px] text-gray-600 font-mono">{count} วิชา ({credits} นก.)</span>
                 </div>
               );
             })}
