@@ -412,15 +412,23 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
 
               {/* Table */}
               <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse">
+                <table className="w-full text-xs border-collapse table-fixed">
+                  <colgroup>
+                    <col style={{ width: '16%' }} />
+                    <col style={{ width: '30%' }} />
+                    <col style={{ width: '10%' }} />
+                    <col style={{ width: '16%' }} />
+                    <col style={{ width: '10%' }} />
+                    <col style={{ width: '18%' }} />
+                  </colgroup>
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50/80 text-gray-600">
-                      <th className="text-left px-3 py-1.5 font-semibold w-[120px]">รหัสวิชา</th>
+                      <th className="text-left px-3 py-1.5 font-semibold">รหัสวิชา</th>
                       <th className="text-left px-3 py-1.5 font-semibold">ชื่อวิชา</th>
-                      <th className="text-center px-2 py-1.5 font-semibold w-[60px]">หน่วยกิต</th>
-                      <th className="text-center px-2 py-1.5 font-semibold w-[90px]">หมวดหมู่</th>
-                      <th className="text-center px-2 py-1.5 font-semibold w-[55px]">เกรด</th>
-                      <th className="text-center px-2 py-1.5 font-semibold w-[85px]">สถานะ</th>
+                      <th className="text-center px-2 py-1.5 font-semibold">หน่วยกิต</th>
+                      <th className="text-center px-2 py-1.5 font-semibold">หมวดหมู่</th>
+                      <th className="text-center px-2 py-1.5 font-semibold">เกรด</th>
+                      <th className="text-center px-2 py-1.5 font-semibold">สถานะ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -431,14 +439,8 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
                           <td className="px-3 py-1.5 font-mono text-[11px] font-medium text-gray-900">{course.code}</td>
                           <td className="px-3 py-1.5 font-medium text-gray-800">{course.name}</td>
                           <td className="px-2 py-1.5 text-center font-mono text-gray-900">{course.credits}</td>
-                          <td className="px-2 py-1.5 text-center">
-                            <span className="text-[11px] text-gray-600">
-                              {CATEGORY_LABELS[course.category] || course.category}
-                            </span>
-                          </td>
-                          <td className="px-2 py-1.5 text-center font-mono font-bold text-gray-900">
-                            {course.grade || '-'}
-                          </td>
+                          <td className="px-2 py-1.5 text-center text-[11px] text-gray-600">{CATEGORY_LABELS[course.category] || course.category}</td>
+                          <td className="px-2 py-1.5 text-center font-mono font-bold text-gray-900">{course.grade || '-'}</td>
                           <td className="px-2 py-1.5 text-center">
                             <span className={`text-xs ${statusCfg.textClass}`}>
                               {statusCfg.label}
