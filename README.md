@@ -53,6 +53,27 @@ graph TD
 - **Automated Curriculum Comparison:** เปรียบเทียบแผนการเรียนจริงของนักศึกษากับหลักสูตรมาตรฐาน เพื่อหาและรายงานรายวิชาบังคับที่ยังไม่ได้ศึกษา
 - **Role-Based Security Guard:** กรองสิทธิ์การเข้าถึงข้อมูลรายวิชา หากเป็นผู้เยี่ยมชม (Guest Mode) ระบบจะจำกัดการดูข้อมูลส่วนตัว และค้นหาข้อมูลวิชาเรียนทั่วไปผ่าน Pinecone RAG เท่านั้น
 
+### 6. ระบบจัดเก็บและวิเคราะห์ Log การใช้งาน Chatbot (Chatbot Logging & Analytics Dashboard)
+- **Automated Chat Conversation Logging:** บันทึกประวัติการถาม-ตอบทุกข้อความลง Firebase Realtime Database (`/chatLogs`) แบบเรียลไทม์ ครอบคลุม 10 มิติข้อมูล (Session ID, User ID, ชื่อผู้ใช้, บทบาท, รหัสนักศึกษา, ข้อความคำถาม, ข้อความคำตอบ, หมวดหมู่คำถาม Intent, สถานะความสำเร็จ, เวลาตอบสนอง Response Time, ช่องทาง Channel, วันที่-เวลา Timestamp)
+- **Smart NLP Intent Classifier:** ระบบจำแนกหมวดหมู่คำถามอัตโนมัติ 8 หมวดหมู่หลัก (ตรวจวิชาบังคับก่อน, ข้อมูลรายวิชา, แผนการเรียน, คำแนะนำลงทะเบียน, เปรียบเทียบหลักสูตร, เกรดและผลการเรียน, ทักทาย, คำถามทั่วไป) พร้อมตรวจจับ Fallback Response แม่นยำ
+- **4 Key Performance Indicators (KPI Cards):** แสดงสรุปภาพรวมสำคัญ:
+  1. **ข้อความทั้งหมด (Total Messages)**
+  2. **อัตราการตอบสำเร็จ (Success Rate %)**
+  3. **เวลาตอบกลับเฉลี่ย (Average Response Time in Seconds/ms)**
+  4. **อัตรา Fallback / คำถามที่ตอบไม่ได้ (%)**
+- **4 Interactive Visual Charts (Recharts):**
+  - **Top Intents Bar Chart:** กราฟแท่งแสดงความถี่หมวดหมู่คำถามยอดนิยม
+  - **Success vs Fallback Donut Chart:** แผนภูมิวงแหวนแสดงสัดส่วนคำถามที่ตอบสำเร็จเทียบกับคำถามที่ตอบไม่ได้
+  - **Daily Trend Area Chart:** กราฟพื้นที่แสดงปริมาณการใช้งานแชทบอทรายวัน
+  - **24-Hour Peak Hours Bar Chart:** กราฟแท่งแสดงช่วงเวลาการใช้งานหนาแน่นที่สุดในรอบ 24 ชั่วโมง
+- **Conversation Logs Explorer & Filters:** ตารางประวัติการสนทนาละเอียด ค้นหาตามคำถาม/ชื่อผู้ใช้, กรองตามหมวดหมู่ Intent, กรองตามสถานะความสำเร็จ, แบ่งหน้า (Pagination), และลบ Log รายการเดี่ยว
+- **Failure Analysis View:** แท็บวิเคราะห์คำถามที่บอทตอบไม่ได้ เพื่อให้ผู้ดูแลระบบและอาจารย์นำคำถามไปเพิ่มเอกสารใน Pinecone Vector Store (RAG)
+- **Multi-Format Export Engine:**
+  - **Excel (.xlsx) Export:** ส่งออกสมุดงาน Excel พร้อม 3 แผ่นงาน (`ประวัติการสนทนา`, `สถิติตามหมวดหมู่`, `คำถามที่ตอบไม่ได้`) และปรับความกว้างคอลัมน์อัตโนมัติ
+  - **CSV (.csv) Export:** ส่งออกไฟล์ CSV พร้อมส่วนหัวสรุปสถิติ (Executive Summary) และจัดการ Encoding ป้องกันสระภาษาไทยและตัวเลขอักขระเพี้ยนใน Excel
+  - **Mock Data Generator:** ปุ่มสร้างข้อมูลจำลอง 15 รายการเพื่อการทดสอบและวิเคราะห์
+- **PDPA & Privacy Compliance:** ระบบแจ้งเตือน Privacy Notice ก่อนเริ่มแชท และรองรับสิทธิ์การขอลบประวัติสนทนาส่วนบุคคล (Right to Erasure)
+
 ---
 
 ## 👥 ตารางสิทธิ์เข้าใช้งานระบบ (Role & Permissions Matrix)
@@ -62,7 +83,7 @@ graph TD
 | **นักศึกษา (Student)** | - จัดการแผนการเรียนส่วนตัวและบันทึกผลการเรียน<br>- ดูรายงานแผนการเรียนและพิมพ์/ส่งออกเอกสาร PDF ทางการ<br>- ใช้งานแชทบอท AI แบบรู้จำข้อมูลผลการเรียนส่วนบุคคล |
 | **อาจารย์ (Instructor)** | - เข้าถึงรายชื่อและข้อมูลนักศึกษาในความดูแล<br>- ตรวจสอบและพิมพ์รายงานแผนการเรียน PDF ของนักศึกษาแต่ละคน<br>- ติดตามความก้าวหน้าและให้คำปรึกษาการลงทะเบียนเรียน |
 | **บุคลากร (Staff)** | - บริหารจัดการโครงสร้างรายวิชาส่วนกลาง<br>- ตรวจสอบรายงานแผนการเรียนของนักศึกษาในภาควิชา<br>- กำหนดเงื่อนไขวิชาเรียน (Prerequisites/Corequisites) |
-| **ผู้ดูแลระบบ (Admin)** | - ตรวจสอบความปลอดภัยระบบผ่าน Audit Logs<br>- บริหารจัดการบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าถึงทั้งหมด |
+| **ผู้ดูแลระบบ (Admin)** | - ตรวจสอบความปลอดภัยระบบผ่าน Audit Logs<br>- **เข้าถึงแดชบอร์ดสถิติแชทบอท (Chat Analytics Dashboard)**<br>- **วิเคราะห์คำถามที่บอทตอบไม่ได้ และส่งออกรายงาน Excel/CSV**<br>- บริหารจัดการบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าถึงทั้งหมด |
 
 ---
 
@@ -72,7 +93,7 @@ graph TD
 - **Core:** React 18, TypeScript, Vite
 - **Styling:** Tailwind CSS, shadcn/ui (Radix UI)
 - **Routing & State:** React Router DOM, TanStack React Query (React Query v5)
-- **Document & PDF Generation:** `html2canvas`, `jspdf`
+- **Document & Spreadsheet Generation:** `xlsx` (SheetJS), `html2canvas`, `jspdf`
 - **Visualization:** Recharts, Lucide React Icons
 
 ### หลังบ้าน (Backend & Database)
@@ -80,7 +101,7 @@ graph TD
 - **Hosting:** Firebase Hosting
 
 ### ระบบ AI & Chatbot
-- **Workflow Automation:** n8n Workflow Webhook
+- **Workflow Automation:** n8n Workflow Webhook & Sandboxed NLP Pipeline
 - **Vector Database:** Pinecone Vector Store (RAG)
 - **LLM Engine:** OpenAI Chat Model (`gpt-4o-mini` / `gpt-3.5-turbo`)
 
@@ -91,7 +112,7 @@ graph TD
 ### ข้อกำหนดเบื้องต้น (Prerequisites)
 - **Node.js** (เวอร์ชัน 18 ขึ้นไป)
 - **Firebase Project** ที่เปิดใช้งาน Realtime Database และ Authentication
-- **n8n Webhook URL** (สำหรับการใช้แชทบอท AI)
+- **n8n Webhook URL** (สำหรับการใช้แชทบอท AI และการจัดเก็บ Chat Log)
 
 ### ขั้นตอนการติดตั้ง
 
@@ -141,19 +162,20 @@ src/
 ├── components/          # ส่วนประกอบอินเทอร์เฟซหลัก
 │   ├── chat/            # หน้าต่างอินเทอร์เฟซแชทบอท (ChatBot.tsx, ChatBot.css)
 │   ├── curriculum/      # หน้าแสดงแผนผังวิชาเรียนแบบ Grid และ Timeline
-│   ├── dashboard/       # แดชบอร์ดตามบทบาท (StudentDashboard.tsx, StudentDetailView.tsx ฯลฯ)
+│   ├── dashboard/       # แดชบอร์ดตามบทบาท (AdminDashboard.tsx, ChatAnalyticsDashboard.tsx ฯลฯ)
 │   ├── layout/          # ส่วนหัวและท้ายของเว็บ (Header.tsx, Footer.tsx)
 │   └── study-plan/      # ระบบแผนการเรียน (StudyPlanManager.tsx, StudyPlanReport.tsx ฯลฯ)
 ├── contexts/            # ระบบจัดการสเตตการล็อกอิน (AuthContext.tsx)
 ├── hooks/               # React Hooks ดึงข้อมูล Firebase (useFirebaseData.ts)
-├── services/            # บริการ API ข้อมูลหลักสูตร (departmentService.ts, hybridCourseService.ts)
+├── services/            # บริการ API ข้อมูลหลักสูตรและแชทล็อก (chatLogService.ts, departmentService.ts ฯลฯ)
 ├── utils/               # ยูทิลิตีระบบ (exportPdf.ts, gradeUtils.ts)
-└── types/               # การกำหนดชนิดตัวแปรและข้อมูล (Types)
+└── types/               # การกำหนดชนิดตัวแปรและข้อมูล (chatLog.ts, course.ts, user.ts ฯลฯ)
 ```
 
 ---
 
-## 🔒 กฎความมั่นคงปลอดภัย (Security Policies)
+## 🔒 กฎความมั่นคงปลอดภัยและความเป็นส่วนตัว (Security & Privacy Policies)
 - จำกัดสิทธิ์การสมัครและเข้าใช้งานเฉพาะอีเมลภายใต้โดเมนสถาบัน `@kmutnb.ac.th` และ `@email.kmutnb.ac.th` เท่านั้น
 - มีการเข้ารหัสและตรวจสอบตัวตนผ่าน Firebase Authentication ทุกเซสชัน
 - บันทึกพฤติกรรมการเขียนหรือแก้ไขฐานข้อมูลวิชาผ่าน Audit Logs
+- จัดเก็บและควบคุมข้อมูลการใช้งานแชทบอทตามหลัก PDPA พร้อมระบบจำกัดสิทธิ์การเข้าถึงเฉพาะผู้ดูแลระบบ (Admin)
