@@ -43,6 +43,14 @@ const INTENT_NAMES: Record<string, string> = {
 const PIE_COLORS = ['#10b981', '#ef4444'];
 const BAR_COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#14b8a6', '#64748b'];
 
+const ROLE_NAMES: Record<string, string> = {
+  student: 'นักศึกษา',
+  instructor: 'อาจารย์',
+  staff: 'เจ้าหน้าที่',
+  admin: 'ผู้ดูแลระบบ',
+  guest: 'ผู้เยี่ยมชม'
+};
+
 const ChatAnalyticsDashboard: React.FC = () => {
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState<string>('30');
@@ -56,6 +64,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -150,43 +159,150 @@ const ChatAnalyticsDashboard: React.FC = () => {
     }
   };
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    if (logs.length === 0) {
+  // Export to CSV with Executive Summary and formatted columns
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+
+      // Fetch all matching logs according to current filters
+      const exportData = await chatLogService.getChatLogs({
+        limit: 10000,
+        page: 1,
+        intent: selectedIntentFilter,
+        isSuccess: selectedStatusFilter === 'success' ? true : selectedStatusFilter === 'failure' ? false : undefined
+      });
+
+      let exportLogs = exportData.logs;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        exportLogs = exportLogs.filter(l =>
+          (l.query && l.query.toLowerCase().includes(term)) ||
+          (l.response && l.response.toLowerCase().includes(term)) ||
+          (l.userName && l.userName.toLowerCase().includes(term)) ||
+          (l.studentId && l.studentId.includes(term))
+        );
+      }
+
+      if (exportLogs.length === 0) {
+        toast({
+          title: 'ไม่มีข้อมูล',
+          description: 'ไม่มีรายการ Log สำหรับส่งออกตามเงื่อนไขที่เลือก',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Calculate executive summary metrics
+      const totalCount = exportLogs.length;
+      const successCount = exportLogs.filter(l => l.isSuccess).length;
+      const failureCount = totalCount - successCount;
+      const successRate = ((successCount / totalCount) * 100).toFixed(2);
+      const fallbackRate = ((failureCount / totalCount) * 100).toFixed(2);
+      const avgResponseTime = (
+        exportLogs.reduce((acc, l) => acc + (Number(l.responseTimeMs) || 850), 0) / totalCount / 1000
+      ).toFixed(2);
+
+      const now = new Date();
+      const exportDateStr = now.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      const timeRangeText = timeRange === '0' ? 'ข้อมูลทั้งหมด (All Time)' : `ย้อนหลัง ${timeRange} วัน`;
+
+      // 1. Summary Header Block
+      const summaryRows = [
+        ['"=== รายงานสถิติและประวัติการสนทนา IT Course Chatbot ==="'],
+        [`"วันที่ออกรายงาน:"`, `"${exportDateStr}"`],
+        [`"ช่วงเวลาข้อมูล:"`, `"${timeRangeText}"`],
+        [`"จำนวนข้อความทั้งหมด:"`, `"${totalCount} ข้อความ"`],
+        [`"อัตราการตอบสำเร็จ (Success Rate):"`, `"${successRate}% (${successCount} ข้อความ)"`],
+        [`"อัตราการตอบไม่ได้ (Fallback Rate):"`, `"${fallbackRate}% (${failureCount} ข้อความ)"`],
+        [`"เวลาตอบสนองเฉลี่ย:"`, `"${avgResponseTime} วินาที"`],
+        [''] // Blank separator
+      ];
+
+      // 2. Data Table Columns
+      const tableHeaders = [
+        'ลำดับ',
+        'วันที่-เวลา',
+        'ชื่อผู้ใช้งาน',
+        'รหัสนักศึกษา',
+        'บทบาท',
+        'หมวดหมู่คำถาม',
+        'สถานะการตอบ',
+        'เวลาตอบสนอง (วินาที)',
+        'คำถามของผู้ใช้',
+        'คำตอบของบอท'
+      ];
+
+      // 3. Formatted Data Rows
+      const dataRows = exportLogs.map((l, index) => {
+        const d = new Date(l.timestamp);
+        const formattedDate = isNaN(d.getTime())
+          ? new Date().toLocaleString('th-TH')
+          : d.toLocaleString('th-TH');
+
+        const roleText = ROLE_NAMES[l.userRole] || l.userRole || 'ผู้เยี่ยมชม';
+        const intentText = INTENT_NAMES[l.intent] || l.intent || 'ทั่วไป';
+        const statusText = l.isSuccess ? 'สำเร็จ' : 'ตอบไม่ได้';
+        const respTime = (Number(l.responseTimeMs || 850) / 1000).toFixed(2);
+
+        // Sanitize multi-line query/response for clean CSV output
+        const cleanQuery = (l.query || '').replace(/\r?\n/g, ' ').replace(/"/g, '""').trim();
+        const cleanResponse = (l.response || '').replace(/\r?\n/g, '  |  ').replace(/"/g, '""').trim();
+
+        return [
+          index + 1,
+          `"${formattedDate}"`,
+          `"${(l.userName || l.userId || 'Guest').replace(/"/g, '""')}"`,
+          `"${l.studentId || '-'}"`,
+          `"${roleText}"`,
+          `"${intentText}"`,
+          `"${statusText}"`,
+          respTime,
+          `"${cleanQuery}"`,
+          `"${cleanResponse}"`
+        ];
+      });
+
+      const csvContent =
+        '\uFEFF' +
+        summaryRows.map(r => r.join(',')).join('\n') +
+        '\n' +
+        tableHeaders.map(h => `"${h}"`).join(',') +
+        '\n' +
+        dataRows.map(r => r.join(',')).join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+
+      const fileDateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+      link.setAttribute('download', `chatbot_analytics_${fileDateStr}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
       toast({
-        title: 'ไม่มีข้อมูล',
-        description: 'ไม่มีรายการ Log สำหรับส่งออก',
+        title: 'ส่งออกรายงานสำเร็จ 🎉',
+        description: `ดาวน์โหลดไฟล์ CSV สรุปสถิติเรียบร้อยแล้ว (${totalCount} รายการ)`
+      });
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถส่งออกไฟล์ CSV ได้',
         variant: 'destructive'
       });
-      return;
+    } finally {
+      setIsExporting(false);
     }
-
-    const headers = ['ID', 'Timestamp', 'User Role', 'Intent', 'Success', 'Response Time (ms)', 'Query', 'Response'];
-    const rows = logs.map(l => [
-      l.id,
-      `"${l.timestamp}"`,
-      `"${l.userRole}"`,
-      `"${INTENT_NAMES[l.intent] || l.intent}"`,
-      l.isSuccess ? 'PASS' : 'FAIL',
-      l.responseTimeMs || 0,
-      `"${(l.query || '').replace(/"/g, '""')}"`,
-      `"${(l.response || '').replace(/"/g, '""')}"`
-    ]);
-
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `chatbot_logs_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: 'ส่งออกไฟล์สำเร็จ',
-      description: `ดาวน์โหลดไฟล์ CSV เรียบร้อยแล้ว (${logs.length} รายการ)`
-    });
   };
 
   // Filter logs locally by search term
@@ -243,9 +359,9 @@ const ChatAnalyticsDashboard: React.FC = () => {
             รีเฟรช
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleExportCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            ส่งออก CSV
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExporting || loading}>
+            <Download className={`w-4 h-4 mr-2 ${isExporting ? 'animate-bounce' : ''}`} />
+            {isExporting ? 'กำลังส่งออก...' : 'ส่งออก CSV'}
           </Button>
 
           <Button variant="secondary" size="sm" onClick={handleGenerateSampleLogs} disabled={isGeneratingMock}>
