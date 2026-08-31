@@ -16,6 +16,7 @@ import { firebaseService, AuditLog } from '@/services/firebaseService';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/types/auth';
 import CourseManagement from './CourseManagement';
+import ChatAnalyticsDashboard from './ChatAnalyticsDashboard';
 import { getCoursesByProgram, getCoursesByProgramSync, getCourseNameByCode } from '@/services/courseService';
 import { generateCoursesForSemester } from '@/services/completeCurriculumData';
 import { Course } from '@/services/firebaseService';
@@ -1291,12 +1292,13 @@ const AdminDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users">จัดการผู้ใช้</TabsTrigger>
             <TabsTrigger value="courses">จัดการรายวิชา</TabsTrigger>
             <TabsTrigger value="course-conditions">จัดการเงื่อนไขวิชา</TabsTrigger>
             <TabsTrigger value="import-export">นำเข้า/ส่งออก</TabsTrigger>
             <TabsTrigger value="audit">Audit Log</TabsTrigger>
+            <TabsTrigger value="chat-analytics">สถิติแชทบอท</TabsTrigger>
             {/* <TabsTrigger value="settings">ตั้งค่าระบบ</TabsTrigger> */}
           </TabsList>
 
@@ -2029,6 +2031,11 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          {/* Chatbot Analytics Management */}
+          <TabsContent value="chat-analytics" className="space-y-6">
+            <ChatAnalyticsDashboard />
           </TabsContent>
 
           {/* System Settings - Commented out */}
