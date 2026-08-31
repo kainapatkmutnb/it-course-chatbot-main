@@ -34,6 +34,16 @@ function normalizeLog(id: string, raw: any): ChatLog {
   };
 }
 
+function removeUndefinedFields(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 class ChatLogService {
   /**
    * บันทึก Log การสนทนาลง Firebase Realtime Database ที่ /chatLogs
@@ -43,10 +53,10 @@ class ChatLogService {
       const logsRef = ref(database, 'chatLogs');
       const newLogRef = push(logsRef);
 
-      const record: Omit<ChatLog, 'id'> = {
+      const record = removeUndefinedFields({
         ...logData,
         timestamp: logData.timestamp || new Date().toISOString()
-      };
+      });
 
       await set(newLogRef, record);
       return newLogRef.key;

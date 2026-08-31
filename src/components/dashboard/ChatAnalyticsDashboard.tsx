@@ -121,7 +121,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
           userId: randomRole === 'guest' ? 'guest' : `user_sample_${i % 3}`,
           userRole: randomRole,
           userName: randomRole === 'guest' ? 'ผู้เยี่ยมชม' : `นักศึกษาทดสอบ ${i + 1}`,
-          studentId: randomRole === 'student' ? `650602262${1000 + i}` : undefined,
+          ...(randomRole === 'student' ? { studentId: `650602262${1000 + i}` } : {}),
           query: item.q,
           response: item.r,
           intent: item.intent,
