@@ -22,8 +22,10 @@ import {
   TrendingUp,
   HelpCircle,
   BarChart3,
-  Bot
+  Bot,
+  FileSpreadsheet
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { chatLogService } from '@/services/chatLogService';
 import { ChatLog, ChatAnalytics } from '@/types/chatLog';
 import { useToast } from '@/hooks/use-toast';
@@ -65,6 +67,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isExportingExcel, setIsExportingExcel] = useState<boolean>(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -312,6 +315,237 @@ const ChatAnalyticsDashboard: React.FC = () => {
     }
   };
 
+  // Export to Multi-Sheet Formatted Excel (.xlsx)
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+
+      // Fetch all matching logs
+      const exportData = await chatLogService.getChatLogs({
+        limit: 10000,
+        page: 1,
+        intent: selectedIntentFilter,
+        isSuccess: selectedStatusFilter === 'success' ? true : selectedStatusFilter === 'failure' ? false : undefined
+      });
+
+      let exportLogs = exportData.logs;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        exportLogs = exportLogs.filter(l =>
+          (l.query && l.query.toLowerCase().includes(term)) ||
+          (l.response && l.response.toLowerCase().includes(term)) ||
+          (l.userName && l.userName.toLowerCase().includes(term)) ||
+          (l.studentId && l.studentId.includes(term))
+        );
+      }
+
+      if (exportLogs.length === 0) {
+        toast({
+          title: 'ไม่มีข้อมูล',
+          description: 'ไม่มีรายการ Log สำหรับส่งออกตามเงื่อนไขที่เลือก',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const totalCount = exportLogs.length;
+      const successCount = exportLogs.filter(l => l.isSuccess).length;
+      const failureCount = totalCount - successCount;
+      const successRate = ((successCount / totalCount) * 100).toFixed(2);
+      const fallbackRate = ((failureCount / totalCount) * 100).toFixed(2);
+      const avgResponseTime = (
+        exportLogs.reduce((acc, l) => acc + (Number(l.responseTimeMs) || 850), 0) / totalCount / 1000
+      ).toFixed(2);
+
+      const now = new Date();
+      const exportDateStr = now.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      const timeRangeText = timeRange === '0' ? 'ข้อมูลทั้งหมด (All Time)' : `ย้อนหลัง ${timeRange} วัน`;
+
+      const wb = XLSX.utils.book_new();
+
+      // ==========================================
+      // SHEET 1: สรุปสถิติ & ประวัติการสนทนา
+      // ==========================================
+      const summaryBlock = [
+        ['รายงานสถิติและประวัติการสนทนา IT Course Chatbot (KMUTNB)'],
+        ['วันที่ออกรายงาน:', exportDateStr],
+        ['ช่วงเวลาข้อมูล:', timeRangeText],
+        ['จำนวนข้อความทั้งหมด:', `${totalCount} ข้อความ`],
+        ['อัตราการตอบสำเร็จ (Success Rate):', `${successRate}% (${successCount} ข้อความ)`],
+        ['อัตราการตอบไม่ได้ (Fallback Rate):', `${fallbackRate}% (${failureCount} ข้อความ)`],
+        ['เวลาตอบสนองเฉลี่ย:', `${avgResponseTime} วินาที`],
+        []
+      ];
+
+      const tableHeaders = [
+        'ลำดับ',
+        'วันที่-เวลา',
+        'ชื่อผู้ใช้งาน',
+        'รหัสนักศึกษา',
+        'บทบาท',
+        'หมวดหมู่คำถาม',
+        'สถานะการตอบ',
+        'เวลาตอบ (วินาที)',
+        'คำถามของผู้ใช้',
+        'คำตอบของบอท'
+      ];
+
+      const padZero = (n: number) => String(n).padStart(2, '0');
+      const dataRows = exportLogs.map((l, index) => {
+        const d = new Date(l.timestamp);
+        let formattedDate = '';
+        if (isNaN(d.getTime())) {
+          const nowTime = new Date();
+          formattedDate = `${nowTime.getFullYear()}-${padZero(nowTime.getMonth() + 1)}-${padZero(nowTime.getDate())} ${padZero(nowTime.getHours())}:${padZero(nowTime.getMinutes())}:${padZero(nowTime.getSeconds())}`;
+        } else {
+          formattedDate = `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())} ${padZero(d.getHours())}:${padZero(d.getMinutes())}:${padZero(d.getSeconds())}`;
+        }
+
+        const roleText = ROLE_NAMES[l.userRole] || l.userRole || 'ผู้เยี่ยมชม';
+        const intentText = INTENT_NAMES[l.intent] || l.intent || 'ทั่วไป';
+        const statusText = l.isSuccess ? 'สำเร็จ' : 'ตอบไม่ได้';
+        const respTime = Number((Number(l.responseTimeMs || 850) / 1000).toFixed(2));
+
+        return [
+          index + 1,
+          formattedDate,
+          l.userName || l.userId || 'Guest',
+          l.studentId || '-',
+          roleText,
+          intentText,
+          statusText,
+          respTime,
+          (l.query || '').trim(),
+          (l.response || '').trim()
+        ];
+      });
+
+      const ws1 = XLSX.utils.aoa_to_sheet([...summaryBlock, tableHeaders, ...dataRows]);
+
+      // Set optimal column widths so no column is ever truncated or squished
+      ws1['!cols'] = [
+        { wch: 8 },   // ลำดับ
+        { wch: 22 },  // วันที่-เวลา
+        { wch: 28 },  // ชื่อผู้ใช้งาน
+        { wch: 18 },  // รหัสนักศึกษา
+        { wch: 14 },  // บทบาท
+        { wch: 24 },  // หมวดหมู่
+        { wch: 14 },  // สถานะ
+        { wch: 18 },  // เวลาตอบ
+        { wch: 45 },  // คำถาม
+        { wch: 75 }   // คำตอบ
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws1, 'ประวัติการสนทนา');
+
+      // ==========================================
+      // SHEET 2: สรุปแยกตามหมวดหมู่ (Intent Breakdown)
+      // ==========================================
+      const intentCountMap: Record<string, { total: number; success: number; fail: number }> = {};
+      exportLogs.forEach(l => {
+        const intent = l.intent || 'unknown';
+        if (!intentCountMap[intent]) {
+          intentCountMap[intent] = { total: 0, success: 0, fail: 0 };
+        }
+        intentCountMap[intent].total++;
+        if (l.isSuccess) {
+          intentCountMap[intent].success++;
+        } else {
+          intentCountMap[intent].fail++;
+        }
+      });
+
+      const intentRows = Object.entries(intentCountMap)
+        .sort((a, b) => b[1].total - a[1].total)
+        .map(([intent, stats], idx) => [
+          idx + 1,
+          INTENT_NAMES[intent] || intent,
+          stats.total,
+          `${((stats.total / totalCount) * 100).toFixed(1)}%`,
+          stats.success,
+          stats.fail,
+          `${((stats.success / stats.total) * 100).toFixed(1)}%`
+        ]);
+
+      const ws2 = XLSX.utils.aoa_to_sheet([
+        ['สรุปสถิติแยกตามหมวดหมู่คำถาม (Intent Analysis)'],
+        ['วันที่ออกรายงาน:', exportDateStr],
+        [],
+        ['ลำดับ', 'หมวดหมู่คำถาม', 'จำนวนคำถาม (ข้อความ)', 'สัดส่วน (%)', 'ตอบสำเร็จ', 'ตอบไม่ได้', 'อัตราความสำเร็จ (%)'],
+        ...intentRows
+      ]);
+
+      ws2['!cols'] = [
+        { wch: 8 },
+        { wch: 26 },
+        { wch: 22 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 22 }
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws2, 'สถิติตามหมวดหมู่');
+
+      // ==========================================
+      // SHEET 3: คำถามที่ตอบไม่ได้ (Fallback Queries)
+      // ==========================================
+      const failedLogs = exportLogs.filter(l => !l.isSuccess);
+      const failedRows = failedLogs.map((l, idx) => [
+        idx + 1,
+        l.timestamp,
+        l.userName || l.userId || 'Guest',
+        INTENT_NAMES[l.intent] || l.intent || 'ทั่วไป',
+        (l.query || '').trim(),
+        (l.response || '').trim()
+      ]);
+
+      const ws3 = XLSX.utils.aoa_to_sheet([
+        ['รายการคำถามที่บอทตอบไม่ได้ (สำหรับปรับปรุงฐานข้อมูล RAG/หลักสูตร)'],
+        ['จำนวนคำถามที่ไม่พบข้อมูล:', `${failedLogs.length} ข้อความ`],
+        [],
+        ['ลำดับ', 'วันที่-เวลา', 'ผู้ใช้งาน', 'หมวดหมู่ที่คาดหวัง', 'คำถามที่ผู้ใช้ถาม', 'ข้อความตอบกลับของบอท'],
+        ...(failedRows.length > 0 ? failedRows : [['-', '-', '-', '-', 'ไม่มีประวัติคำถามที่ตอบไม่ได้ (ตอบสำเร็จ 100%)', '-']])
+      ]);
+
+      ws3['!cols'] = [
+        { wch: 8 },
+        { wch: 22 },
+        { wch: 24 },
+        { wch: 24 },
+        { wch: 45 },
+        { wch: 65 }
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws3, 'คำถามที่ตอบไม่ได้');
+
+      // Download .xlsx file
+      const fileDateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+      XLSX.writeFile(wb, `chatbot_analytics_${fileDateStr}.xlsx`);
+
+      toast({
+        title: 'ส่งออก Excel สำเร็จ 🎉',
+        description: `สร้างไฟล์ Excel พร้อม 3 แผ่นงาน (Sheets) เรียบร้อยแล้ว (${totalCount} รายการ)`
+      });
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถส่งออกไฟล์ Excel ได้',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   // Filter logs locally by search term
   const filteredLogs = logs.filter(l => {
     if (!searchTerm) return true;
@@ -364,6 +598,17 @@ const ChatAnalyticsDashboard: React.FC = () => {
           <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             รีเฟรช
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            disabled={isExportingExcel || loading}
+            className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+          >
+            <FileSpreadsheet className={`w-4 h-4 mr-2 ${isExportingExcel ? 'animate-bounce' : 'text-emerald-600 dark:text-emerald-400'}`} />
+            {isExportingExcel ? 'กำลังส่งออก Excel...' : 'ส่งออก Excel (.xlsx)'}
           </Button>
 
           <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExporting || loading}>
