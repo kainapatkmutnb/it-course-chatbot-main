@@ -65,6 +65,14 @@ const ChatBot: React.FC = () => {
   // Only consider study plan & gpa & curriculum loading when there is a logged-in user
   const dataIsLoading = authLoading || (!!user && (studyPlanLoading || gpaLoading || curriculumLoading));
 
+  // Session ID for conversation grouping
+  const sessionIdRef = useRef<string>('');
+  if (!sessionIdRef.current) {
+    sessionIdRef.current = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  }
+
   useEffect(() => {
     // BUG-05 fix: only initialize once when data loading is complete
     if (dataIsLoading) return;
@@ -89,11 +97,13 @@ const ChatBot: React.FC = () => {
         const initialMessages = user 
           ? [
               `สวัสดีครับ คุณ ${user.name} 👋`,
-              'ผมคือ AI Assistant ของภาควิชาเทคโนโลยีสารสนเทศ มีอะไรให้ช่วยไหมครับ?'
+              'ผมคือ AI Assistant ของภาควิชาเทคโนโลยีสารสนเทศ มีอะไรให้ช่วยไหมครับ?',
+              '🔒 *ระบบมีการบันทึกประวัติการสนทนาเพื่อพัฒนาการให้บริการตามนโยบาย PDPA*'
             ]
           : [
               'สวัสดีครับ 👋 ยินดีต้อนรับสู่ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศ',
-              'ผมคือ AI Assistant มีอะไรให้ช่วยเหลือเกี่ยวกับหลักสูตรและรายวิชาไหมครับ?'
+              'ผมคือ AI Assistant มีอะไรให้ช่วยเหลือเกี่ยวกับหลักสูตรและรายวิชาไหมครับ?',
+              '🔒 *ระบบมีการบันทึกประวัติการสนทนาเพื่อพัฒนาการให้บริการตามนโยบาย PDPA*'
             ];
 
         // Extract completed course codes (grades D and above, including S for internship)
@@ -109,8 +119,11 @@ const ChatBot: React.FC = () => {
 
         const metadata = user 
           ? {
+              sessionId: sessionIdRef.current,
+              channel: 'web',
               userId: user.id || '',
               userName: user.name || '',
+              userEmail: user.email || '',
               studentId: user.studentId || '',
               role: user.role || '',
               department: studyPlan?.program || user.department || '',
@@ -143,6 +156,8 @@ const ChatBot: React.FC = () => {
               }))
             }
           : {
+              sessionId: sessionIdRef.current,
+              channel: 'web',
               userId: 'guest',
               userName: 'Guest',
               studentId: 'guest',
