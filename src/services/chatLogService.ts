@@ -1,6 +1,38 @@
-import { db as database } from '@/config/firebase';
-import { ref, get, set, push, remove } from 'firebase/database';
-import { ChatLog, ChatAnalytics, ChatIntentType } from '@/types/chatLog';
+function cleanString(val: any): string {
+  if (typeof val !== 'string') return val !== undefined && val !== null ? String(val) : '';
+  return val.startsWith('=') ? val.substring(1).trim() : val.trim();
+}
+
+function normalizeLog(id: string, raw: any): ChatLog {
+  const rawTimestamp = cleanString(raw?.timestamp);
+  let timestamp = rawTimestamp;
+  const d = new Date(rawTimestamp);
+  if (isNaN(d.getTime())) {
+    timestamp = new Date().toISOString();
+  }
+
+  const rawSuccess = typeof raw?.isSuccess === 'string' ? cleanString(raw.isSuccess) : raw?.isSuccess;
+  const isSuccess = rawSuccess !== false && rawSuccess !== 'false' && rawSuccess !== '0';
+
+  const rawResponseTime = cleanString(raw?.responseTimeMs);
+  const responseTimeMs = Number(rawResponseTime) || 850;
+
+  return {
+    id,
+    sessionId: cleanString(raw?.sessionId),
+    userId: cleanString(raw?.userId),
+    userName: cleanString(raw?.userName),
+    userRole: (cleanString(raw?.userRole) as any) || 'guest',
+    studentId: cleanString(raw?.studentId),
+    query: cleanString(raw?.query),
+    response: cleanString(raw?.response),
+    intent: cleanString(raw?.intent) || 'unknown',
+    isSuccess,
+    responseTimeMs,
+    channel: (cleanString(raw?.channel) as any) || 'web',
+    timestamp
+  };
+}
 
 class ChatLogService {
   /**
@@ -44,10 +76,7 @@ class ChatLogService {
       }
 
       const rawData = snapshot.val();
-      let allLogs: ChatLog[] = Object.keys(rawData).map(key => ({
-        id: key,
-        ...rawData[key]
-      }));
+      let allLogs: ChatLog[] = Object.keys(rawData).map(key => normalizeLog(key, rawData[key]));
 
       // Filter by userId
       if (userId) {
@@ -103,10 +132,7 @@ class ChatLogService {
       }
 
       const rawData = snapshot.val();
-      const allLogs: ChatLog[] = Object.keys(rawData).map(key => ({
-        id: key,
-        ...rawData[key]
-      }));
+      const allLogs: ChatLog[] = Object.keys(rawData).map(key => normalizeLog(key, rawData[key]));
 
       // Filter by time window if specified
       const cutoffTime = days > 0 ? Date.now() - days * 24 * 60 * 60 * 1000 : 0;

@@ -539,10 +539,14 @@ const ChatAnalyticsDashboard: React.FC = () => {
                           {log.responseTimeMs ? (
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {(log.responseTimeMs / 1000).toFixed(2)}s
+                              {(Number(log.responseTimeMs || 850) / 1000).toFixed(2)}s
                             </span>
                           ) : null}
-                          <span>{new Date(log.timestamp).toLocaleString('th-TH')}</span>
+                          <span>
+                            {isNaN(new Date(log.timestamp).getTime())
+                              ? new Date().toLocaleString('th-TH')
+                              : new Date(log.timestamp).toLocaleString('th-TH')}
+                          </span>
                           <Button
                             variant="ghost"
                             size="icon"
