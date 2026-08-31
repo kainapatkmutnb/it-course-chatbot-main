@@ -1,3 +1,7 @@
+import { db as database } from '@/config/firebase';
+import { ref, get, set, push, remove } from 'firebase/database';
+import { ChatLog, ChatAnalytics, ChatIntentType } from '@/types/chatLog';
+
 function cleanString(val: any): string {
   if (typeof val !== 'string') return val !== undefined && val !== null ? String(val) : '';
   return val.startsWith('=') ? val.substring(1).trim() : val.trim();
