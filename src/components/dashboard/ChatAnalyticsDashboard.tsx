@@ -241,11 +241,16 @@ const ChatAnalyticsDashboard: React.FC = () => {
       ];
 
       // 3. Formatted Data Rows
+      const padZero = (n: number) => String(n).padStart(2, '0');
       const dataRows = exportLogs.map((l, index) => {
         const d = new Date(l.timestamp);
-        const formattedDate = isNaN(d.getTime())
-          ? new Date().toLocaleString('th-TH')
-          : d.toLocaleString('th-TH');
+        let formattedDate = '';
+        if (isNaN(d.getTime())) {
+          const nowTime = new Date();
+          formattedDate = `${nowTime.getFullYear()}-${padZero(nowTime.getMonth() + 1)}-${padZero(nowTime.getDate())} ${padZero(nowTime.getHours())}:${padZero(nowTime.getMinutes())}:${padZero(nowTime.getSeconds())}`;
+        } else {
+          formattedDate = `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())} ${padZero(d.getHours())}:${padZero(d.getMinutes())}:${padZero(d.getSeconds())}`;
+        }
 
         const roleText = ROLE_NAMES[l.userRole] || l.userRole || 'ผู้เยี่ยมชม';
         const intentText = INTENT_NAMES[l.intent] || l.intent || 'ทั่วไป';
@@ -256,11 +261,13 @@ const ChatAnalyticsDashboard: React.FC = () => {
         const cleanQuery = (l.query || '').replace(/\r?\n/g, ' ').replace(/"/g, '""').trim();
         const cleanResponse = (l.response || '').replace(/\r?\n/g, '  |  ').replace(/"/g, '""').trim();
 
+        const studentIdVal = l.studentId && l.studentId !== '-' ? `="` + l.studentId + `"` : `"-"`;
+
         return [
           index + 1,
-          `"${formattedDate}"`,
+          `="` + formattedDate + `"`, // Force Excel text format so it never displays as ########
           `"${(l.userName || l.userId || 'Guest').replace(/"/g, '""')}"`,
-          `"${l.studentId || '-'}"`,
+          studentIdVal,               // Force Excel text format so student ID never shows as 6.51E+12
           `"${roleText}"`,
           `"${intentText}"`,
           `"${statusText}"`,
