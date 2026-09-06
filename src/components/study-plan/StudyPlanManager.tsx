@@ -51,6 +51,7 @@ interface StudentCourse {
   code: string;
   originalName: string;
   customName?: string;
+  customCode?: string;
   credits: number;
   year: number;
   semester: number;
@@ -285,6 +286,7 @@ const StudyPlanManager: React.FC = () => {
               code,
               originalName,
               customName: course.customName,
+              customCode: course.customCode,
               credits: course.credits || 0,
               year: course.year || 1,
               semester: course.semester || 1,
@@ -579,11 +581,26 @@ const StudyPlanManager: React.FC = () => {
   }, [studyPlan]);
 
   const updateCustomCourseName = useCallback((courseId: string, customName: string) => {
-
     if (!studyPlan) return;
 
     const updatedCourses = studyPlan.courses.map(c =>
       c.id === courseId ? { ...c, customName } : c
+    );
+
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      updatedAt: new Date()
+    } : null);
+
+    saveToFirebase({ courses: updatedCourses });
+  }, [studyPlan]);
+
+  const updateCustomCourseCode = useCallback((courseId: string, customCode: string) => {
+    if (!studyPlan) return;
+
+    const updatedCourses = studyPlan.courses.map(c =>
+      c.id === courseId ? { ...c, customCode } : c
     );
 
     setStudyPlan(prev => prev ? {
@@ -604,7 +621,10 @@ const StudyPlanManager: React.FC = () => {
         return {
           ...course,
           grade,
+          code: course.customCode || course.code,
+          customCode: course.customCode || '',
           name: course.customName || course.originalName,
+          customName: course.customName || '',
           prerequisites: course.prerequisites || []
         };
       });
@@ -868,6 +888,14 @@ const StudyPlanManager: React.FC = () => {
       acc[key].push(course);
       return acc;
     }, {} as Record<string, StudentCourse[]>);
+
+  // Dynamic available years for view filter (starts at 1..4, expands up to 8 if courses exist in later years)
+  const availableViewYears = useMemo(() => {
+    const courseYears = (studyPlan?.courses || []).map(c => c.year || 0);
+    const maxCourseYear = Math.max(4, ...courseYears);
+    const cappedMaxYear = Math.min(8, maxCourseYear);
+    return Array.from({ length: cappedMaxYear }, (_, i) => i + 1);
+  }, [studyPlan?.courses]);
 
   // วิชาในหลักสูตรที่มี prerequisite และยังไม่ได้อยู่ในแผนการเรียน
   const recommendedCourses = useMemo(() => {
@@ -1224,11 +1252,11 @@ const StudyPlanManager: React.FC = () => {
       <div className="flex items-center gap-3 bg-card p-3 rounded-lg border">
         <Label className="text-sm font-medium shrink-0">เลือกดูภาคเรียน:</Label>
         <Select value={viewFilter} onValueChange={setViewFilter}>
-          <SelectTrigger className="w-60">
+          <SelectTrigger className="w-64">
             <SelectValue placeholder="เลือกภาคเรียน" />
           </SelectTrigger>
           <SelectContent>
-            {[1, 2, 3, 4].flatMap(y =>
+            {availableViewYears.flatMap(y =>
               [1, 2, 3].map(s => (
                 <SelectItem key={`${y}-${s}`} value={`${y}-${s}`}>
                   ปีที่ {y} ภาคเรียนที่ {s}
@@ -1267,7 +1295,7 @@ const StudyPlanManager: React.FC = () => {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="font-medium">
-                                {course.code} - {course.customName || course.originalName}
+                                {course.customCode || course.code} - {course.customName || course.originalName}
                               </div>
                               <div className="text-sm text-muted-foreground">
                                 {course.credits} หน่วยกิต
@@ -1437,20 +1465,31 @@ const StudyPlanManager: React.FC = () => {
                             </div>
                           )}
 
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
                             {(course.isElective || course.subCategory === 'กลุ่มวิชาชีพ' || (course.originalName || '').includes('วิชาเลือก')) && (
-                              <div className="space-y-1">
-                                <Label className="text-xs">ชื่อวิชา (ถ้าต้องการแก้ไข)</Label>
-                                <Input
-                                  value={course.customName || ''}
-                                  onChange={(e) => updateCustomCourseName(course.id, e.target.value)}
-                                  placeholder="ใส่ชื่อวิชา"
-                                  className="h-8 text-sm"
-                                />
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-muted/30 p-2 rounded border border-dashed border-muted-foreground/30">
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-muted-foreground">รหัสวิชา (ถ้าต้องการแก้ไข)</Label>
+                                  <Input
+                                    value={course.customCode || ''}
+                                    onChange={(e) => updateCustomCourseCode(course.id, e.target.value)}
+                                    placeholder={course.code}
+                                    className="h-8 text-sm bg-background"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-muted-foreground">ชื่อวิชา (ถ้าต้องการแก้ไข)</Label>
+                                  <Input
+                                    value={course.customName || ''}
+                                    onChange={(e) => updateCustomCourseName(course.id, e.target.value)}
+                                    placeholder="ใส่ชื่อวิชา"
+                                    className="h-8 text-sm bg-background"
+                                  />
+                                </div>
                               </div>
                             )}
 
-                            <div className="space-y-1">
+                            <div className="space-y-1 max-w-xs">
                               <Label className="text-xs">สถานะ / เกรด</Label>
                               <Select
                                 value={
@@ -1523,7 +1562,7 @@ const StudyPlanManager: React.FC = () => {
               <div key={course.id} className="border border-orange-200 bg-orange-50 rounded-lg p-3 space-y-2">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="font-medium text-sm">{course.code} - {course.customName || course.originalName}</div>
+                    <div className="font-medium text-sm">{course.customCode || course.code} - {course.customName || course.originalName}</div>
                     <div className="text-xs text-muted-foreground">
                       {course.credits} หน่วยกิต
                       {course.mainCategory && ` | ${course.mainCategory}`}

@@ -57,7 +57,8 @@ const StudyPlanProgress: React.FC = () => {
             program: existingPlan.program,
             curriculumYear: existingPlan.curriculumYear,
             courses: (existingPlan.courses || []).map((c: any) => ({
-              code: c.code || '',
+              code: c.customCode || c.code || '',
+              customCode: c.customCode || '',
               grade: c.grade,
               status: c.status || 'planned',
               year: c.year,

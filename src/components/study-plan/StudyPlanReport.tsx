@@ -117,7 +117,7 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
       const resolvedStatus = resolveCourseStatus(course.status, course.grade);
       const group = groups.get(key)!;
       group.courses.push({
-        code: course.code,
+        code: (course as any).customCode || course.code,
         name: course.customName || course.originalName || (course as any).name || '',
         credits: course.credits || 0,
         status: resolvedStatus,
