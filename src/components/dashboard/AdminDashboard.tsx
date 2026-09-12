@@ -1178,10 +1178,10 @@ const AdminDashboard: React.FC = () => {
   }, [toast, currentPage, logsPerPage]);
 
   return (
-    <div className="min-h-screen p-6 gradient-subtle">
+    <div className="academic-page min-h-screen p-6 gradient-subtle">
       <div className="container mx-auto space-y-6">
         {/* Welcome Section with User Info */}
-        <Card className="shadow-soft border-0 bg-gradient-to-r from-admin/10 to-primary/10">
+        <Card className="academic-welcome shadow-soft border-0 bg-gradient-to-r from-admin/10 to-primary/10">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
@@ -1191,7 +1191,7 @@ const AdminDashboard: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="academic-title text-2xl font-bold text-foreground">
                   ยินดีต้อนรับ, {user?.name}
                 </h1>
                 <p className="text-muted-foreground mb-2">แดชบอร์ดผู้ดูแลระบบ - จัดการระบบและผู้ใช้งาน</p>
@@ -1217,7 +1217,7 @@ const AdminDashboard: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">แดชบอร์ดผู้ดูแลระบบ</h1>
+            <h1 className="academic-title text-3xl font-bold">แดชบอร์ดผู้ดูแลระบบ</h1>
             <p className="text-muted-foreground">
               ยินดีต้อนรับ, {user?.name} • ระดับสิทธิ์: Super Admin
             </p>
@@ -1233,7 +1233,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Overview Cards */}
         <div className="grid md:grid-cols-4 gap-6">
-          <Card className="shadow-soft">
+          <Card className="academic-panel shadow-soft">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 ผู้ใช้ทั้งหมด
@@ -1242,12 +1242,12 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <Users className="w-8 h-8 text-primary" />
-                <span className="text-2xl font-bold">{localStats?.totalUsers}</span>
+                <span className="academic-number text-2xl font-bold">{localStats?.totalUsers}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-soft">
+          <Card className="academic-panel shadow-soft">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 รายวิชาทั้งหมด
@@ -1256,12 +1256,12 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <BookOpen className="w-8 h-8 text-secondary" />
-                <span className="text-2xl font-bold">{combinedStats.totalCourses}</span>
+                <span className="academic-number text-2xl font-bold">{combinedStats.totalCourses}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-soft">
+          <Card className="academic-panel shadow-soft">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 ผู้ใช้ที่ใช้งาน
@@ -1270,12 +1270,12 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <Users className="w-8 h-8 text-success" />
-                <span className="text-2xl font-bold">{localStats?.activeUsers}</span>
+                <span className="academic-number text-2xl font-bold">{localStats?.activeUsers}</span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-soft">
+          <Card className="academic-panel shadow-soft">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 วิชาที่เปิดสอน
@@ -1284,7 +1284,7 @@ const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="flex items-center space-x-2">
                 <BookOpen className="w-8 h-8 text-warning" />
-                <span className="text-2xl font-bold">{combinedStats.activeCourses}</span>
+                <span className="academic-number text-2xl font-bold">{combinedStats.activeCourses}</span>
               </div>
             </CardContent>
           </Card>
@@ -1292,7 +1292,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="academic-tabs-scroll grid w-full grid-cols-6">
             <TabsTrigger value="users">จัดการผู้ใช้</TabsTrigger>
             <TabsTrigger value="courses">จัดการรายวิชา</TabsTrigger>
             <TabsTrigger value="course-conditions">จัดการเงื่อนไขวิชา</TabsTrigger>
@@ -1304,7 +1304,7 @@ const AdminDashboard: React.FC = () => {
 
           {/* Users Management */}
           <TabsContent value="users" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -1323,17 +1323,17 @@ const AdminDashboard: React.FC = () => {
                         placeholder="ค้นหาผู้ใช้..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="academic-control pl-10"
                       />
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button>
+                        <Button className="academic-control">
                           <UserPlus className="w-4 h-4 mr-2" />
                           เพิ่มผู้ใช้
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="academic-dialog">
                         <DialogHeader>
                           <DialogTitle>เพิ่มผู้ใช้ใหม่</DialogTitle>
                           <DialogDescription>
@@ -1341,7 +1341,7 @@ const AdminDashboard: React.FC = () => {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="academic-form-grid grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label htmlFor="new-user-name">ชื่อ-นามสกุล</Label>
                               <Input 
@@ -1349,6 +1349,7 @@ const AdminDashboard: React.FC = () => {
                                 placeholder="นายสมชาย ใจดี" 
                                 value={newUser.name}
                                 onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                                className="academic-control"
                               />
                             </div>
                             <div className="space-y-2">
@@ -1358,13 +1359,14 @@ const AdminDashboard: React.FC = () => {
                                 placeholder="somchai@kmutnb.ac.th" 
                                 value={newUser.email}
                                 onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                                className="academic-control"
                               />
                             </div>
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="new-user-role">บทบาท</Label>
                             <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value as any})}>
-                              <SelectTrigger>
+                              <SelectTrigger className="academic-control">
                                 <SelectValue placeholder="เลือกบทบาท" />
                               </SelectTrigger>
                               <SelectContent>
@@ -1383,9 +1385,10 @@ const AdminDashboard: React.FC = () => {
                               placeholder="รหัสผ่าน" 
                               value={newUser.password}
                               onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                              className="academic-control"
                             />
                           </div>
-                          <Button className="w-full" onClick={createUser}>สร้างบัญชี</Button>
+                          <Button className="academic-control w-full" onClick={createUser}>สร้างบัญชี</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
@@ -1436,7 +1439,7 @@ const AdminDashboard: React.FC = () => {
                             onValueChange={(newRole) => changeUserRole(userData.id, newRole as UserRole)}
                             disabled={userData.id === user?.id || user?.role !== 'admin'}
                           >
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="academic-control w-32">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -1451,6 +1454,7 @@ const AdminDashboard: React.FC = () => {
                             size="sm" 
                             onClick={() => handleEditUser(userData)}
                             disabled={user?.role !== 'admin'}
+                            className="academic-control"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -1458,7 +1462,7 @@ const AdminDashboard: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             onClick={() => handleDeleteUser(userData)} 
-                            className="text-destructive hover:text-destructive"
+                            className="academic-control text-destructive hover:text-destructive"
                             disabled={userData.id === user?.id || user?.role !== 'admin'}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1486,6 +1490,7 @@ const AdminDashboard: React.FC = () => {
                         size="sm"
                         onClick={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
+                        className="academic-control"
                       >
                         หน้าแรก
                       </Button>
@@ -1494,6 +1499,7 @@ const AdminDashboard: React.FC = () => {
                         size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
+                        className="academic-control"
                       >
                         ก่อนหน้า
                       </Button>
@@ -1505,6 +1511,7 @@ const AdminDashboard: React.FC = () => {
                         size="sm"
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
+                        className="academic-control"
                       >
                         ถัดไป
                       </Button>
@@ -1513,6 +1520,7 @@ const AdminDashboard: React.FC = () => {
                         size="sm"
                         onClick={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
+                        className="academic-control"
                       >
                         หน้าสุดท้าย
                       </Button>
@@ -1530,7 +1538,7 @@ const AdminDashboard: React.FC = () => {
 
           {/* Course Conditions Management */}
           <TabsContent value="course-conditions" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Link className="w-5 h-5" />
@@ -1546,7 +1554,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="program-select">หลักสูตร</Label>
                     <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกหลักสูตร" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1566,7 +1574,7 @@ const AdminDashboard: React.FC = () => {
                       onValueChange={setSelectedCurriculumYear}
                       disabled={!selectedProgram}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกปีหลักสูตร" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1582,7 +1590,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="year-select">ชั้นปี</Label>
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกชั้นปี" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1597,7 +1605,7 @@ const AdminDashboard: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="semester-select">ภาคเรียน</Label>
                     <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกภาคเรียน" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1617,7 +1625,7 @@ const AdminDashboard: React.FC = () => {
                       <div>
                         <Label htmlFor="course-select">เลือกวิชา</Label>
                         <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue placeholder="เลือกวิชาที่ต้องการตั้งเงื่อนไข" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1633,7 +1641,7 @@ const AdminDashboard: React.FC = () => {
                       <div>
                         <Label htmlFor="prerequisite-select">เลือกวิชาเงื่อนไข</Label>
                         <Select value={prerequisiteToAdd} onValueChange={setPrerequisiteToAdd}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue placeholder="เลือกวิชาเงื่อนไข" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1666,7 +1674,7 @@ const AdminDashboard: React.FC = () => {
                         <Button 
                           onClick={addPrerequisite}
                           disabled={!selectedCourse || !prerequisiteToAdd}
-                          className="w-full"
+                          className="academic-control w-full"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           เพิ่มเงื่อนไข
@@ -1679,7 +1687,7 @@ const AdminDashboard: React.FC = () => {
                       <div>
                         <Label htmlFor="corequisite-course">เลือกวิชาที่ต้องเรียนพร้อมกัน</Label>
                         <Select value={corequisiteToAdd} onValueChange={setCorequisiteToAdd}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue placeholder="เลือกวิชาที่ต้องเรียนพร้อมกัน" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1714,7 +1722,7 @@ const AdminDashboard: React.FC = () => {
                         <Button 
                           onClick={addCorequisiteHandler}
                           disabled={!selectedCourse || !corequisiteToAdd}
-                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          className="academic-control w-full bg-blue-600 hover:bg-blue-700"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           เพิ่มวิชาที่ต้องเรียนพร้อมกัน
@@ -1729,7 +1737,7 @@ const AdminDashboard: React.FC = () => {
                         placeholder="ค้นหารายวิชา..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="academic-control pl-10"
                       />
                     </div>
 
@@ -1759,7 +1767,7 @@ const AdminDashboard: React.FC = () => {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                      className="academic-control h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
                                       onClick={() => removePrerequisite(course.code, prerequisite)}
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1781,7 +1789,7 @@ const AdminDashboard: React.FC = () => {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                      className="academic-control h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
                                       onClick={() => removeCorequisite(course.code, corequisite)}
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -1806,7 +1814,7 @@ const AdminDashboard: React.FC = () => {
                 )}
 
                 {/* Course Overview */}
-                <Card>
+                <Card className="academic-panel">
                   <CardHeader>
                     <CardTitle className="text-lg">ภาพรวมรายวิชาทั้งหมด</CardTitle>
                     <CardDescription>
@@ -1821,7 +1829,7 @@ const AdminDashboard: React.FC = () => {
                           placeholder="ค้นหารายวิชา..."
                           value={overviewSearchTerm}
                           onChange={(e) => setOverviewSearchTerm(e.target.value)}
-                          className="max-w-sm"
+                          className="academic-control max-w-sm"
                         />
                       </div>
 
@@ -1832,7 +1840,7 @@ const AdminDashboard: React.FC = () => {
                       ) : (
                         <div className="grid gap-4">
                           {filteredCourses.slice(0, 20).map((course) => (
-                            <Card key={`${course.program}-${course.curriculumYear}-${course.code}`} className="border-l-2 border-l-muted">
+                            <Card key={`${course.program}-${course.curriculumYear}-${course.code}`} className="academic-panel border-l-2 border-l-muted">
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
@@ -1895,7 +1903,7 @@ const AdminDashboard: React.FC = () => {
 
           {/* Import/Export */}
           <TabsContent value="import-export" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <FileText className="w-5 h-5" />
@@ -1907,7 +1915,7 @@ const AdminDashboard: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
+                  <Card className="academic-panel">
                     <CardHeader>
                       <CardTitle className="text-lg">ส่งออกข้อมูล</CardTitle>
                       <CardDescription>
@@ -1915,14 +1923,14 @@ const AdminDashboard: React.FC = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Button onClick={exportData} className="w-full">
+                      <Button onClick={exportData} className="academic-control w-full">
                         <Download className="w-4 h-4 mr-2" />
                         ส่งออกข้อมูลระบบ
                       </Button>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="academic-panel">
                     <CardHeader>
                       <CardTitle className="text-lg">นำเข้าข้อมูล</CardTitle>
                       <CardDescription>
@@ -1936,6 +1944,7 @@ const AdminDashboard: React.FC = () => {
                           accept=".json,.csv" 
                           onChange={handleFileChange}
                           disabled={isLoading}
+                          className="academic-control"
                         />
                         {importFile && (
                           <p className="text-sm text-gray-600">
@@ -1943,7 +1952,7 @@ const AdminDashboard: React.FC = () => {
                           </p>
                         )}
                         <Button 
-                          className="w-full" 
+                          className="academic-control w-full" 
                           variant="outline"
                           onClick={importData}
                           disabled={isLoading || !importFile}
@@ -1970,7 +1979,7 @@ const AdminDashboard: React.FC = () => {
 
           {/* Audit Log */}
           <TabsContent value="audit" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <History className="w-5 h-5" />
@@ -2120,7 +2129,7 @@ const AdminDashboard: React.FC = () => {
 
          {/* Edit User Dialog */}
          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-           <DialogContent>
+           <DialogContent className="academic-dialog">
              <DialogHeader>
                <DialogTitle>แก้ไขข้อมูลผู้ใช้</DialogTitle>
                <DialogDescription>
@@ -2129,13 +2138,14 @@ const AdminDashboard: React.FC = () => {
              </DialogHeader>
              {editingUser && (
                <div className="space-y-4">
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="academic-form-grid grid grid-cols-2 gap-4">
                    <div className="space-y-2">
                      <Label htmlFor="edit-user-name">ชื่อ-นามสกุล</Label>
                      <Input 
                        id="edit-user-name" 
                        value={editingUser.name}
                        onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                       className="academic-control"
                      />
                    </div>
                    <div className="space-y-2">
@@ -2144,13 +2154,14 @@ const AdminDashboard: React.FC = () => {
                        id="edit-user-email" 
                        value={editingUser.email}
                        onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                       className="academic-control"
                      />
                    </div>
                  </div>
                  <div className="space-y-2">
                    <Label htmlFor="edit-user-role">บทบาท</Label>
                    <Select value={editingUser.role} onValueChange={(value) => setEditingUser({...editingUser, role: value})}>
-                     <SelectTrigger>
+                     <SelectTrigger className="academic-control">
                        <SelectValue placeholder="เลือกบทบาท" />
                      </SelectTrigger>
                      <SelectContent>
@@ -2162,8 +2173,8 @@ const AdminDashboard: React.FC = () => {
                    </Select>
                  </div>
                  <div className="flex space-x-2">
-                   <Button className="flex-1" onClick={handleUpdateUser}>อัปเดตข้อมูล</Button>
-                   <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>ยกเลิก</Button>
+                   <Button className="academic-control flex-1" onClick={handleUpdateUser}>อัปเดตข้อมูล</Button>
+                   <Button variant="outline" className="academic-control" onClick={() => setIsEditDialogOpen(false)}>ยกเลิก</Button>
                  </div>
                </div>
              )}
@@ -2172,7 +2183,7 @@ const AdminDashboard: React.FC = () => {
 
          {/* Delete User Confirmation Dialog */}
          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-           <DialogContent>
+           <DialogContent className="academic-dialog">
              <DialogHeader>
                <DialogTitle>ยืนยันการลบผู้ใช้</DialogTitle>
                <DialogDescription>
@@ -2199,11 +2210,11 @@ const AdminDashboard: React.FC = () => {
                    </div>
                  </div>
                  <div className="flex space-x-2">
-                   <Button variant="destructive" className="flex-1" onClick={confirmDeleteUser}>
+                   <Button variant="destructive" className="academic-control flex-1" onClick={confirmDeleteUser}>
                      <Trash2 className="w-4 h-4 mr-2" />
                      ลบผู้ใช้
                    </Button>
-                   <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>ยกเลิก</Button>
+                   <Button variant="outline" className="academic-control" onClick={() => setIsDeleteDialogOpen(false)}>ยกเลิก</Button>
                  </div>
                </div>
              )}

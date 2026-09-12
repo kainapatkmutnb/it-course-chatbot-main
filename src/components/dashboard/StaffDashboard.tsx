@@ -546,7 +546,7 @@ const StaffDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 gradient-subtle flex items-center justify-center">
+      <div className="academic-page min-h-screen p-6 gradient-subtle flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-lg text-muted-foreground">กำลังโหลดข้อมูล...</p>
@@ -556,10 +556,10 @@ const StaffDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 gradient-subtle">
+    <div className="academic-page min-h-screen p-6 gradient-subtle">
       <div className="container mx-auto space-y-6">
         {/* Welcome Section with User Info */}
-        <Card className="shadow-soft border-0 bg-gradient-to-r from-staff/10 to-primary/10">
+        <Card className="academic-welcome shadow-soft border-0 bg-gradient-to-r from-staff/10 to-primary/10">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
@@ -569,7 +569,7 @@ const StaffDashboard: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="academic-title text-2xl font-bold text-foreground">
                   ยินดีต้อนรับ, {user?.name}
                 </h1>
                 <p className="text-muted-foreground mb-2">แดชบอร์ดบุคลากร - จัดการเงื่อนไขรายวิชา</p>
@@ -596,14 +596,14 @@ const StaffDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="manage" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="academic-tabs-scroll grid w-full grid-cols-3">
             <TabsTrigger value="manage">จัดการเงื่อนไขวิชา</TabsTrigger>
             <TabsTrigger value="courses">จัดการรายวิชา</TabsTrigger>
             <TabsTrigger value="overview">ภาพรวมเงื่อนไข</TabsTrigger>
           </TabsList>
 
           <TabsContent value="manage" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Settings className="w-5 h-5" />
@@ -619,7 +619,7 @@ const StaffDashboard: React.FC = () => {
                   <div>
                     <Label htmlFor="program">หลักสูตร</Label>
                     <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกหลักสูตร" />
                       </SelectTrigger>
                       <SelectContent>
@@ -639,7 +639,7 @@ const StaffDashboard: React.FC = () => {
                       onValueChange={setSelectedCurriculumYear}
                       disabled={!selectedProgram}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกปีหลักสูตร" />
                       </SelectTrigger>
                       <SelectContent>
@@ -656,7 +656,7 @@ const StaffDashboard: React.FC = () => {
                   <div>
                     <Label htmlFor="year">ชั้นปี</Label>
                     <Select value={selectedYear} onValueChange={setSelectedYear}>
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกชั้นปี" />
                       </SelectTrigger>
                       <SelectContent>
@@ -671,7 +671,7 @@ const StaffDashboard: React.FC = () => {
                   <div>
                     <Label htmlFor="semester">ภาคเรียน</Label>
                     <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                      <SelectTrigger>
+                      <SelectTrigger className="academic-control">
                         <SelectValue placeholder="เลือกภาคเรียน" />
                       </SelectTrigger>
                       <SelectContent>
@@ -690,7 +690,7 @@ const StaffDashboard: React.FC = () => {
                       <div>
                         <Label htmlFor="course-select">เลือกวิชา</Label>
                         <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue placeholder="เลือกวิชาที่ต้องการตั้งเงื่อนไข" />
                           </SelectTrigger>
                           <SelectContent>
@@ -706,7 +706,7 @@ const StaffDashboard: React.FC = () => {
                       <div>
                         <Label htmlFor="prerequisite-select">เลือกวิชาเงื่อนไข</Label>
                         <Select value={prerequisiteToAdd} onValueChange={setPrerequisiteToAdd}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue placeholder="เลือกวิชาเงื่อนไข" />
                           </SelectTrigger>
                           <SelectContent>
@@ -737,7 +737,7 @@ const StaffDashboard: React.FC = () => {
                         <Button 
                           onClick={addPrerequisite}
                           disabled={!selectedCourse || !prerequisiteToAdd}
-                          className="w-full"
+                          className="academic-control w-full"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           เพิ่มเงื่อนไข
@@ -750,7 +750,7 @@ const StaffDashboard: React.FC = () => {
                       <div>
                         <Label htmlFor="corequisite-course">เลือกวิชาที่ต้องเรียนพร้อมกัน</Label>
                         <Select value={corequisiteToAdd} onValueChange={setCorequisiteToAdd}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue placeholder="เลือกวิชาที่ต้องเรียนพร้อมกัน" />
                           </SelectTrigger>
                           <SelectContent>
@@ -781,7 +781,7 @@ const StaffDashboard: React.FC = () => {
                         <Button 
                           onClick={addCorequisiteHandler}
                           disabled={!selectedCourse || !corequisiteToAdd}
-                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          className="academic-control w-full bg-blue-600 hover:bg-blue-700"
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           เพิ่มวิชาที่ต้องเรียนพร้อมกัน
@@ -796,7 +796,7 @@ const StaffDashboard: React.FC = () => {
                         placeholder="ค้นหารายวิชา..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="academic-control pl-10"
                       />
                     </div>
 
@@ -826,7 +826,7 @@ const StaffDashboard: React.FC = () => {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                      className="academic-control h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
                                       onClick={() => removePrerequisite(course.code, prerequisite)}
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -848,7 +848,7 @@ const StaffDashboard: React.FC = () => {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                      className="academic-control h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
                                       onClick={() => removeCorequisite(course.code, corequisite)}
                                     >
                                       <Trash2 className="w-3 h-3" />
@@ -881,7 +881,7 @@ const StaffDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <BookOpen className="w-5 h-5" />
@@ -908,38 +908,38 @@ const StaffDashboard: React.FC = () => {
                         placeholder="ค้นหารายวิชา หรือหลักสูตร..."
                         value={overviewSearchTerm}
                         onChange={(e) => setOverviewSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="academic-control pl-10"
                       />
                     </div>
 
                     {/* Summary Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card className="p-4">
+                      <Card className="academic-panel p-4">
                         <div className="flex items-center space-x-2">
                           <BookOpen className="w-5 h-5 text-primary" />
                           <div>
                             <p className="text-sm text-muted-foreground">รายวิชาทั้งหมด</p>
-                            <p className="text-2xl font-bold">{filteredCourses.length}</p>
+                            <p className="academic-number text-2xl font-bold">{filteredCourses.length}</p>
                           </div>
                         </div>
                       </Card>
-                      <Card className="p-4">
+                      <Card className="academic-panel p-4">
                         <div className="flex items-center space-x-2">
                           <AlertCircle className="w-5 h-5 text-orange-600" />
                           <div>
                             <p className="text-sm text-muted-foreground">มีเงื่อนไขก่อนเรียน</p>
-                            <p className="text-2xl font-bold text-orange-600">
+                            <p className="academic-number text-2xl font-bold text-orange-600">
                               {filteredCourses.filter(c => c.prerequisites && c.prerequisites.length > 0).length}
                             </p>
                           </div>
                         </div>
                       </Card>
-                      <Card className="p-4">
+                      <Card className="academic-panel p-4">
                         <div className="flex items-center space-x-2">
                           <Users className="w-5 h-5 text-blue-600" />
                           <div>
                             <p className="text-sm text-muted-foreground">มีวิชาเรียนพร้อมกัน</p>
-                            <p className="text-2xl font-bold text-blue-600">
+                            <p className="academic-number text-2xl font-bold text-blue-600">
                               {filteredCourses.filter(c => c.corequisites && c.corequisites.length > 0).length}
                             </p>
                           </div>
