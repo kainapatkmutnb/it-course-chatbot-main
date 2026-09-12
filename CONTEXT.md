@@ -33,3 +33,14 @@
 
 - **ToastNotification**: Ephemeral feedback message displayed in response to user actions (e.g., login, course updates, data deletion), rendered as a modern glassmorphic card with semantic status icons.
 - **ToastViewport**: The top-right docked container (`top: 16px, right: 16px`) ensuring notifications remain visible and unobstructed by floating action elements such as the `ChatbotToggle`.
+
+### Identity & Curriculum Persistence
+
+- **Firebase Authentication Account**: The Firebase-managed identity that can sign in with an email and password. It is distinct from, and must not be confused with, the application's user profile.
+- **User Profile**: The application record at `users/<uid>` in Realtime Database that stores a user's role and profile fields. Removing it alone does not remove the corresponding Firebase Authentication Account.
+- **Curriculum Course Record**: The course data stored for one program, curriculum year, academic year, and semester under the `curriculum/` branch. It is the course record shown in that selected curriculum slot.
+- **Course Index Record**: The copy of a Curriculum Course Record stored under `courses/<courseId>` for cross-screen lookup. It must remain consistent with the Curriculum Course Record without overwriting records for another curriculum slot.
+
+### Chatbot Experience
+
+- **Modern Academic Chat Surface**: The department chatbot's calm, credible interaction surface, using the existing navy, white, and blue institutional palette with clear reading hierarchy and compact controls.
