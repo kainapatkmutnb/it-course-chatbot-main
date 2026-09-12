@@ -46,7 +46,15 @@
 
 - **Modern Academic Chat Surface**: The department chatbot's calm, credible interaction surface, using the existing navy, white, and blue institutional palette with clear reading hierarchy and compact controls.
 
+### Website Experience
+
+**Modern Academic Web Surface**:
+The department's contemporary academic website experience, with a consistent institutional identity and readable, task-focused presentation for students and staff. It preserves the academic capabilities available to each role.
+_Avoid_: A marketing-only redesign, a replacement academic system
+
 ### Architectural Documentation & Modeling
 
 - **ThemeAdaptiveDiagram**: Architectural diagrams authored in native vector-first Markdown (Mermaid) or solid-white canvas formats, ensuring automatic contrast and zero text occlusion across both GitHub Dark Mode and Light Mode.
 - **StructuredTieredArchitecturePattern**: A 3-tier horizontal presentation layout dividing system architecture into Stakeholder Actors, Application Core, and External Cloud/AI Services to eliminate crossing lines and clarify functional boundaries.
+- **BentoMetricShowcase**: A high-visibility architectural summary bar presenting key department scope metrics (programs, curriculum variants, accuracy rating) prominently at the top of the system documentation.
+- **BentoFeatureCard**: A modular documentation layout component grouping related capabilities with architectural tags, bullet highlights, and domain rules for rapid scanning.

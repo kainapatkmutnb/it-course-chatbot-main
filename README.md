@@ -1,65 +1,86 @@
-# IT Assistant
+<div align="center">
+
+# 🎓 IT Assistant
 ### ผู้ช่วยวางแผนการเรียนและสืบค้นข้อมูลหลักสูตรอัจฉริยะ
 **ภาควิชาเทคโนโลยีสารสนเทศ · คณะเทคโนโลยีและการจัดการอุตสาหกรรม**  
 **มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)**
 
----
+<br />
 
-[ภาพรวมระบบ](#ภาพรวมระบบ) · [สถาปัตยกรรมระบบ](#สถาปัตยกรรมระบบ) · [ขอบเขตหลักสูตรที่รองรับ](#ขอบเขตหลักสูตรที่รองรับ) · [ฟีเจอร์หลัก](#ฟีเจอร์และความสามารถ) · [บทบาทผู้ใช้งาน](#บทบาทและสิทธิ์ผู้ใช้งาน) · [เทคโนโลยีที่ใช้](#เทคโนโลยีและเครื่องมือ) · [การติดตั้งและเริ่มใช้งาน](#การติดตั้งและเริ่มใช้งาน) · [มาตรฐานวิศวกรรมและ adr](#มาตรฐานวิศวกรรมและการตัดสินใจ-adr) · [ความปลอดภัย](#ความปลอดภัยและการปกป้องข้อมูล)
+[![React](https://img.shields.io/badge/React_18.3-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite_5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_3.4-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8)](https://tailwindcss.com)
+[![Firebase](https://img.shields.io/badge/Firebase_RTDB-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
+[![n8n](https://img.shields.io/badge/n8n_Workflow-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io)
+[![Quality](https://img.shields.io/badge/Audit_Pass_Rate-100%25-059669?style=for-the-badge&logo=checkmarx&logoColor=white)](docs/audits/firebase-crud-credit-audit.md)
+
+<br />
+
+| 🏛️ **5 สาขาวิชาที่รองรับ** | 📚 **13 ฉบับหลักสูตรรับรอง** | 🎯 **100% Deterministic RAG** |
+| :---: | :---: | :---: |
+| **IT • INE • INET • ITI • ITT**<br />ครอบคลุมทั้งภาควิชาไอที มจพ. | **4 ปี • สหกิจ • ต่อเนื่อง • เทียบโอน**<br />ฐานข้อมูล `CurriculumMasterCatalog` | **Zero Hallucination**<br />ผสาน Pinecone Vector + Gemini |
+
+<br />
+
+[`📖 ภาพรวม`](#ภาพรวมระบบ) • [`🏗️ สถาปัตยกรรม`](#สถาปัตยกรรมระบบ) • [`🗺️ ขอบเขตหลักสูตร`](#ขอบเขตหลักสูตรที่รองรับ) • [`✨ ฟีเจอร์เด่น`](#ฟีเจอร์เด่น-bento-grid) • [`👥 บทบาทผู้ใช้`](#บทบาทและสิทธิ์ผู้ใช้งาน) • [`⚡ การติดตั้ง`](#การติดตั้งและเริ่มใช้งาน) • [`📜 วิศวกรรม & ADR`](#มาตรฐานวิศวกรรมและการตัดสินใจ-adr) • [`🛡️ ความปลอดภัย`](#ความปลอดภัยและการปกป้องข้อมูล)
+
+</div>
 
 ---
 
 ## ภาพรวมระบบ
 
-**IT Assistant** เป็นเว็บแอปพลิเคชันสำหรับการวางแผนการเรียน ตรวจสอบเงื่อนไขรายวิชา และติดตามผลการเรียนของนักศึกษา ภาควิชาเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ พร้อมด้วยระบบแชทบอทอัจฉริยะ (AI Advising Assistant) ที่ผสานการทำงานร่วมกับ Retrieval-Augmented Generation (RAG) บน n8n workflow เพื่อช่วยตอบคำถามเกี่ยวกับหลักสูตร เงื่อนไขการลงทะเบียน และแผนการศึกษาได้อย่างแม่นยำ
+**IT Assistant** เป็นเว็บแพลตฟอร์มสำหรับบริหารจัดการการศึกษา วางแผนการเรียน 4 ปี และตรวจสอบเงื่อนไขหลักสูตรแบบเรียลไทม์ ออกแบบเฉพาะสำหรับนักศึกษา อาจารย์ที่ปรึกษา และบุคลากร ภาควิชาเทคโนโลยีสารสนเทศ มจพ. ปราศจากปัญหาข้อความกำกวมด้วยการผสานเทคโนโลยี **AI Advising Assistant** ผ่าน n8n Workflow และ Pinecone Vector Database เพื่อให้คำปรึกษาหลักสูตรที่ถูกต้อง แม่นยำ และสอดคล้องกับระเบียบมหาวิทยาลัย 100%
 
-ระบบได้รับการออกแบบบนรากฐานโมเดลโดเมนที่รัดกุมตาม [CONTEXT.md](CONTEXT.md) ยึดมั่นมาตรฐานความถูกต้องของกฎระเบียบวิชาการ (Academic Standing & Credit Rules) และใช้อินเทอร์เฟซโทนสีสุภาพ กรมท่า น้ำเงิน และขาว (KMUTNB Institutional Palette) รองรับการแสดงผลทั้งบนคอมพิวเตอร์ แท็บเล็ต และสมาร์ทโฟน
+ตัวระบบถูกสร้างขึ้นบนรากฐานภาษาโมเดลโดเมน [CONTEXT.md](CONTEXT.md) ตามมาตรฐานวิศวกรรมซอฟต์แวร์ ควบคุมการทำงานด้วยระเบียบหน่วยกิตและภาวะวิทยาทัณฑ์ (Academic Standing Rules) พร้อมอินเทอร์เฟซระดับพรีเมียมโทนสีกรมท่า น้ำเงิน และขาว (KMUTNB Institutional Palette) ใช้งานได้อย่างลื่นไหลบนทุกขนาดหน้าจอ
 
 ---
 
 ## สถาปัตยกรรมระบบ
 
-ระบบถูกออกแบบด้วยสถาปัตยกรรมแยกส่วน (Decoupled Architecture) และนำเสนอแผนภาพตามมาตรฐาน [ADR-007](docs/adr/ADR-007-theme-adaptive-architectural-diagram-standards.md) ซึ่งรองรับการแสดงผลทั้ง **GitHub Dark Mode** และ **Light Mode** อย่างสมบูรณ์ คมชัดระดับ Vector
+ระบบใช้สถาปัตยกรรมแบบแยกส่วน (Decoupled Architecture) และนำเสนอแผนภาพตามข้อกำหนด **[ADR-007](docs/adr/ADR-007-theme-adaptive-architectural-diagram-standards.md)** รองรับการแสดงผลทั้ง **GitHub Dark Mode** และ **Light Mode** อย่างสมบูรณ์ คมชัดระดับ Vector
 
 ### แผนภาพบริบทภาพรวมระบบ (System Context Diagram)
 
-แผนภาพแสดงสถาปัตยกรรม 3 ระดับ (Structured Tiered Flow) เชื่อมโยงกลุ่มผู้ใช้งาน, ระบบเว็บแอปพลิเคชัน และบริการคลาวด์/AI ภายนอก:
+แผนภาพแสดงสถาปัตยกรรม 3 ระดับ (Structured Tiered Flow) แบ่งแยกความรับผิดชอบชัดเจนระหว่างกลุ่มผู้ใช้งาน, แอปพลิเคชันหลัก และบริการภายนอก:
 
 ```mermaid
 flowchart LR
-    classDef actor fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
-    classDef system fill:#1E293B,stroke:#0EA5E9,stroke-width:2px,color:#F8FAFC;
-    classDef external fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E;
+    %% High-Contrast Theme Palette
+    classDef actor fill:#0C4A6E,stroke:#38BDF8,stroke-width:2px,color:#F0F9FF;
+    classDef system fill:#0F172A,stroke:#0284C7,stroke-width:2.5px,color:#F8FAFC;
+    classDef external fill:#78350F,stroke:#FBBF24,stroke-width:2px,color:#FEF3C7;
 
     subgraph Actors ["👥 ผู้ใช้งานระบบ (Stakeholders)"]
         direction TB
-        Student["🎓 นักศึกษา (Students)<br/>• แผนการเรียน & ผลการเรียน<br/>• ปรึกษาแชทบอทหลักสูตร"]:::actor
-        Instructor["👨‍🏫 อาจารย์ (Instructors)<br/>• ดูข้อมูลนักศึกษาในความดูแล<br/>• แนะนำการลงทะเบียน"]:::actor
-        Staff["🏢 บุคลากร (Staff)<br/>• จัดการข้อมูลหลักสูตร & วิชา<br/>• กำหนดเงื่อนไขหลักสูตร"]:::actor
-        Admin["⚙️ ผู้ดูแลระบบ (Admins)<br/>• จัดการผู้ใช้และสิทธิ์<br/>• สถิติแชทบอท Analytics"]:::actor
+        Student(["🎓 นักศึกษา (Students)<br/>• แผนการเรียน & ผลการเรียน<br/>• ปรึกษาแชทบอทหลักสูตร"]):::actor
+        Instructor(["👨‍🏫 อาจารย์ที่ปรึกษา (Instructors)<br/>• ติดตามแผนการเรียนนักศึกษา<br/>• ให้คำปรึกษาการลงทะเบียน"]):::actor
+        Staff(["🏢 บุคลากร (Staff)<br/>• จัดการข้อมูลหลักสูตร & วิชา<br/>• กำหนดเงื่อนไขหลักสูตร"]):::actor
+        Admin(["⚙️ ผู้ดูแลระบบ (Admins)<br/>• บริหารจัดการผู้ใช้และสิทธิ์<br/>• สถิติแชทบอท Analytics"]):::actor
     end
 
     subgraph Core ["💻 ระบบหลัก (Core Application)"]
-        WebApp["🌐 IT Assistant Web Platform<br/>(React 18 + TypeScript + Vite)<br/>• Academic Rules Engine<br/>• Study Plan Validator<br/>• Modern Academic Chat Surface"]:::system
+        WebApp["🌐 IT Assistant Web Platform<br/>(React 18 + TypeScript + Vite)<br/>━━━━━━━━━━━━━━━━━━━━━<br/>• Academic Rules & Validation Engine<br/>• 4-Year Study Plan Manager<br/>• Modern Academic Chat Surface"]:::system
     end
 
     subgraph Services ["☁️ บริการภายนอก (External Services)"]
         direction TB
-        Firebase["🔥 Firebase Services<br/>• Authentication (ยืนยันตัวตน)<br/>• Realtime Database (จัดเก็บข้อมูล)"]:::external
-        N8N["🤖 n8n AI Orchestration<br/>• Pinecone Vector Search (RAG)<br/>• Gemini / LLM Reasoning"]:::external
+        Firebase(["🔥 Firebase Cloud Infrastructure<br/>• Firebase Authentication (ยืนยันตัวตน)<br/>• Realtime Database (จัดเก็บข้อมูล)"]):::external
+        N8N(["🤖 n8n AI Orchestrator<br/>• Pinecone Vector Search (RAG)<br/>• Gemini / LLM Reasoning Engine"]):::external
     end
 
-    Student <-->|"ลงทะเบียน / ปรึกษาแชทบอท / ดูแผน"| WebApp
-    Instructor <-->|"ตรวจสอบแผน / รายงานนักศึกษา"| WebApp
-    Staff <-->|"จัดการรายวิชา / เงื่อนไขหลักสูตร"| WebApp
+    Student <-->|"ลงทะเบียน / ดูแผนการเรียน / ปรึกษาบอท"| WebApp
+    Instructor <-->|"ตรวจสอบแผน / รายงานผลนักศึกษา"| WebApp
+    Staff <-->|"จัดการรายวิชา / ซิงค์ข้อมูลหลักสูตร"| WebApp
     Admin <-->|"จัดการผู้ใช้ / วิเคราะห์สถิติระบบ"| WebApp
 
-    WebApp <-->|"ยืนยันตัวตน & ซิงค์ข้อมูลหลักสูตร/แผนการเรียน"| Firebase
-    WebApp <-->|"ส่งคำถาม & รับคำตอบ RAG พร้อมบริบทหลักสูตร"| N8N
+    WebApp <-->|"ยืนยันตัวตน & ซิงค์ข้อมูล Realtime"| Firebase
+    WebApp <-->|"ส่งคำถาม & รับคำตอบ RAG สรุปข้อมูลหลักสูตร"| N8N
 ```
 
 <details>
-<summary>🖼️ <strong>ดูแผนภาพบริบทต้นฉบับ (Context Diagram Draw.io)</strong></summary>
+<summary>🖼️ <strong>ดูแผนภาพบริบทต้นฉบับ (Draw.io White-Canvas Export)</strong></summary>
 
 <br />
 
@@ -72,59 +93,59 @@ flowchart LR
 
 <br />
 
-แผนภาพแสดงทิศทางการไหลของข้อมูล กระบวนการประมวลผล (Processes) และแหล่งจัดเก็บข้อมูล (Data Stores D1–D5):
+แผนภาพแสดงกระบวนการประมวลผล (Processes 1.0 – 5.0) การไหลของข้อมูล และแหล่งจัดเก็บข้อมูล (Data Stores D1 – D5):
 
 ```mermaid
 flowchart TD
-    classDef entity fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
-    classDef process fill:#F3E8FF,stroke:#7E22CE,stroke-width:2px,color:#581C87;
-    classDef store fill:#FFE4E6,stroke:#E11D48,stroke-width:2px,color:#9F1239;
-    classDef external fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E;
+    classDef entity fill:#0C4A6E,stroke:#38BDF8,stroke-width:2px,color:#F0F9FF;
+    classDef process fill:#581C87,stroke:#C084FC,stroke-width:2px,color:#FAF5FF;
+    classDef store fill:#881337,stroke:#FB7185,stroke-width:2px,color:#FFF1F2;
+    classDef external fill:#78350F,stroke:#FBBF24,stroke-width:2px,color:#FEF3C7;
 
-    User["👤 ผู้ใช้งาน (User)"]:::entity
+    User(["👤 ผู้ใช้งาน (User)"]):::entity
     
-    P1["1.0 การยืนยันตัวตน<br/>(Authentication)"]:::process
-    P2["2.0 การจัดการผู้ใช้<br/>(User Management)"]:::process
-    P3["3.0 จัดการข้อมูลหลักสูตร<br/>(Curriculum Management)"]:::process
-    P4["4.0 แสดงผลผังหลักสูตร<br/>(Visualization)"]:::process
-    P5["5.0 การสนทนาแชทบอท<br/>(Chatbot Interaction)"]:::process
+    P1(["1.0 การยืนยันตัวตน<br/>(Authentication)"]):::process
+    P2(["2.0 การจัดการผู้ใช้<br/>(User Management)"]):::process
+    P3(["3.0 จัดการข้อมูลหลักสูตร<br/>(Curriculum Management)"]):::process
+    P4(["4.0 แสดงผลผังหลักสูตร<br/>(Visualization & Plan)"]):::process
+    P5(["5.0 การสนทนาแชทบอท<br/>(Chatbot Advising)"]):::process
 
-    D1[("D1 | ข้อมูลผู้ใช้<br/>(users/)")]:::store
-    D2[("D2 | ข้อมูลรายวิชา<br/>(courses/)")]:::store
-    D3[("D3 | ข้อมูลหลักสูตร<br/>(curriculum/)")]:::store
-    D4[("D4 | แผนการเรียน<br/>(study_plans/)")]:::store
-    D5[("D5 | บันทึกเหตุการณ์ & สถิติ<br/>(chat_analytics/)")]:::store
+    D1[("D1 | ข้อมูลผู้ใช้<br/>users/")]:::store
+    D2[("D2 | ข้อมูลรายวิชา<br/>courses/")]:::store
+    D3[("D3 | ข้อมูลหลักสูตร<br/>curriculum/")]:::store
+    D4[("D4 | แผนการเรียน<br/>study_plans/")]:::store
+    D5[("D5 | บันทึกสถิติ & Feedback<br/>chat_analytics/")]:::store
 
-    ExtAuth["🔥 Firebase Auth"]:::external
-    ExtDB["💾 Firebase RTDB"]:::external
-    ExtN8N["🤖 n8n Chatbot Service"]:::external
+    ExtAuth(["🔥 Firebase Auth"]):::external
+    ExtDB(["💾 Firebase RTDB"]):::external
+    ExtN8N(["🤖 n8n Chatbot Service"]):::external
 
-    User -->|"ข้อมูลเข้าสู่ระบบ"| P1
+    User -->|"กรอกข้อมูลเข้าสู่ระบบ"| P1
     P1 -->|"ตรวจสอบสิทธิ์"| ExtAuth
     ExtAuth -->|"ผลยืนยันตัวตน"| P1
     P1 -->|"บันทึกสถานะผู้ใช้"| D1
 
-    User -->|"จัดการสิทธิ์ผู้ใช้"| P2
-    P2 <-->|"อ่าน/บันทึกข้อมูลผู้ใช้"| D1
+    User -->|"จัดการผู้ใช้และสิทธิ์"| P2
+    P2 <-->|"อ่าน/บันทึกโปรไฟล์"| D1
     D1 <--> ExtDB
 
-    User -->|"จัดการข้อมูลรายวิชา/เงื่อนไข"| P3
+    User -->|"จัดการรายวิชา/เงื่อนไข"| P3
     P3 <-->|"ปรับปรุงรายวิชา"| D2
     P3 <-->|"โครงสร้างหลักสูตร"| D3
     D2 <--> ExtDB
     D3 <--> ExtDB
 
     D2 -->|"อ่านรายวิชา"| P4
-    D3 -->|"อ่านหลักสูตร"| P4
-    D4 <-->|"อ่าน/บันทึกแผนการเรียน"| P4
-    P4 -->|"แสดงแผนภาพหลักสูตร & ผลการเรียน"| User
+    D3 -->|"อ่านโครงสร้าง"| P4
+    D4 <-->|"อ่าน/บันทึกแผนเรียน"| P4
+    P4 -->|"แสดงผลผังวิชา & คำนวณหน่วยกิต"| User
     D4 <--> ExtDB
 
-    User -->|"คำถาม/คำสั่งแชทบอท"| P5
+    User -->|"ส่งคำถามหลักสูตร"| P5
     D3 -.->|"บริบทหลักสูตรที่ศึกษา"| P5
-    P5 <-->|"ส่งคำถาม / คำตอบหลักสูตร"| ExtN8N
-    P5 -->|"บันทึกสถิติและ Feedback"| D5
-    P5 -->|"คำตอบ/ข้อมูลหลักสูตร"| User
+    P5 <-->|"ส่ง Prompt / รับคำตอบ RAG"| ExtN8N
+    P5 -->|"บันทึกคะแนนความพึงพอใจ"| D5
+    P5 -->|"คำตอบหลักสูตรมาตรฐาน"| User
     D5 <--> ExtDB
 ```
 
@@ -135,46 +156,46 @@ flowchart TD
 </details>
 
 <details>
-<summary>🔍 <strong>ดูรายละเอียด Component Diagram</strong></summary>
+<summary>🔍 <strong>ดูรายละเอียด Component Diagram (Modular Architecture)</strong></summary>
 
 <br />
 
-แผนภาพแสดงโครงสร้างการแบ่งสัดส่วนโมดูล (Modular Architecture) ภายใน Client Layer, Service Layer และการเชื่อมต่อ External Services:
+แผนภาพแสดงการแบ่งสัดส่วนโมดูล การแยกหน้าที่ของคอมโพเนนต์ (Separation of Concerns) และการเชื่อมต่อบริการข้อมูล:
 
 ```mermaid
 flowchart TB
-    classDef client fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#0369A1;
-    classDef service fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#92400E;
-    classDef ext fill:#F3E8FF,stroke:#7E22CE,stroke-width:2px,color:#581C87;
+    classDef client fill:#0C4A6E,stroke:#38BDF8,stroke-width:2px,color:#F0F9FF;
+    classDef service fill:#78350F,stroke:#FBBF24,stroke-width:2px,color:#FEF3C7;
+    classDef ext fill:#581C87,stroke:#C084FC,stroke-width:2px,color:#FAF5FF;
 
     subgraph ClientLayer ["🖥️ Client Layer (React 18 + TypeScript + Vite)"]
         direction TB
-        App["App.tsx<br/>(Main Router & Theme)"]:::client
-        AuthContext["AuthContext.tsx<br/>(Authentication & Session)"]:::client
-        ProtRoute["ProtectedRoute.tsx / RoleBasedRoute.tsx<br/>(Access Control Guard)"]:::client
+        App["App.tsx<br/>(Router & Institutional Theme)"]:::client
+        AuthContext["AuthContext.tsx<br/>(Authentication & RBAC Session)"]:::client
+        ProtRoute["ProtectedRoute.tsx / RoleBasedRoute.tsx<br/>(Route Guards)"]:::client
 
         subgraph ViewSection ["Presentation & Dashboards"]
-            Pages["Pages<br/>(Login, Register, Home, Courses)"]:::client
-            Dashboards["Dashboards<br/>(Student, Instructor, Staff, Admin)"]:::client
-            CourseMgmt["CourseManagement.tsx<br/>(Course CRUD & Sync)"]:::client
+            Pages["Pages<br/>(Home, Courses, Curriculum, Login)"]:::client
+            Dashboards["Role Dashboards<br/>(Student, Instructor, Staff, Admin)"]:::client
+            CourseMgmt["CourseManagement.tsx<br/>(Course CRUD & Data Sync)"]:::client
         end
 
-        subgraph FeatureSection ["Interactive Features"]
+        subgraph FeatureSection ["Interactive Core Features"]
             Flowchart["CurriculumFlowchart.tsx<br/>CurriculumTimelineFlowchart.tsx"]:::client
             ChatBot["ChatBot.tsx + FeedbackBanner.tsx<br/>(#n8n-chat Modern Academic Surface)"]:::client
-            StudyPlan["StudyPlanProgress.tsx<br/>(Credit Limits & Reports)"]:::client
+            StudyPlan["StudyPlanProgress.tsx<br/>(Credit Limits Engine & PDF Export)"]:::client
         end
     end
 
-    subgraph ServiceLayer ["⚙️ Service Layer"]
+    subgraph ServiceLayer ["⚙️ Service & Business Logic Layer"]
         FirebaseService["firebaseService.ts<br/>(Data Operations & RTDB Sync)"]:::service
-        CourseService["courseService.ts & completeCurriculumData.ts<br/>(Course Management)"]:::service
-        DeptService["departmentService.ts<br/>(Department & 13 Curricula Data)"]:::service
+        CourseService["courseService.ts & completeCurriculumData.ts<br/>(Course Management Engine)"]:::service
+        DeptService["departmentService.ts<br/>(Department & 13 Curricula Catalog)"]:::service
     end
 
-    subgraph ExternalLayer ["☁️ External Services"]
-        FirebaseBackend["Firebase Authentication & Realtime Database"]:::ext
-        N8NBackend["n8n Chatbot Webhook Service"]:::ext
+    subgraph ExternalLayer ["☁️ External Infrastructure"]
+        FirebaseBackend["Firebase Auth & Realtime Database"]:::ext
+        N8NBackend["n8n Webhook Service + Pinecone + LLM"]:::ext
     end
 
     App --> AuthContext
@@ -202,11 +223,11 @@ flowchart TB
 </details>
 
 <details>
-<summary>🔍 <strong>ดูรายละเอียด Sequence Diagram (Chatbot & System Interaction)</strong></summary>
+<summary>🔍 <strong>ดูรายละเอียด Sequence Diagram (Runtime Lifecycle)</strong></summary>
 
 <br />
 
-แผนภาพแสดงลำดับเวลาการทำงาน 4 ขั้นตอนหลัก: การเข้าสู่ระบบ, การแสดงข้อมูลหลักสูตร, การตรวจสอบเงื่อนไขวิชา และการสนทนากับแชทบอท:
+แผนภาพแสดงลำดับเวลาและปฏิสัมพันธ์ของระบบใน 4 สเต็ปหลัก ตั้งแต่ Login, โหลดหลักสูตร, แสดงผลเงื่อนไข และถาม-ตอบแชทบอท:
 
 ```mermaid
 sequenceDiagram
@@ -216,41 +237,41 @@ sequenceDiagram
     participant Auth as 🔐 Auth Service (AuthContext)
     participant Svc as ⚙️ Firebase Service
     participant FB as 🔥 Firebase Backend
-    participant N8N as 🤖 n8n Chatbot
+    participant N8N as 🤖 n8n Chatbot Service
 
     %% Step 1: Login
-    Note over User,FB: 1. กระบวนการเข้าสู่ระบบ (Login Process)
+    Note over User,FB: 1. การยืนยันตัวตน (Authentication Flow)
     User->>UI: 1.1 กรอกข้อมูลเข้าสู่ระบบ
-    UI->>Auth: 1.2 เรียก login()
+    UI->>Auth: 1.2 เรียกฟังก์ชัน login()
     Auth->>FB: 1.3 signInWithEmailAndPassword()
-    FB-->>Auth: 1.4 ผลการยืนยันตัวตนสำเร็จ
+    FB-->>Auth: 1.4 ยืนยันตัวตนสำเร็จ ส่ง Token/Role
     Auth->>Auth: 1.5 อัปเดต AuthContext State
-    Auth-->>UI: 1.6 เปลี่ยนเส้นทางไปหน้าหลัก
+    Auth-->>UI: 1.6 นำทางไปยัง Dashboard ตามบทบาท
 
     %% Step 2: Curriculum Display
-    Note over User,FB: 2. การแสดงข้อมูลหลักสูตร (Curriculum Data Display)
-    User->>UI: 2.1 เลือกปี/ภาคการศึกษา
+    Note over User,FB: 2. การดึงข้อมูลหลักสูตร (Curriculum Data Sync)
+    User->>UI: 2.1 เลือกสาขาวิชาและปีหลักสูตร
     UI->>Svc: 2.2 เรียก getCoursesByYear()
     Svc->>FB: 2.3 ดึงข้อมูลรายวิชาจาก Realtime Database
-    FB-->>Svc: 2.4 ส่งข้อมูลรายวิชา
-    Svc-->>UI: 2.5 ส่งข้อมูลรายวิชาไปยัง Component
-    UI-->>User: 2.6 แสดงผลแผนภาพหลักสูตร
+    FB-->>Svc: 2.4 ส่งคืน Curriculum Course Records
+    Svc-->>UI: 2.5 อัปเดตข้อมูลรายวิชาเข้า State
+    UI-->>User: 2.6 แสดงผลผังวิชาแบบ Interactive Flowchart
 
     %% Step 3: Prerequisites
-    Note over User,FB: 3. การแสดงเงื่อนไขรายวิชา (Prerequisite Visualization)
-    User->>UI: 3.1 คลิกรายวิชาที่สนใจ
+    Note over User,FB: 3. การตรวจสอบเงื่อนไขวิชา (Prerequisite Resolution)
+    User->>UI: 3.1 คลิกเลือกรายวิชาที่สนใจ
     UI->>Svc: 3.2 เรียก getPrerequisites()
-    Svc->>FB: 3.3 ดึงข้อมูลเงื่อนไขวิชา
-    FB-->>Svc: 3.4 ส่งข้อมูลเงื่อนไข
-    Svc-->>UI: 3.5 ประมวลผลและแสดงความสัมพันธ์
-    UI-->>User: 3.6 วาดเส้นเชื่อมและไฮไลต์วิชาบังคับก่อน
+    Svc->>FB: 3.3 ดึงข้อมูลวิชาบังคับก่อนและร่วม
+    FB-->>Svc: 3.4 ส่งรายการรหัสวิชาเงื่อนไข
+    Svc-->>UI: 3.5 คำนวณความสัมพันธ์ของแผนผัง
+    UI-->>User: 3.6 ไฮไลต์เส้นเชื่อมและวิชาบังคับก่อนบนหน้าจอ
 
     %% Step 4: Chatbot Interaction
-    Note over User,N8N: 4. การสนทนากับแชทบอท (Chatbot Interaction)
-    User->>UI: 4.1 พิมพ์คำถามสอบถามข้อมูล
-    UI->>N8N: 4.2 ส่งคำถาม + บริบทหลักสูตรไป n8n Webhook
-    N8N-->>UI: 4.3 ส่งคำตอบกลับมายังหน้าจอ
-    UI-->>User: 4.4 แสดงคำตอบในหน้าต่างแชท
+    Note over User,N8N: 4. การสนทนาแชทบอท (Chatbot RAG Advising)
+    User->>UI: 4.1 พิมพ์คำถามเกี่ยวกับหลักสูตร
+    UI->>N8N: 4.2 ส่งคำถาม + บริบทหลักสูตรที่ลงทะเบียน (Enrolled Curriculum)
+    N8N-->>UI: 4.3 ส่งคำตอบมาตรฐาน [รหัสวิชา] [ชื่อวิชา]
+    UI-->>User: 4.4 แสดงผลข้อความแนะนำในหน้าต่างแชท
 ```
 
 <br />
@@ -259,12 +280,11 @@ sequenceDiagram
 
 </details>
 
-
 ---
 
 ## ขอบเขตหลักสูตรที่รองรับ
 
-ระบบบรรจุฐานข้อมูล **CurriculumMasterCatalog** ครบถ้วนทั้ง 5 สาขาวิชา รวม 13 ฉบับหลักสูตรของภาควิชาเทคโนโลยีสารสนเทศ ป้องกันปัญหาภาพหลอนของ AI (Hallucination) โดยดึงโครงสร้างหลักสูตรและเกณฑ์หน่วยกิตที่ผ่านการรับรองแล้ว:
+ระบบบรรจุฐานข้อมูล **CurriculumMasterCatalog** ครบถ้วนทั้ง 5 สาขาวิชา รวม 13 ฉบับหลักสูตรของภาควิชาเทคโนโลยีสารสนเทศ ขจัดปัญหาการตอบผิดพลาดของ AI (Hallucination) ด้วยการอ้างอิงโครงสร้างหลักสูตรและจำนวนหน่วยกิตที่รับรองอย่างเป็นทางการ:
 
 | สาขาวิชา (Program) | รหัส | ฉบับหลักสูตรที่รองรับ (Curricula) | ระยะเวลาศึกษา | หน่วยกิตรวม |
 | :--- | :---: | :--- | :---: | :---: |
@@ -276,31 +296,37 @@ sequenceDiagram
 
 ---
 
-## ฟีเจอร์และความสามารถ
+## ฟีเจอร์เด่น (Bento Grid)
 
-### 1. การจัดการหลักสูตรและผังการศึกษา (Curriculum & Study Plan)
-- **สืบค้นและคัดกรองรายวิชา**: ค้นหาตามรหัสวิชา ชื่อวิชา หมวดหมู่วิชา (ศึกษาทั่วไป, วิชาเฉพาะ, วิชาเลือกเสรี) และเงื่อนไขวิชาบังคับก่อน (Prerequisites / Corequisites)
-- **จัดทำแผนการเรียน 4 ปี (Study Plan)**: ลาก/เพิ่มรายวิชาลงในแต่ละภาคการศึกษา ตรวจสอบการผ่านวิชา และจำลองผลการลงทะเบียนล่วงหน้า
-- **ตรวจสอบข้อกำหนดหน่วยกิต (Academic Validation Rules)**:
-  - ภาคการศึกษาปกติ: ลงทะเบียนได้ตั้งแต่ 9 ถึง 22 หน่วยกิต
-  - กรณีติดวิทยาทัณฑ์ (Probation): จำกัดไม่เกิน 16 หน่วยกิต (ต้องผ่านคำร้อง Probation Petition หากต้องการลงเกิน)
-  - ภาคฤดูร้อน (Summer): จำกัดไม่เกิน 6 หน่วยกิต
-  - ข้อยกเว้นภาคจบการศึกษา (Graduation Term Exemption): อนุญาตให้ลงต่ำกว่า 9 หน่วยกิตได้
-- **คำนวณและสรุปผลการเรียน**: คำนวณ GPA รายภาคและ GPAX สะสม พร้อมกราฟและแถบวัดความคืบหน้า
+ระบบถูกออกแบบโดยแยกฟังก์ชันการทำงานหลักออกเป็น 4 ขุมพลังสำคัญ เพื่อประสบการณ์การใช้งานที่ราบรื่น:
 
-### 2. แชทบอทแนะนำการเรียนอัจฉริยะ (Modern Academic Chat Surface)
-- **เชื่อมโยงบริบทหลักสูตรอัตโนมัติ**: ส่ง Enrolled Curriculum ของนักศึกษาเข้าสู่ Prompt เพื่อให้คำตอบสอดคล้องกับหลักสูตรของตนเอง
-- **รูปแบบการแสดงรายวิชามาตรฐาน (CoursePresentationFormat)**: แชทบอทจะตอบรหัสวิชาควบคู่ชื่อวิชาภาษาไทยเสมอ เช่น `060163152 การเขียนโปรแกรมเว็บ` ไม่ปล่อยรหัสวิชาลอยๆ
-- **ระบบสำรวจความพึงพอใจ (Feedback System)**: ป้ายสอบถามแบบ 3 ระดับ (`dislike`, `neutral`, `like`) แสดงทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเพื่อนำไปปรับปรุงคุณภาพคำตอบ
+### 🧭 1. จัดทำแผนการเรียนและผังวิชาอัจฉริยะ (Curriculum & Study Plan Engine)
+> `Interactive Flowchart` · `Prerequisites Path Tracing` · `GPAX Calculator`
 
-### 3. รายงานและการนำออกข้อมูล (Reporting & Exporting)
-- **PDF Study Plan Report**: ส่งออกแผนการเรียนและใบสรุปหน่วยกิตเป็นเอกสาร PDF ผ่าน jsPDF และ html2canvas
-- **Excel Spreadsheet Export**: ส่งออกรายการวิชาและแผนการเรียนเป็นไฟล์ `.xlsx` ผ่าน SheetJS
+- **Visual Course Flowchart**: แสดงผังรายวิชาพร้อมเส้นเชื่อมโยงวิชาบังคับก่อน (Prerequisites) และวิชาบังคับร่วม (Corequisites) ด้วยสีสันที่แยกแยะสถานะชัดเจน
+- **แผนการเรียน 4 ปี (Study Plan)**: จัดการรายวิชาตามชั้นปีและภาคการศึกษา พร้อมระบบจำลองเกรดเพื่อคำนวณ GPA รายภาคและ GPAX สะสม
+- **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
 
-### 4. เครื่องมือสำหรับบุคลากรและผู้ดูแลระบบ (Staff & Admin Tools)
-- **Course & Curriculum Management**: จัดการข้อมูลรายวิชา ปรับปรุงเงื่อนไขรายวิชา และซิงค์โครงสร้างข้อมูลระหว่าง `curriculum/` และ `courses/`
-- **Student Mentoring View**: อาจารย์ที่ปรึกษาสามารถสืบค้นและดูแผนการเรียนของนักศึกษาในความดูแลเพื่อแนะนำการลงทะเบียน
-- **Chat Analytics Dashboard**: รายงานสถิติการใช้งานแชทบอท คำถามยอดนิยม สัดส่วนความพึงพอใจ และการส่งออกข้อมูลการสนทนา
+### ⚖️ 2. ควบคุมกฎระเบียบวิชาการอัตโนมัติ (Academic Rules & Validation Engine)
+> `Credit Limits Enforcement` · `Probation Guard` · `Graduation Exemption`
+
+- **ขอบเขตหน่วยกิตภาคปกติ**: ควบคุมการลงทะเบียนให้อยู่ระหว่าง 9 ถึง 22 หน่วยกิต ตามข้อบังคับมหาวิทยาลัย
+- **ระบบเฝ้าระวังภาวะวิทยาทัณฑ์ (Probation Rule)**: นักศึกษาที่มีสถานะวิทยาทัณฑ์จะถูกจำกัดการลงทะเบียนสูงสุดไม่เกิน 16 หน่วยกิต (ต้องผ่านคำร้อง Probation Petition หากมีเหตุจำเป็น)
+- **ภาคฤดูร้อนและภาคจบการศึกษา**: จำกัดการลงทะเบียนภาคฤดูร้อนไม่เกิน 6 หน่วยกิต และเปิดระบบยกเว้น (Graduation Term Exemption) ให้ลงต่ำกว่า 9 หน่วยกิตได้ในภาคเรียนสุดท้าย
+
+### 🤖 3. แชทบอทให้คำปรึกษาหลักสูตร (Modern Academic Chat Surface)
+> `n8n Orchestration` · `Pinecone Vector RAG` · `Sentiment Feedback System`
+
+- **การป้อนบริบทอัตโนมัติ (Context Injection)**: ส่งรหัสหลักสูตรที่นักศึกษาศึกษาอยู่ (`EnrolledCurriculum`) เข้าสู่ Prompt แชทบอท เพื่อให้ได้คำตอบที่ตรงกับหลักสูตรของตนเองเสมอ
+- **มาตรฐานชื่อวิชา (CoursePresentationFormat)**: คำตอบจากบอทจะประกอบด้วย `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` เสมอ ไม่ปล่อยรหัสวิชาลอยๆ ให้นักศึกษาสับสน
+- **ระบบสำรวจความพึงพอใจ 3 ระดับ (FeedbackScale)**: แสดงป้ายประเมินความพึงพอใจ (👎 ไม่ชอบ, 😐 ปานกลาง, 👍 ชอบ) ทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเข้าสู่ Realtime Database
+
+### 📑 4. รายงานและการบริหารจัดการระดับองค์กร (Reporting & Admin Controls)
+> `PDF/Excel Exporters` · `Dual-Layer Persistence` · `Analytics Dashboard`
+
+- **ส่งออกเอกสารคุณภาพสูง**: พิมพ์หรือดาวน์โหลดแผนการเรียนและใบสรุปหน่วยกิตเป็นไฟล์ PDF (jsPDF + html2canvas) และตาราง Excel (SheetJS)
+- **สถาปัตยกรรมข้อมูล 2 ชั้น**: จัดเก็บแยกส่วนระหว่าง `curriculum/` (โครงสร้างตามแผน) และ `courses/` (ดัชนีสืบค้นข้ามสาย) เพื่อป้องกันข้อมูลสูญหาย
+- **แดชบอร์ดสถิติแชทบอท (Chat Analytics)**: ผู้ดูแลระบบสามารถตรวจสอบคำถามยอดนิยม อัตราความพึงพอใจ และความถี่ในการใช้งานระบบได้แบบเรียลไทม์
 
 ---
 
@@ -308,10 +334,10 @@ sequenceDiagram
 
 | บทบาท (Role) | สิทธิ์และการใช้งานหลัก |
 | :--- | :--- |
-| **นักศึกษา (Student)** | • วางแผนการเรียน บันทึกผลการเรียน และตรวจสอบสถานะหน่วยกิตของตนเอง<br />• ใช้งานแชทบอทเพื่อสอบถามข้อมูลหลักสูตรและการลงทะเบียน<br />• ส่งออกเอกสารแผนการเรียนในรูปแบบ PDF และ Excel |
-| **อาจารย์ที่ปรึกษา (Instructor)** | • เรียกดูรายชื่อและค้นหาข้อมูลนักศึกษาในความดูแล<br />• ตรวจสอบแผนการเรียนและประวัติการลงทะเบียนของนักศึกษาเพื่อให้คำปรึกษา |
-| **เจ้าหน้าที่ภาควิชา (Staff)** | • จัดการฐานข้อมูลรายวิชา เงื่อนไขวิชา และหลักสูตรในระบบ<br />• ดูข้อมูลสถิติภาพรวมและการสำรวจหลักสูตร |
-| **ผู้ดูแลระบบ (Admin)** | • จัดการบัญชีผู้ใช้งานและกำหนดสิทธิ์ (Role Assignment)<br />• ตรวจสอบภาพรวมระบบและวิเคราะห์ผลตอบรับของแชทบอท (Chat Analytics) |
+| **🎓 นักศึกษา (Student)** | • วางแผนการเรียน บันทึกผลการเรียน และตรวจสอบสถานะหน่วยกิตของตนเอง<br />• ใช้งานแชทบอทเพื่อสอบถามข้อมูลหลักสูตรและการลงทะเบียน<br />• ส่งออกเอกสารแผนการเรียนในรูปแบบ PDF และ Excel |
+| **👨‍🏫 อาจารย์ที่ปรึกษา (Instructor)** | • เรียกดูรายชื่อและค้นหาข้อมูลนักศึกษาในความดูแล<br />• ตรวจสอบแผนการเรียนและประวัติการลงทะเบียนของนักศึกษาเพื่อให้คำปรึกษา |
+| **🏢 เจ้าหน้าที่ภาควิชา (Staff)** | • จัดการฐานข้อมูลรายวิชา เงื่อนไขวิชา และหลักสูตรในระบบ<br />• ตรวจสอบภาพรวมข้อมูลหลักสูตรและการลงทะเบียน |
+| **⚙️ ผู้ดูแลระบบ (Admin)** | • จัดการบัญชีผู้ใช้งานและกำหนดสิทธิ์ (Role Assignment)<br />• ตรวจสอบภาพรวมระบบและวิเคราะห์ผลตอบรับของแชทบอท (Chat Analytics) |
 
 ---
 
@@ -429,7 +455,7 @@ npm run preview
 it-course-chatbot-main/
 ├── diagrams/                # แผนภาพสถาปัตยกรรม (Context, DFD, Component, Sequence)
 ├── docs/
-│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-006)
+│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-007)
 │   ├── audits/              # รายงานผลการตรวจสอบระบบ (CRUD Audit, Navigation QA)
 │   └── superpowers/         # บันทึกแผนการพัฒนาและแบบร่างระบบ
 ├── public/                  # Static Assets และฟอนต์ภาษาไทย
