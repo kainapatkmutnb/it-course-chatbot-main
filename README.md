@@ -19,7 +19,7 @@
 
 | 🏛️ **5 สาขาวิชาที่รองรับ** | 📚 **13 ฉบับหลักสูตรรับรอง** | 🎯 **100% Deterministic RAG** |
 | :---: | :---: | :---: |
-| **IT • INE • INET • ITI • ITT**<br />ครอบคลุมทั้งภาควิชาไอที มจพ. | **4 ปี • สหกิจ • ต่อเนื่อง • เทียบโอน**<br />ฐานข้อมูล `CurriculumMasterCatalog` | **Zero Hallucination**<br />ผสาน Pinecone Vector + Gemini |
+| **IT • INE • INET • ITI • ITT**<br />ครอบคลุมทั้งภาควิชาไอที มจพ. | **4 ปี • สหกิจ • ต่อเนื่อง • เทียบโอน**<br />ฐานข้อมูล `CurriculumMasterCatalog` | **Zero Hallucination**<br />ผสาน Pinecone Vector + GPT-5 nano |
 
 <br />
 
@@ -67,7 +67,7 @@ flowchart LR
     subgraph Services ["☁️ บริการภายนอก (External Services)"]
         direction TB
         Firebase(["🔥 Firebase Cloud Infrastructure<br/>• Firebase Authentication (ยืนยันตัวตน)<br/>• Realtime Database (จัดเก็บข้อมูล)"]):::external
-        N8N(["🤖 n8n AI Orchestrator<br/>• Pinecone Vector Search (RAG)<br/>• Gemini / LLM Reasoning Engine"]):::external
+        N8N(["🤖 n8n AI Orchestrator<br/>• Pinecone Vector Search (RAG)<br/>• OpenAI GPT-5 nano Reasoning Engine"]):::external
     end
 
     Student <-->|"ลงทะเบียน / ดูแผนการเรียน / ปรึกษาบอท"| WebApp
@@ -195,7 +195,7 @@ flowchart TB
 
     subgraph ExternalLayer ["☁️ External Infrastructure"]
         FirebaseBackend["Firebase Auth & Realtime Database"]:::ext
-        N8NBackend["n8n Webhook Service + Pinecone + LLM"]:::ext
+        N8NBackend["n8n Webhook Service + Pinecone + GPT-5 nano"]:::ext
     end
 
     App --> AuthContext
@@ -237,7 +237,7 @@ sequenceDiagram
     participant Auth as 🔐 Auth Service (AuthContext)
     participant Svc as ⚙️ Firebase Service
     participant FB as 🔥 Firebase Backend
-    participant N8N as 🤖 n8n Chatbot Service
+    participant N8N as 🤖 n8n Chatbot Service (GPT-5 nano)
 
     %% Step 1: Login
     Note over User,FB: 1. การยืนยันตัวตน (Authentication Flow)
@@ -347,7 +347,7 @@ sequenceDiagram
 - **UI & Styling:** Tailwind CSS 3.4, shadcn/ui, Radix UI Primitives, Lucide Icons
 - **State & Data Synchronization:** TanStack React Query 5.83, React Router 6.30
 - **Database & Authentication:** Firebase Authentication, Firebase Realtime Database
-- **AI & Automation Workflow:** n8n Workflow Orchestration, Pinecone Vector Database, Gemini / LLM API
+- **AI & Automation Workflow:** n8n Workflow Orchestration, Pinecone Vector Database, OpenAI GPT-5 nano
 - **Document & Export Services:** jsPDF 3.0, html2canvas 1.4, SheetJS (xlsx) 0.18
 - **Data Validation & Forms:** Zod 3.25, React Hook Form 7.61
 

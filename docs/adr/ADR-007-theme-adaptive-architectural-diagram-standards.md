@@ -20,7 +20,7 @@ Accepted
    - For System Context diagrams, enforce a structured 3-tier horizontal layout:
      - **Tier 1 (Left / Stakeholders):** Actors (`Students`, `Instructors`, `Staff`, `Admins`)
      - **Tier 2 (Center / Application Core):** Web Platform (React 18 + Vite, Academic Rule Engine, Modern Academic Chat Surface)
-     - **Tier 3 (Right / External Services):** Cloud & AI Services (Firebase Auth/RTDB, n8n AI Orchestrator, Pinecone, LLM)
+     - **Tier 3 (Right / External Services):** Cloud & AI Services (Firebase Auth/RTDB, n8n AI Orchestrator, Pinecone, GPT-5 nano)
    - Eliminates convoluted crisscrossing arrows and organizes data flows by functional domain.
 3. **Solid-White Canvas Rule for Legacy Raster Exports:**
    - Any supplementary or detailed Draw.io PNG images kept in `diagrams/` must be composited onto a solid white canvas (`#FFFFFF`) with card padding, strictly prohibiting transparent backgrounds for black-text diagrams.
