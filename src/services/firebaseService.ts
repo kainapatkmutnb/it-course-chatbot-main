@@ -1,6 +1,6 @@
 import { db as database, auth } from '@/config/firebase';
 import { ref, get, set, push, update, remove, onValue, off } from 'firebase/database';
-import { createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword, type Auth as FirebaseAuth } from 'firebase/auth';
+import { connectAuthEmulator, createUserWithEmailAndPassword, updateProfile, signOut, signInWithEmailAndPassword, type Auth as FirebaseAuth } from 'firebase/auth';
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
@@ -25,6 +25,9 @@ const getAdminAuth = (): FirebaseAuth | null => {
       ? getApp(adminAppName)
       : initializeApp(firebaseConfig, adminAppName);
     adminAuth = getAuth(adminApp);
+    if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+      connectAuthEmulator(adminAuth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    }
     return adminAuth;
   } catch (error) {
     console.warn('Admin Firebase app initialization failed:', error);

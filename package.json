@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "dev:emulator": "vite --mode test",
+    "firebase:emulators": "firebase emulators:start --only auth,database --project demo-it-course-chatbot",
     "lint": "eslint .",
     "preview": "vite preview",
     "migrate:curriculum": "tsx migrate-curriculum-data.ts"
