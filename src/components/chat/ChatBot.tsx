@@ -216,11 +216,9 @@ const ChatBot: React.FC = () => {
     (studyPlan?.updatedAt as any)?.toString?.()
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Periodic feedback banner & toggle interaction states
+  // Periodic feedback banner states
   const [showFeedback, setShowFeedback] = useState(false);
   const [currentMessageCount, setCurrentMessageCount] = useState(0);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [hideTooltip, setHideTooltip] = useState(false);
 
   // Monitor chat messages and trigger feedback every 5 messages
   useEffect(() => {
@@ -234,7 +232,6 @@ const ChatBot: React.FC = () => {
 
       const chatWindowEl = container.querySelector('.chat-window');
       const open = !!chatWindowEl && window.getComputedStyle(chatWindowEl).display !== 'none';
-      setIsChatOpen(open);
 
       const userMsgElements = container.querySelectorAll(
         '.chat-message-from-user, [class*="chat-message-from-user"], [class*="userMessage"], [data-role="user"]'
@@ -285,15 +282,6 @@ const ChatBot: React.FC = () => {
     sessionStorage.setItem('chatLastFeedbackCount', String(currentStored));
   };
 
-  const handleOpenChat = () => {
-    const toggleBtn = document.querySelector<HTMLElement>(
-      '#n8n-chat .chat-window-toggle, #n8n-chat .chat-toggle, #n8n-chat [class*="toggle"]'
-    );
-    if (toggleBtn) {
-      toggleBtn.click();
-    }
-  };
-
   if (dataIsLoading || isInitializing) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -327,42 +315,6 @@ const ChatBot: React.FC = () => {
   return (
     <>
       <div id="n8n-chat"></div>
-      {!isChatOpen && !hideTooltip && (
-        <div
-          className="chat-toggle-pill"
-          onClick={handleOpenChat}
-          role="button"
-          tabIndex={0}
-          aria-label="เปิดหน้าต่างสอบถามหลักสูตร IT"
-        >
-          <span className="chat-toggle-pill-icon">💬</span>
-          <span className="chat-toggle-pill-text">สอบถามหลักสูตร IT ที่นี่</span>
-          <button
-            type="button"
-            className="chat-toggle-pill-close"
-            onClick={(e) => {
-              e.stopPropagation();
-              setHideTooltip(true);
-            }}
-            aria-label="ปิดข้อความแนะนำ"
-            title="ปิด"
-          >
-            ×
-          </button>
-        </div>
-      )}
-      {!isChatOpen && (
-        <div
-          className="chat-status-pulse"
-          onClick={handleOpenChat}
-          title="ระบบ AI พร้อมให้บริการ"
-          role="button"
-          tabIndex={0}
-        >
-          <span className="chat-status-pulse-dot"></span>
-          <span className="chat-status-pulse-ring"></span>
-        </div>
-      )}
       {showFeedback && (
         <FeedbackBanner
           sessionId={sessionIdRef.current}

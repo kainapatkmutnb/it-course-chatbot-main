@@ -22,20 +22,13 @@ Accepted
    - Apply CSS overrides to completely hide `.chat-powered-by`, `.chat-get-started-footer`, and `.chat-footer`.
    - Ensure zero visual clutter or third-party vendor links appear on the welcome screen.
 
-2. **Proactive ChatbotCalloutPill:**
-   - Add a dismissible floating pill badge ("💬 สอบถามหลักสูตร IT ที่นี่") adjacent to the toggle button.
-   - Attach click handlers allowing users to trigger the chat launcher directly from the pill.
-   - Hide the pill automatically when the chat window is active or on mobile viewports (`max-width: 640px`).
-
-3. **ChatStatusIndicator (Pulse Dot):**
-   - Add a pulsating green status badge (`.chat-status-pulse`) positioned at the top-right corner of the toggle button.
-   - Provides clear real-time feedback that the AI advising service is online and active.
-
-4. **Toggle Micro-Interactions & Styling:**
-   - Enhance `.chat-window-toggle` with a multi-stop gradient (`#2563eb` to `#4f46e5`), subtle border highlights, and smooth scaling on hover/active states.
-   - Hide all chat elements and floating badges under `@media print`.
+2. **Clean Minimalist Toggle Launcher:**
+   - Evaluated a floating callout pill and online status dot. User feedback indicated these extra elements cluttered and partially obstructed table/card rows on dashboards.
+   - Removed the floating pill and pulse badge to preserve an uncluttered, distraction-free interface.
+   - Retained the enhanced circular toggle button (`.chat-window-toggle`) with sleek gradient (`#2563eb` to `#4f46e5`), translucent border highlight, and polished hover/active micro-interactions.
+   - Maintained full print suppression under `@media print`.
 
 ## Consequences
 - The welcome screen is clean, professional, and branded specifically for the department.
-- Students receive clear, attractive cues regarding the availability of AI course advising.
-- Responsive styles prevent UI blockage on mobile devices.
+- The interface remains clean and distraction-free without floating badges obstructing page content.
+- Fast, tactile hover interactions on the circular launcher button.

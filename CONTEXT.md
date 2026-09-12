@@ -4,9 +4,7 @@
 
 ### Chatbot Advising Domain
 
-- **ChatbotToggle**: The persistent floating action button (FAB) positioned at the bottom-right corner of the application interface (`bottom: 20px, right: 20px`), responsible for opening and closing the advising dialog window.
-- **ChatbotCalloutPill**: A proactive, dismissible floating badge positioned to the left of the `ChatbotToggle` that invites students to consult the assistant (e.g. "💬 สอบถามหลักสูตร IT ที่นี่") with gentle float animation. Automatically hides on mobile viewports and when the chat window is opened.
-- **ChatStatusIndicator**: An online status badge (pulsing green dot) overlaid on the `ChatbotToggle` signaling AI assistant availability.
+- **ChatbotToggle**: The persistent minimalist floating action button (FAB) positioned at the bottom-right corner of the application interface (`bottom: 20px, right: 20px`), responsible for opening and closing the advising dialog window with smooth scaling and shadow hover interactions.
 - **ChatWelcomeScreen**: The initial greeting screen presented to students prior to beginning a conversation. Contains introductory department metadata, conversation starters ("เริ่มการสนทนา"), and zero redundant third-party attributions (white-labeled).
 - **FeedbackBanner**: A non-intrusive sentiment inquiry banner docked at the bottom of the active chat interface, triggered periodically every 5 user messages.
 - **FeedbackScale**: A 3-point ordinal rating system ordered from negative to positive:
