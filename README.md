@@ -210,7 +210,8 @@ docs/
     ├── ADR-002-chat-feedback-system-and-admin-analytics.md
     ├── ADR-003-chatbot-toggle-ux-and-branding.md
     ├── ADR-004-toast-alert-redesign-and-positioning.md
-    └── ADR-005-registration-credit-limits-and-probation-rules.md
+    ├── ADR-005-registration-credit-limits-and-probation-rules.md
+    └── ADR-006-multi-curriculum-context-resolution-and-catalog-injection.md
 N8N_PREREQUISITES_GUIDE.md # คู่มือการตั้งค่า n8n Webhook, Prompt, RAG และ Prerequisite Engine
 src/
 ├── components/          # ส่วนประกอบอินเทอร์เฟซหลัก

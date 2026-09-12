@@ -24,6 +24,10 @@
   - *Summer Session (ภาคฤดูร้อน)*: Maximum 6 credits.
 - **GraduationTermExemption**: Policy waiver allowing students in their expected final graduation semester to register for fewer than 9 credits.
 - **ProbationPetition**: Special approval workflow required when a student on academic probation needs to register beyond 16 credits to satisfy compulsory graduation requirements or maintain status.
+- **EnrolledCurriculum**: The specific academic degree curriculum bound to the authenticated student profile (e.g. `IT-67`, `INE-62`). For Admin or Guest users without an enrolled curriculum, this defaults to empty or general context.
+- **QueryTargetCurriculum**: The intended curriculum inferred or explicitly specified in the user's inquiry (e.g. when an Admin, Guest, or IT student asks about `INE-67`). Must take precedence over `EnrolledCurriculum` when explicitly present.
+- **CurriculumMasterCatalog**: The comprehensive department catalog containing all accredited curricula across 5 programs (`IT`, `INE`, `INET`, `ITI`, `ITT`) and 13 curriculum variants, ensuring deterministic access without lossy vector truncation.
+- **CurriculumStructureSummary**: High-level credit and course metrics per curriculum (total credits, total course count, and credit breakdown across General Education, Core/Specialized, and Free Electives), preventing hallucinated credit calculations.
 
 ### System Notification Domain
 

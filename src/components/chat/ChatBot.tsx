@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
 import { Course } from '@/types/course';
 import { FeedbackBanner } from './FeedbackBanner';
+import { getCurriculumSummaryCatalog, getAllCurriculumsMap } from '@/services/curriculumCatalogService';
 
 const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
@@ -145,6 +146,12 @@ const ChatBot: React.FC = () => {
           }
         };
 
+        const curriculumSummaryCatalog = getCurriculumSummaryCatalog();
+        const allCurriculums = getAllCurriculumsMap();
+        const enrolledCurr = studyPlan?.program && studyPlan?.curriculumYear 
+          ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
+          : (studyPlan?.curriculum || '');
+
         const metadata = user 
           ? {
               sessionId: sessionIdRef.current,
@@ -157,7 +164,10 @@ const ChatBot: React.FC = () => {
               department: studyPlan?.program || user.department || '',
               program: studyPlan?.program || '',
               curriculumYear: studyPlan?.curriculumYear || '',
-              curriculum: studyPlan?.program && studyPlan?.curriculumYear ? `${studyPlan.program}-${studyPlan.curriculumYear}` : (studyPlan?.curriculum || ''),
+              curriculum: enrolledCurr,
+              enrolledCurriculum: enrolledCurr,
+              curriculumSummaryCatalog,
+              allCurriculums,
               gpa: userGpa,
               isProbation,
               academicStanding,
@@ -208,6 +218,9 @@ const ChatBot: React.FC = () => {
               studentId: 'guest',
               role: 'guest',
               department: 'guest',
+              enrolledCurriculum: 'none',
+              curriculumSummaryCatalog,
+              allCurriculums,
               gpa: 0,
               isProbation: false,
               academicStanding: 'guest',
