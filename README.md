@@ -128,17 +128,40 @@ graph TD
    ```
 
 2. **ตั้งค่าไฟล์สภาพแวดล้อม (Environment Variables)**
-   สร้างไฟล์ `.env` ไว้ที่โฟลเดอร์หลัก (Root Directory) และระบุข้อมูลดังนี้:
-   ```env
-   VITE_FIREBASE_API_KEY=your_firebase_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-   VITE_FIREBASE_DATABASE_URL=your_firebase_database_url
-   VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-   VITE_FIREBASE_APP_ID=your_firebase_app_id
-   VITE_N8N_WEBHOOK_URL=your_n8n_chat_webhook_url
-   ```
+   คัดลอกไฟล์แม่แบบ `.env.example` ไปเป็น `.env` ในโฟลเดอร์หลัก (Root Directory):
+   
+   - **Linux / macOS (Bash):**
+     ```bash
+     cp .env.example .env
+     ```
+   - **Windows (Command Prompt):**
+     ```cmd
+     copy .env.example .env
+     ```
+   - **Windows (PowerShell):**
+     ```powershell
+     Copy-Item .env.example .env
+     ```
+
+   จากนั้นเปิดไฟล์ `.env` เพื่อระบุค่าคอนฟิกต่างๆ ตามตารางด้านล่าง:
+
+   #### 📋 รายละเอียดตัวแปรสภาพแวดล้อม (Environment Variables Reference)
+
+   | ชื่อตัวแปร | สถานะ | คำอธิบาย | แหล่งที่มา / วิธีรับค่า |
+   | :--- | :---: | :--- | :--- |
+   | `VITE_FIREBASE_API_KEY` | **Required** | Web API Key สำหรับเชื่อมต่อ Firebase Service | Firebase Console > Project Settings > General > Your apps (Web) |
+   | `VITE_FIREBASE_AUTH_DOMAIN` | **Required** | โดเมนสำหรับระบบยืนยันตัวตน (Authentication) | Firebase Console > Project Settings (เช่น `project-id.firebaseapp.com`) |
+   | `VITE_FIREBASE_DATABASE_URL` | **Required** | URL ฐานข้อมูล Realtime Database สำหรับจัดเก็บข้อมูลหลักสูตรและแผนการเรียน | Firebase Console > Realtime Database (เช่น `https://project-id-default-rtdb.asia-southeast1.firebasedatabase.app/`) |
+   | `VITE_FIREBASE_PROJECT_ID` | **Required** | รหัสระบุโปรเจกต์ของ Firebase | Firebase Console > Project Settings > Project ID |
+   | `VITE_FIREBASE_STORAGE_BUCKET` | **Required** | ที่จัดเก็บไฟล์ Cloud Storage | Firebase Console > Storage (เช่น `project-id.firebasestorage.app`) |
+   | `VITE_FIREBASE_MESSAGING_SENDER_ID` | **Required** | Sender ID สำหรับ Cloud Messaging | Firebase Console > Project Settings > Cloud Messaging |
+   | `VITE_FIREBASE_APP_ID` | **Required** | Web Application ID ใน Firebase | Firebase Console > Project Settings > Your apps (Web) |
+   | `VITE_NODE_ENV` | **Required** | สภาพแวดล้อมการทำงานของระบบ (`development` / `production`) | กำหนดเป็น `development` สำหรับการพัฒนาในเครื่อง |
+   | `VITE_N8N_WEBHOOK_URL` | **Required** | Webhook URL ของ n8n สำหรับรับคำถามและส่งคำตอบแชทบอท AI | ดูขั้นตอนการสร้าง Webhook ได้ที่ [N8N_PREREQUISITES_GUIDE.md](N8N_PREREQUISITES_GUIDE.md) |
+   | `VITE_N8N_SUMMARY_WEBHOOK_URL` | *Optional* | Webhook URL สำหรับประมวลผลสรุปผลข้อมูลการศึกษา | n8n Workflow Webhook Node สำหรับงาน Summary (ถ้ามี) |
+
+   > [!IMPORTANT]
+   > ไฟล์ `.env` มีข้อมูล Credentials และ Secret ของระบบ **ห้าม Commit หรืออัปโหลดขึ้น Git โดยเด็ดขาด** (ไฟล์ `.gitignore` ได้รับการตั้งค่าละเว้นไฟล์ `.env` ไว้แล้ว)
 
 3. **นำเข้าข้อมูลหลักสูตรเริ่มต้นสู่ Firebase**
    ```bash
