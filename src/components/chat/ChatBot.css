@@ -190,15 +190,19 @@
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5) !important;
 }
 
-/* ----- Footer ----- */
+/* ----- Footer & Powered By (White-labeled) ----- */
 #n8n-chat [class*="footer"],
-#n8n-chat .chat-footer {
-  font-family: 'Noto Sans Thai', sans-serif !important;
-  font-size: 13px !important;
-  color: #94a3b8 !important;
-  text-align: center !important;
-  padding: 8px !important;
-  background: #f8faff !important;
+#n8n-chat .chat-footer,
+#n8n-chat .chat-powered-by,
+#n8n-chat .chat-get-started-footer,
+#n8n-chat [class*="poweredBy"],
+#n8n-chat [class*="powered-by"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
 }
 
 /* ----- Scrollbar ----- */
@@ -217,18 +221,28 @@
 }
 
 /* ----- Toggle / Launcher Button ----- */
+#n8n-chat .chat-window-toggle,
 #n8n-chat .chat-toggle,
 #n8n-chat [class*="toggle"],
 #n8n-chat [class*="launcher"] {
   background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45) !important;
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.45), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
   border-radius: 50% !important;
-  transition: all 0.2s ease !important;
+  border: 2px solid rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-#n8n-chat .chat-toggle:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 6px 28px rgba(37, 99, 235, 0.6) !important;
+#n8n-chat .chat-window-toggle:hover,
+#n8n-chat .chat-toggle:hover,
+#n8n-chat [class*="toggle"]:hover {
+  transform: scale(1.08) translateY(-2px) !important;
+  box-shadow: 0 10px 32px rgba(37, 99, 235, 0.6), 0 4px 14px rgba(79, 70, 229, 0.35) !important;
+}
+
+#n8n-chat .chat-window-toggle:active,
+#n8n-chat .chat-toggle:active,
+#n8n-chat [class*="toggle"]:active {
+  transform: scale(0.95) !important;
 }
 
 /* ----- Animations ----- */
@@ -376,6 +390,152 @@
   animation: feedbackSlideUp 0.2s ease forwards;
 }
 
+/* ============================================================
+   Chatbot Toggle Proactive Pill & Online Pulse
+   ============================================================ */
+@keyframes pillFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pillFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.chat-toggle-pill {
+  position: fixed;
+  bottom: 30px;
+  right: 96px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1.5px solid rgba(37, 99, 235, 0.25);
+  border-radius: 9999px;
+  box-shadow: 0 10px 25px -3px rgba(37, 99, 235, 0.22), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  z-index: 10000;
+  user-select: none;
+  animation: pillFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1), pillFloat 3s ease-in-out infinite 0.4s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+}
+
+.chat-toggle-pill:hover {
+  background: #f8faff;
+  border-color: #2563eb;
+  box-shadow: 0 14px 28px -2px rgba(37, 99, 235, 0.3), 0 6px 12px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.chat-toggle-pill-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-toggle-pill-text {
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+}
+
+.chat-toggle-pill-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  padding: 0;
+  border: none;
+  background: rgba(148, 163, 184, 0.2);
+  color: #64748b;
+  border-radius: 50%;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chat-toggle-pill-close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+/* ----- Online Status Pulse Badge on Toggle ----- */
+.chat-status-pulse {
+  position: fixed;
+  bottom: 68px;
+  right: 22px;
+  width: 14px;
+  height: 14px;
+  z-index: 10000;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.chat-status-pulse-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  background-color: #10b981;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.chat-status-pulse-ring {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 18px;
+  height: 18px;
+  background-color: rgba(16, 185, 129, 0.45);
+  border-radius: 50%;
+  animation: pulseRing 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-toggle-pill {
+    display: none !important;
+  }
+}
+
 @media (max-width: 480px) {
   .chat-feedback-banner {
     right: 16px;
@@ -391,6 +551,9 @@
   #n8n-chat,
   n8n-chat,
   .chat-feedback-banner,
+  .chat-toggle-pill,
+  .chat-status-pulse,
+  .chat-window-toggle,
   .chat-toggle,
   [class*="toggle"],
   [class*="launcher"],

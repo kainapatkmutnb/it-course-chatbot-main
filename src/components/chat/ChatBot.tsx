@@ -182,7 +182,7 @@ const ChatBot: React.FC = () => {
             en: {
               title: 'IT Course Assistant 👋',
               subtitle: 'ยินดีต้อนรับสู่ระบบแชทบอทของภาควิชาเทคโนโลยีสารสนเทศ',
-              footer: 'Powered by n8n',
+              footer: '',
               getStarted: 'เริ่มการสนทนา',
               inputPlaceholder: 'พิมพ์คำถามของคุณ...',
               closeButtonTooltip: 'ปิดแชทบอท',
@@ -216,11 +216,13 @@ const ChatBot: React.FC = () => {
     (studyPlan?.updatedAt as any)?.toString?.()
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Periodic feedback banner states
+  // Periodic feedback banner & toggle interaction states
   const [showFeedback, setShowFeedback] = useState(false);
   const [currentMessageCount, setCurrentMessageCount] = useState(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [hideTooltip, setHideTooltip] = useState(false);
 
-  // Monitor chat messages and trigger feedback every 3 messages
+  // Monitor chat messages and trigger feedback every 5 messages
   useEffect(() => {
     if (dataIsLoading || isInitializing) return;
 
@@ -230,7 +232,10 @@ const ChatBot: React.FC = () => {
       const container = document.getElementById('n8n-chat');
       if (!container) return;
 
-      const isChatOpen = !!container.querySelector('.chat-window');
+      const chatWindowEl = container.querySelector('.chat-window');
+      const open = !!chatWindowEl && window.getComputedStyle(chatWindowEl).display !== 'none';
+      setIsChatOpen(open);
+
       const userMsgElements = container.querySelectorAll(
         '.chat-message-from-user, [class*="chat-message-from-user"], [class*="userMessage"], [data-role="user"]'
       );
@@ -246,10 +251,10 @@ const ChatBot: React.FC = () => {
         setCurrentMessageCount(newStored);
 
         const lastFeedback = parseInt(sessionStorage.getItem('chatLastFeedbackCount') || '0', 10);
-        if (newStored - lastFeedback >= 5 && isChatOpen) {
+        if (newStored - lastFeedback >= 5 && open) {
           setShowFeedback(true);
         }
-      } else if (!isChatOpen) {
+      } else if (!open) {
         setShowFeedback(false);
       }
     };
@@ -278,6 +283,15 @@ const ChatBot: React.FC = () => {
     setShowFeedback(false);
     const currentStored = parseInt(sessionStorage.getItem('chatFeedbackMsgCount') || '0', 10);
     sessionStorage.setItem('chatLastFeedbackCount', String(currentStored));
+  };
+
+  const handleOpenChat = () => {
+    const toggleBtn = document.querySelector<HTMLElement>(
+      '#n8n-chat .chat-window-toggle, #n8n-chat .chat-toggle, #n8n-chat [class*="toggle"]'
+    );
+    if (toggleBtn) {
+      toggleBtn.click();
+    }
   };
 
   if (dataIsLoading || isInitializing) {
@@ -313,6 +327,42 @@ const ChatBot: React.FC = () => {
   return (
     <>
       <div id="n8n-chat"></div>
+      {!isChatOpen && !hideTooltip && (
+        <div
+          className="chat-toggle-pill"
+          onClick={handleOpenChat}
+          role="button"
+          tabIndex={0}
+          aria-label="เปิดหน้าต่างสอบถามหลักสูตร IT"
+        >
+          <span className="chat-toggle-pill-icon">💬</span>
+          <span className="chat-toggle-pill-text">สอบถามหลักสูตร IT ที่นี่</span>
+          <button
+            type="button"
+            className="chat-toggle-pill-close"
+            onClick={(e) => {
+              e.stopPropagation();
+              setHideTooltip(true);
+            }}
+            aria-label="ปิดข้อความแนะนำ"
+            title="ปิด"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      {!isChatOpen && (
+        <div
+          className="chat-status-pulse"
+          onClick={handleOpenChat}
+          title="ระบบ AI พร้อมให้บริการ"
+          role="button"
+          tabIndex={0}
+        >
+          <span className="chat-status-pulse-dot"></span>
+          <span className="chat-status-pulse-ring"></span>
+        </div>
+      )}
       {showFeedback && (
         <FeedbackBanner
           sessionId={sessionIdRef.current}
