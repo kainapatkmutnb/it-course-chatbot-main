@@ -4,9 +4,9 @@
 
 **Goal:** Deliver a compact, accessible Modern Academic visual treatment for the existing IT Course Assistant without changing its n8n or Firebase behavior.
 
-**Architecture:** Keep `ChatBot.tsx` responsible for chat initialization, metadata, feedback monitoring, and rendering non-chat states. Keep all n8n markup overrides and responsive presentation in `ChatBot.css`, scoped under `#n8n-chat`; add a dependency-free Node verification script that prevents CI colors and selectors from leaking outside this component.
+**Architecture:** Keep `ChatBot.tsx` responsible for chat initialization, metadata, feedback monitoring, and rendering non-chat states. Keep all n8n markup overrides and responsive presentation in `ChatBot.css`, scoped under `#n8n-chat`; verify the result through the live chat surface at desktop and mobile widths.
 
-**Tech Stack:** React 18, TypeScript, Vite 5, CSS, `@n8n/chat`, Node built-in `assert`.
+**Tech Stack:** React 18, TypeScript, Vite 5, CSS, `@n8n/chat`.
 
 ## Global Constraints
 
@@ -18,71 +18,22 @@
 
 ---
 
-### Task 1: Add a focused chatbot visual-contract check
-
-**Files:**
-- Create: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/test-chatbot-theme.mjs`
-- Modify: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/package.json`
-
-**Interfaces:**
-- Consumes: `src/components/chat/ChatBot.css` and `src/components/chat/ChatBot.tsx` as UTF-8 source files.
-- Produces: `npm run test:chatbot-theme`, a zero-dependency static regression check with exit code 0 on success.
-
-- [ ] **Step 1: Write the failing test**
-
-Create `test-chatbot-theme.mjs` with this exact content before changing the component or CSS:
-
-```js
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-
-const [css, component] = await Promise.all([
-  readFile(new URL('./src/components/chat/ChatBot.css', import.meta.url), 'utf8'),
-  readFile(new URL('./src/components/chat/ChatBot.tsx', import.meta.url), 'utf8'),
-]);
-
-assert.match(css, /#n8n-chat\s+\.chat-window[\s\S]*?border-radius:\s*24px/i);
-assert.match(css, /#n8n-chat[\s\S]*?background:\s*#0b1637/i);
-assert.match(css, /#n8n-chat[\s\S]*?:focus-visible[\s\S]*?outline/i);
-assert.match(css, /@media\s*\(max-width:\s*480px\)[\s\S]*?max-width:\s*calc\(100vw\s*-\s*24px\)/i);
-assert.doesNotMatch(css, /#n8n-chat[\s\S]*?4f46e5/i);
-assert.match(component, /className="chatbot-state chatbot-state--loading"/);
-assert.match(component, /className="chatbot-state chatbot-state--error"/);
-assert.match(component, /aria-live="polite"/);
-
-console.log('Chatbot visual contract passed.');
-```
-
-- [ ] **Step 2: Add the command and verify red**
-
-Add the script entry below to the `scripts` object in `package.json`:
-
-```json
-"test:chatbot-theme": "node test-chatbot-theme.mjs"
-```
-
-Run: `npm run test:chatbot-theme`
-
-Expected: the command fails because the current stylesheet uses a 20px chat radius, a `#4f46e5` gradient, and the component does not yet expose the state classes.
-
-- [ ] **Step 3: Commit the red contract**
-
-```powershell
-git add package.json test-chatbot-theme.mjs
-git commit -m "test: define chatbot visual contract"
-```
-
-### Task 2: Apply the Modern Academic n8n chat surface
+### Task 1: Apply the Modern Academic n8n chat surface
 
 **Files:**
 - Modify: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/src/components/chat/ChatBot.css`
-- Test: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/test-chatbot-theme.mjs`
 
 **Interfaces:**
 - Consumes: n8n-generated elements beneath `#n8n-chat` and the existing `.chat-feedback-*` elements.
 - Produces: a desktop and mobile-safe visual override without altering chat DOM creation or message delivery.
 
-- [ ] **Step 1: Replace the current gradient-based chat rules with the following foundation**
+- [ ] **Step 1: Capture the current visual baseline**
+
+Run: `npm run dev -- --host 127.0.0.1`
+
+Open the application, launch the chat, and record that the existing header is tall, the conversation area is dense, and the composer is visibly separated by a horizontal border. This is the before-state for the live UI seam.
+
+- [ ] **Step 2: Replace the current gradient-based chat rules with the following foundation**
 
 Keep the existing font import and print rule. Replace the chat-window, header, message-body, bot/user-message, composer, send-button, launcher, and responsive rules with these values:
 
@@ -221,29 +172,30 @@ Keep the existing font import and print rule. Replace the chat-window, header, m
 }
 ```
 
-- [ ] **Step 2: Preserve and align the feedback banner**
+- [ ] **Step 3: Preserve and align the feedback banner**
 
 Within the existing `.chat-feedback-*` rules, change the banner background to `#ffffff`, border to `rgba(11, 22, 55, 0.12)`, title color to `#172554`, and shadow to `0 18px 42px rgba(11, 22, 55, 0.18)`. Keep its existing trigger, actions, dismiss behavior, and mobile placement; do not modify `FeedbackBanner.tsx`.
 
-- [ ] **Step 3: Run the visual contract**
+- [ ] **Step 4: Verify the live chat surface and production build**
 
-Run: `npm run test:chatbot-theme`
+At 1440px and 320px viewport widths, launch the chat and verify: the header is compact; the title and subtitle remain readable; bot/user messages are differentiated; the composer fits without horizontal overflow; and keyboard Tab displays the focus indicator on the composer and send button.
 
-Expected: `Chatbot visual contract passed.`
+Run: `npm run build`
 
-- [ ] **Step 4: Commit the CSS surface**
+Expected: Vite completes with `✓ built` and no TypeScript compile error.
+
+- [ ] **Step 5: Commit the CSS surface**
 
 ```powershell
-git add src/components/chat/ChatBot.css test-chatbot-theme.mjs package.json
+git add src/components/chat/ChatBot.css
 git commit -m "feat(chat): apply modern academic visual surface"
 ```
 
-### Task 3: Bring loading and connection-error states into the same visual system
+### Task 2: Bring loading and connection-error states into the same visual system
 
 **Files:**
 - Modify: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/src/components/chat/ChatBot.tsx`
 - Modify: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/src/components/chat/ChatBot.css`
-- Test: `C:/Users/guy26/Desktop/it-course-chatbot-main-Aektawan-manage-course/test-chatbot-theme.mjs`
 
 **Interfaces:**
 - Consumes: existing `dataIsLoading`, `isInitializing`, and `chatError` values.
@@ -361,11 +313,7 @@ return (
 }
 ```
 
-- [ ] **Step 4: Verify the contract and production build**
-
-Run: `npm run test:chatbot-theme`
-
-Expected: `Chatbot visual contract passed.`
+- [ ] **Step 4: Verify the states and production build**
 
 Run: `npm run build`
 
@@ -386,7 +334,7 @@ Open the app, launch chat, and verify these states at 1440px and 320px viewport 
 - [ ] **Step 6: Commit the completed state treatment**
 
 ```powershell
-git add src/components/chat/ChatBot.tsx src/components/chat/ChatBot.css test-chatbot-theme.mjs package.json
+git add src/components/chat/ChatBot.tsx src/components/chat/ChatBot.css
 git commit -m "feat(chat): refine loading and error states"
 ```
 
