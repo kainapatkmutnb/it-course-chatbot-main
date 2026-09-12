@@ -10,9 +10,9 @@
 #n8n-chat .n8n-chat__window {
   width: min(25rem, calc(100vw - 2rem)) !important;
   max-height: min(44rem, calc(100dvh - 2rem)) !important;
-  border-radius: 24px !important;
+  border-radius: 16px !important;
   overflow: hidden !important;
-  box-shadow: 0 24px 56px rgba(11, 22, 55, 0.22) !important;
+  box-shadow: 0 12px 32px rgba(11, 22, 55, 0.18) !important;
   border: 1px solid rgba(11, 22, 55, 0.12) !important;
   font-family: 'Noto Sans Thai', sans-serif !important;
 }
@@ -473,7 +473,7 @@
     width: calc(100vw - 24px) !important;
     max-width: calc(100vw - 24px) !important;
     max-height: calc(100dvh - 24px) !important;
-    border-radius: 20px !important;
+    border-radius: 16px !important;
   }
 
   .chat-feedback-banner {
