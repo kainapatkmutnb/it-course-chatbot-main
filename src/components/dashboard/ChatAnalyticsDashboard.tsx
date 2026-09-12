@@ -714,11 +714,11 @@ const ChatAnalyticsDashboard: React.FC = () => {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="academic-page space-y-6">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
+      <div className="academic-toolbar flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-6 rounded-xl border shadow-sm">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h2 className="academic-title text-2xl font-bold tracking-tight flex items-center gap-2">
             <Bot className="w-6 h-6 text-primary" />
             สถิติการใช้งานแชทบอท (Chatbot Analytics)
           </h2>
@@ -729,7 +729,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="academic-control w-[140px]">
               <SelectValue placeholder="ช่วงเวลา" />
             </SelectTrigger>
             <SelectContent>
@@ -740,7 +740,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
             </SelectContent>
           </Select>
 
-          <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="academic-control">
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             รีเฟรช
           </Button>
@@ -750,18 +750,18 @@ const ChatAnalyticsDashboard: React.FC = () => {
             size="sm"
             onClick={handleExportExcel}
             disabled={isExportingExcel || loading}
-            className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+            className="academic-control border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
           >
             <FileSpreadsheet className={`w-4 h-4 mr-2 ${isExportingExcel ? 'animate-bounce' : 'text-emerald-600 dark:text-emerald-400'}`} />
             {isExportingExcel ? 'กำลังส่งออก Excel...' : 'ส่งออก Excel (.xlsx)'}
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExporting || loading}>
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExporting || loading} className="academic-control">
             <Download className={`w-4 h-4 mr-2 ${isExporting ? 'animate-bounce' : ''}`} />
             {isExporting ? 'กำลังส่งออก...' : 'ส่งออก CSV'}
           </Button>
 
-          <Button variant="secondary" size="sm" onClick={handleGenerateSampleLogs} disabled={isGeneratingMock}>
+          <Button variant="secondary" size="sm" onClick={handleGenerateSampleLogs} disabled={isGeneratingMock} className="academic-control">
             <Sparkles className="w-4 h-4 mr-2 text-amber-500" />
             {isGeneratingMock ? 'กำลังสร้าง...' : 'สร้างข้อมูลจำลอง'}
           </Button>
@@ -771,13 +771,13 @@ const ChatAnalyticsDashboard: React.FC = () => {
       {/* 5 KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Card 1 */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">ข้อความทั้งหมด (Messages)</CardTitle>
             <MessageSquare className="w-4 h-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{analytics?.totalMessages || 0}</div>
+            <div className="academic-number text-3xl font-bold">{analytics?.totalMessages || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               จาก {analytics?.totalSessions || 0} เซสชันการสนทนา
             </p>
@@ -785,13 +785,13 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Card 2 */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">อัตราการตอบสำเร็จ (Success Rate)</CardTitle>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">
+            <div className="academic-number text-3xl font-bold text-emerald-600">
               {(analytics?.successRate ?? 100).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -801,13 +801,13 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Card 3 */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">เวลาตอบกลับเฉลี่ย (Avg Response)</CardTitle>
             <Clock className="w-4 h-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="academic-number text-3xl font-bold">
               {((analytics?.averageResponseTimeMs || 0) / 1000).toFixed(2)}s
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -817,13 +817,13 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Card 4 */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">คำถามที่ตอบไม่ได้ (Fallback Rate)</CardTitle>
             <AlertTriangle className="w-4 h-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-600">
+            <div className="academic-number text-3xl font-bold text-amber-600">
               {(100 - (analytics?.successRate ?? 100)).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -833,7 +833,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Card 5 */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">ความพึงพอใจ (Satisfaction)</CardTitle>
             <ThumbsUp className={`w-4 h-4 ${
@@ -845,7 +845,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
             }`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold ${
+            <div className={`academic-number text-3xl font-bold ${
               feedbackStats.total === 0 || feedbackStats.satisfactionRate >= 80
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : feedbackStats.satisfactionRate >= 50
@@ -864,7 +864,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
       {/* Visual Analytics Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Intents Bar Chart */}
-        <Card className="lg:col-span-2 shadow-sm">
+        <Card className="academic-panel lg:col-span-2 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-primary" />
@@ -898,7 +898,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Success vs Fallback Pie Chart */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -938,7 +938,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Messages Over Time (Daily) */}
-        <Card className="lg:col-span-2 shadow-sm">
+        <Card className="academic-panel lg:col-span-2 shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-blue-500" />
@@ -974,7 +974,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
 
         {/* Peak Hours (0 - 23) */}
-        <Card className="shadow-sm">
+        <Card className="academic-panel shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-500" />
@@ -1000,7 +1000,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
 
       {/* Tabs: Detailed Logs, Failure Analysis & Feedback */}
       <Tabs defaultValue="all-logs" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+        <TabsList className="academic-tabs-scroll grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="all-logs">ประวัติการสนทนาทั้งหมด</TabsTrigger>
           <TabsTrigger value="failed-logs">
             คำถามที่ตอบไม่ได้
@@ -1022,7 +1022,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
 
         {/* Tab 1: All Logs */}
         <TabsContent value="all-logs" className="space-y-4">
-          <Card className="shadow-sm">
+          <Card className="academic-panel shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -1030,19 +1030,19 @@ const ChatAnalyticsDashboard: React.FC = () => {
                   <CardDescription>แสดงบทสนทนาและผลลัพธ์การตอบแบบละเอียด</CardDescription>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div className="academic-toolbar flex flex-wrap items-center gap-2 w-full sm:w-auto">
                   <div className="relative w-full sm:w-60">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="ค้นหาข้อความ/ผู้ใช้..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8 h-9 text-sm"
+                      className="academic-control pl-8 h-9 text-sm"
                     />
                   </div>
 
                   <Select value={selectedIntentFilter} onValueChange={(v) => { setSelectedIntentFilter(v); setPage(1); }}>
-                    <SelectTrigger className="w-[130px] h-9 text-xs">
+                    <SelectTrigger className="academic-control w-[130px] h-9 text-xs">
                       <SelectValue placeholder="หมวดหมู่" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1054,7 +1054,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
                   </Select>
 
                   <Select value={selectedStatusFilter} onValueChange={(v) => { setSelectedStatusFilter(v); setPage(1); }}>
-                    <SelectTrigger className="w-[110px] h-9 text-xs">
+                    <SelectTrigger className="academic-control w-[110px] h-9 text-xs">
                       <SelectValue placeholder="สถานะ" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1068,7 +1068,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
             </CardHeader>
 
             <CardContent>
-              <div className="space-y-3">
+              <div className="academic-scroll-region space-y-3">
                 {filteredLogs.length > 0 ? (
                   filteredLogs.map((log) => (
                     <div key={log.id} className="p-4 rounded-lg border bg-card/50 hover:bg-muted/40 transition-colors space-y-2">
@@ -1145,6 +1145,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
                       size="sm"
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
+                      className="academic-control"
                     >
                       ก่อนหน้า
                     </Button>
@@ -1153,6 +1154,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
                       size="sm"
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
+                      className="academic-control"
                     >
                       ถัดไป
                     </Button>
@@ -1165,7 +1167,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
 
         {/* Tab 2: Failure Analysis */}
         <TabsContent value="failed-logs" className="space-y-4">
-          <Card className="shadow-sm border-amber-200 bg-amber-50/20">
+          <Card className="academic-panel shadow-sm border-amber-200 bg-amber-50/20">
             <CardHeader>
               <CardTitle className="text-lg font-semibold flex items-center gap-2 text-amber-900">
                 <HelpCircle className="w-5 h-5 text-amber-600" />
@@ -1176,7 +1178,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="academic-scroll-region space-y-3">
                 {analytics?.failedQueries && analytics.failedQueries.length > 0 ? (
                   analytics.failedQueries.map((log) => (
                     <div key={log.id} className="p-4 rounded-lg border border-amber-200 bg-background space-y-2">
@@ -1211,7 +1213,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
 
         {/* Tab 3: User Feedback */}
         <TabsContent value="feedback-logs" className="space-y-4">
-          <Card className="shadow-sm border-rose-100 dark:border-rose-950/40">
+          <Card className="academic-panel shadow-sm border-rose-100 dark:border-rose-950/40">
             <CardHeader className="pb-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -1224,19 +1226,19 @@ const ChatAnalyticsDashboard: React.FC = () => {
                   </CardDescription>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div className="academic-toolbar flex flex-wrap items-center gap-2 w-full sm:w-auto">
                   <div className="relative w-full sm:w-60">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="ค้นหาผู้ใช้ / Session ID..."
                       value={feedbackSearch}
                       onChange={(e) => setFeedbackSearch(e.target.value)}
-                      className="pl-8 h-9 text-sm"
+                      className="academic-control pl-8 h-9 text-sm"
                     />
                   </div>
 
                   <Select value={feedbackFilter} onValueChange={setFeedbackFilter}>
-                    <SelectTrigger className="w-[140px] h-9 text-xs">
+                    <SelectTrigger className="academic-control w-[140px] h-9 text-xs">
                       <SelectValue placeholder="ประเภทประเมิน" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1275,7 +1277,7 @@ const ChatAnalyticsDashboard: React.FC = () => {
             </CardHeader>
 
             <CardContent>
-              <div className="space-y-3">
+              <div className="academic-scroll-region space-y-3">
                 {filteredFeedbacks.length > 0 ? (
                   filteredFeedbacks.map((item) => {
                     const meta = FEEDBACK_META[item.feedback] || {

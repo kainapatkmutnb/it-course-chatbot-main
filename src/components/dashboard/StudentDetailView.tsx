@@ -226,23 +226,23 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
   const progress = getStudentProgress();
 
   return (
-    <div className="space-y-6 print:space-y-0">
+    <div className="academic-page space-y-6 print:space-y-0">
       {/* Header with Back Button */}
-      <div className="flex items-center space-x-4 print:hidden">
+      <div className="academic-toolbar flex items-center space-x-4 print:hidden">
         {onBack && (
-          <Button variant="outline" onClick={onBack}>
+          <Button variant="outline" onClick={onBack} className="academic-control">
             <ArrowLeft className="w-4 h-4 mr-2" />
             กลับ
           </Button>
         )}
         <div>
-          <h2 className="text-2xl font-bold">รายละเอียดนักศึกษา</h2>
+          <h2 className="academic-title text-2xl font-bold">รายละเอียดนักศึกษา</h2>
           <p className="text-muted-foreground">ข้อมูลและผลการเรียนของนักศึกษา</p>
         </div>
       </div>
 
       {/* Student Info Card */}
-      <Card className="shadow-medium print:hidden">
+      <Card className="academic-panel shadow-medium print:hidden">
         <CardContent className="p-6">
           <div className="flex items-start space-x-6">
             <Avatar className="h-24 w-24">
@@ -270,7 +270,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                   <div className="flex items-center space-x-2">
                     <span className="text-sm">ปีที่</span>
                     <Select value={selectedYear} onValueChange={handleYearChange}>
-                      <SelectTrigger className="w-20 h-8">
+                      <SelectTrigger className="academic-control w-20 h-8">
                         <SelectValue placeholder="เลือก" />
                       </SelectTrigger>
                       <SelectContent>
@@ -286,7 +286,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                         size="sm" 
                         onClick={handleSaveYear}
                         disabled={isSaving}
-                        className="h-8 px-3"
+                        className="academic-control h-8 px-3"
                       >
                         {isSaving ? 'กำลังบันทึก...' : 'บันทึก'}
                       </Button>
@@ -301,7 +301,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
 
       {/* Course Details - Study Plan & Report */}
       <Tabs defaultValue="report" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 print:hidden">
+        <TabsList className="academic-tabs-scroll grid w-full grid-cols-2 print:hidden">
           <TabsTrigger value="report">รายงานแผนการเรียน & PDF</TabsTrigger>
           <TabsTrigger value="study-plan">รายการรายวิชา</TabsTrigger>
         </TabsList>
@@ -319,7 +319,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
         </TabsContent>
 
         <TabsContent value="study-plan" className="space-y-6">
-          <Card className="shadow-medium">
+          <Card className="academic-panel shadow-medium">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="w-5 h-5" />
@@ -338,11 +338,11 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
               ) : studyPlan.length > 0 ? (
                 <div className="space-y-4">
                   {/* Filter Controls */}
-                  <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="academic-toolbar flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <label className="text-sm font-medium">ปีการศึกษา:</label>
                       <Select value={filterYear} onValueChange={setFilterYear}>
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger className="academic-control w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -356,7 +356,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                     <div className="flex items-center space-x-2">
                       <label className="text-sm font-medium">เทอม:</label>
                       <Select value={filterSemester} onValueChange={setFilterSemester}>
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger className="academic-control w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -460,7 +460,7 @@ const StudentDetailView: React.FC<StudentDetailViewProps> = ({ studentId, onBack
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">รวมหน่วยกิตที่วางแผน:</span>
-                      <span className="font-bold text-blue-600">
+                      <span className="academic-number font-bold text-blue-600">
                         {studyPlan
                           .filter(course => {
                             // Filter by year

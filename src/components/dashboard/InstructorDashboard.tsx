@@ -256,21 +256,21 @@ const InstructorDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="academic-page space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="academic-toolbar flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">แดชบอร์ดอาจารย์</h1>
+          <h1 className="academic-title text-3xl font-bold">แดชบอร์ดอาจารย์</h1>
           <p className="text-muted-foreground">จัดการและติดตามนักศึกษาที่ดูแล</p>
         </div>
         <Dialog open={showAddStudentDialog} onOpenChange={setShowAddStudentDialog}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="academic-control">
               <UserPlus className="h-4 w-4 mr-2" />
               เพิ่มนักศึกษา
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="academic-dialog max-w-2xl">
             <DialogHeader>
               <DialogTitle>เพิ่มนักศึกษาเข้าสู่การดูแล</DialogTitle>
               <DialogDescription>
@@ -282,12 +282,12 @@ const InstructorDashboard: React.FC = () => {
                 placeholder="ค้นหานักศึกษา..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
+                className="academic-control w-full"
               />
               <div className="max-h-96 overflow-y-auto space-y-2">
                 {/* {console.log('Rendering available students:', filteredAvailableStudents)} */}
                 {filteredAvailableStudents.map((student) => (
-                  <Card key={student.id} className="p-4">
+                  <Card key={student.id} className="academic-panel p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <Avatar>
@@ -320,6 +320,7 @@ const InstructorDashboard: React.FC = () => {
                         onClick={() => handleAddStudent(student.id)}
                         disabled={isAssigning === student.id}
                         size="sm"
+                        className="academic-control"
                       >
                         {isAssigning === student.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -343,50 +344,50 @@ const InstructorDashboard: React.FC = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
+        <Card className="academic-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">นักศึกษาที่ดูแล</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{supervisedStudents.length}</div>
+            <div className="academic-number text-2xl font-bold">{supervisedStudents.length}</div>
             <p className="text-xs text-muted-foreground">คน</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="academic-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">เกรดเฉลี่ย</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="academic-number text-2xl font-bold">
               {gradeStatistics?.averageGPA?.toFixed(2) || '0.00'}
             </div>
             <p className="text-xs text-muted-foreground">GPA</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="academic-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">หน่วยกิตเฉลี่ย</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="academic-number text-2xl font-bold">
               {Math.round(gradeStatistics?.totalCredits / supervisedStudents.length) || 0}
             </div>
             <p className="text-xs text-muted-foreground">หน่วยกิต</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="academic-panel">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ความคืบหน้า</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="academic-number text-2xl font-bold">
               {Math.round((gradeStatistics?.completedCredits / gradeStatistics?.totalCredits) * 100) || 0}%
             </div>
             <p className="text-xs text-muted-foreground">เฉลี่ย</p>
@@ -396,7 +397,7 @@ const InstructorDashboard: React.FC = () => {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="academic-tabs-scroll">
           <TabsTrigger value="students">นักศึกษาที่ดูแล</TabsTrigger>
           <TabsTrigger value="statistics">สถิติเกรด</TabsTrigger>
         </TabsList>
@@ -410,7 +411,7 @@ const InstructorDashboard: React.FC = () => {
                 placeholder="ค้นหานักศึกษา..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="academic-control pl-10"
               />
             </div>
           </div>
@@ -420,7 +421,7 @@ const InstructorDashboard: React.FC = () => {
             {filteredStudents.map((student) => {
               const stats = getStudentStats(student);
               return (
-                <Card key={student.id} className="hover:shadow-md transition-shadow">
+                <Card key={student.id} className="academic-panel hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -437,6 +438,7 @@ const InstructorDashboard: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="academic-control"
                         onClick={() => handleRemoveStudent(student.id)}
                         disabled={isAssigning === student.id}
                       >
@@ -460,15 +462,15 @@ const InstructorDashboard: React.FC = () => {
                     
                     <div className="grid grid-cols-3 gap-2 pt-2 border-t">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-green-600">{stats.gpa}</div>
+                        <div className="academic-number text-lg font-bold text-green-600">{stats.gpa}</div>
                         <div className="text-xs text-muted-foreground">GPA</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">{stats.totalCredits}</div>
+                        <div className="academic-number text-lg font-bold text-blue-600">{stats.totalCredits}</div>
                         <div className="text-xs text-muted-foreground">หน่วยกิต</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-bold text-purple-600">{stats.completed}</div>
+                        <div className="academic-number text-lg font-bold text-purple-600">{stats.completed}</div>
                         <div className="text-xs text-muted-foreground">จบแล้ว</div>
                       </div>
                     </div>
@@ -476,7 +478,7 @@ const InstructorDashboard: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="academic-control w-full"
                       onClick={() => setSelectedStudentId(student.id)}
                     >
                       <Eye className="h-4 w-4 mr-2" />
@@ -489,14 +491,14 @@ const InstructorDashboard: React.FC = () => {
           </div>
 
           {filteredStudents.length === 0 && (
-            <Card>
+            <Card className="academic-panel">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">ไม่มีนักศึกษาที่ดูแล</h3>
                 <p className="text-muted-foreground text-center mb-4">
                   คุณยังไม่มีนักศึกษาที่ดูแล หรือไม่พบนักศึกษาที่ค้นหา
                 </p>
-                <Button onClick={() => setShowAddStudentDialog(true)}>
+                <Button className="academic-control" onClick={() => setShowAddStudentDialog(true)}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   เพิ่มนักศึกษา
                 </Button>
@@ -508,7 +510,7 @@ const InstructorDashboard: React.FC = () => {
         <TabsContent value="statistics" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* GPA Distribution */}
-            <Card>
+            <Card className="academic-panel">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <BarChart3 className="h-5 w-5 mr-2" />
@@ -539,7 +541,7 @@ const InstructorDashboard: React.FC = () => {
             </Card>
 
             {/* Credit Summary */}
-            <Card>
+            <Card className="academic-panel">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <BookOpen className="h-5 w-5 mr-2" />
@@ -550,15 +552,15 @@ const InstructorDashboard: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span>หน่วยกิตรวม:</span>
-                    <span className="font-bold">{gradeStatistics?.totalCredits || 0}</span>
+                    <span className="academic-number font-bold">{gradeStatistics?.totalCredits || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>หน่วยกิตที่จบแล้ว:</span>
-                    <span className="font-bold text-green-600">{gradeStatistics?.completedCredits || 0}</span>
+                    <span className="academic-number font-bold text-green-600">{gradeStatistics?.completedCredits || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>เกรดเฉลี่ยรวม:</span>
-                    <span className="font-bold text-blue-600">
+                    <span className="academic-number font-bold text-blue-600">
                       {gradeStatistics?.averageGPA?.toFixed(2) || '0.00'}
                     </span>
                   </div>
@@ -572,7 +574,7 @@ const InstructorDashboard: React.FC = () => {
       {/* Student Detail Modal */}
       {selectedStudentId && (
         <Dialog open={!!selectedStudentId} onOpenChange={() => setSelectedStudentId('')}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="academic-dialog max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>รายละเอียดนักศึกษา</DialogTitle>
             </DialogHeader>
