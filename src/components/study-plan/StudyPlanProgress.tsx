@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Course } from '@/types/course';
 import { getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseService';
 import { firebaseService } from '@/services/firebaseService';
+import { getCurriculumSummaryCatalog } from '@/services/curriculumCatalogService';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   CheckCircle2, 
@@ -470,6 +471,19 @@ const StudyPlanProgress: React.FC = () => {
     return { total, passed, failed, incomplete, noGrade, passedCredits, totalCredits };
   }, [semesterLayout, getGradeStatus]);
 
+  const officialCurriculum = useMemo(() => {
+    if (!studyPlanData?.program || !studyPlanData?.curriculumYear) return null;
+    const catalog = getCurriculumSummaryCatalog();
+    const isCoop = studyPlanData.curriculumYear.includes('สหกิจ');
+    return catalog.find(c => {
+      if (isCoop) {
+        if (c.id === `${studyPlanData.program}-${studyPlanData.curriculumYear.replace(' สหกิจ', '')}-COOP`) return true;
+      }
+      return (c.program === studyPlanData.program && c.curriculumYear === studyPlanData.curriculumYear) ||
+             c.id === `${studyPlanData.program}-${studyPlanData.curriculumYear}`;
+    });
+  }, [studyPlanData]);
+
   // Get box colors based on grade
   const getCourseBoxColors = (course: Course) => {
     const status = getGradeStatus(course);
@@ -771,7 +785,7 @@ const StudyPlanProgress: React.FC = () => {
               <h3 className="font-bold mb-2">สรุปภาพรวม</h3>
               <div className="flex justify-center space-x-8 text-sm">
                 <div>
-                  <span className="font-bold">หน่วยกิตที่ผ่าน:</span> {stats.passedCredits} / {stats.totalCredits} หน่วยกิต
+                  <span className="font-bold">หน่วยกิตที่ผ่าน:</span> {stats.passedCredits} / {officialCurriculum?.totalCredits || stats.totalCredits} หน่วยกิต
                 </div>
                 <div>
                   <span className="font-bold">วิชาที่ผ่าน:</span> {stats.passed} / {stats.total} วิชา

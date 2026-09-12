@@ -3,6 +3,7 @@ import { Course } from '@/types/course';
 import { getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseService';
 import { useCourses } from '@/hooks/useFirebaseData';
 import { firebaseService } from '@/services/firebaseService';
+import { getCurriculumSummaryCatalog } from '@/services/curriculumCatalogService';
 
 interface CurriculumTimelineFlowchartProps {
   selectedDepartment: string;
@@ -90,6 +91,35 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
       loadCurriculumData();
     }
   }, [selectedCurriculum, firebaseCourses, cleanupNonce]); // เพิ่ม cleanupNonce เพื่อ reload หลังลบ
+
+  const officialCurriculum = useMemo(() => {
+    if (!selectedCurriculum) return null;
+    const catalog = getCurriculumSummaryCatalog();
+    return catalog.find(c => {
+      if (selectedCurriculum.includes('สหกิจ')) {
+        const is62 = selectedCurriculum.includes('62');
+        const is67 = selectedCurriculum.includes('67');
+        const isIT = selectedCurriculum.startsWith('IT');
+        const isINE = selectedCurriculum.startsWith('INE');
+        if (isIT && is62) return c.id === 'IT-62-COOP';
+        if (isIT && is67) return c.id === 'IT-67-COOP';
+        if (isINE && is62) return c.id === 'INE-62-COOP';
+        if (isINE && is67) return c.id === 'INE-67-COOP';
+      }
+      const parts = selectedCurriculum.split(' ');
+      const prog = parts[0];
+      const yr = parts[1];
+      return (c.program === prog && c.curriculumYear === yr) || c.id === `${prog}-${yr}`;
+    });
+  }, [selectedCurriculum]);
+
+  const totalCalculatedCredits = useMemo(() => {
+    return Object.values(timelineData).reduce((total, year) => 
+      total + Object.values(year).reduce((yearTotal, courses) => 
+        yearTotal + courses.reduce((sum, course) => sum + (course.credits || 0), 0), 0
+      ), 0
+    );
+  }, [timelineData]);
 
   const calculateSemesterCredits = (courses: HybridCourse[]) => {
     return courses.reduce((sum, course) => sum + course.credits, 0);
@@ -760,16 +790,10 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
           <h3 className="font-bold mb-2">สรุปหลักสูตร</h3>
           <div className="flex justify-center space-x-8 text-sm">
             <div>
-              <span className="font-bold">ระยะเวลา:</span> {Object.keys(timelineData).length} ปี
+              <span className="font-bold">ระยะเวลา:</span> {officialCurriculum?.duration || Object.keys(timelineData).length} ปี
             </div>
             <div>
-              <span className="font-bold">หน่วยกิตรวม:</span> {
-                Object.values(timelineData).reduce((total, year) => 
-                  total + Object.values(year).reduce((yearTotal, courses) => 
-                    yearTotal + courses.reduce((sum, course) => sum + course.credits, 0), 0
-                  ), 0
-                )
-              } หน่วยกิต
+              <span className="font-bold">หน่วยกิตรวม:</span> {officialCurriculum?.totalCredits || totalCalculatedCredits} หน่วยกิต
             </div>
           </div>
         </div>

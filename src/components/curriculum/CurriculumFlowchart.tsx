@@ -5,6 +5,7 @@ import { Department, Curriculum, Course } from '@/types/course';
 import { getHybridCoursesForSemester } from '@/services/hybridCourseService';
 import { ArrowDown, BookOpen } from 'lucide-react';
 import { useCourses } from '@/hooks/useFirebaseData';
+import { getCurriculumSummaryCatalog } from '@/services/curriculumCatalogService';
 
 interface CurriculumFlowchartProps {
   selectedDepartment: string;
@@ -138,6 +139,27 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
     });
     return total;
   }, [coursesByYear]);
+
+  const officialCurriculum = useMemo(() => {
+    if (!selectedCurriculum) return null;
+    const catalog = getCurriculumSummaryCatalog();
+    return catalog.find(c => {
+      if (selectedCurriculum.includes('สหกิจ')) {
+        const is62 = selectedCurriculum.includes('62');
+        const is67 = selectedCurriculum.includes('67');
+        const isIT = selectedCurriculum.startsWith('IT');
+        const isINE = selectedCurriculum.startsWith('INE');
+        if (isIT && is62) return c.id === 'IT-62-COOP';
+        if (isIT && is67) return c.id === 'IT-67-COOP';
+        if (isINE && is62) return c.id === 'INE-62-COOP';
+        if (isINE && is67) return c.id === 'INE-67-COOP';
+      }
+      const parts = selectedCurriculum.split(' ');
+      const prog = parts[0];
+      const yr = parts[1];
+      return (c.program === prog && c.curriculumYear === yr) || c.id === `${prog}-${yr}`;
+    });
+  }, [selectedCurriculum]);
 
   // Find prerequisites within the curriculum
   const findPrerequisiteConnections = (course: Course) => {
@@ -458,11 +480,11 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
             </h3>
             <div className="grid md:grid-cols-4 gap-4">
               <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
-                <div className="text-3xl font-bold text-emerald-600">{totalCredits}</div>
+                <div className="text-3xl font-bold text-emerald-600">{officialCurriculum?.totalCredits || totalCredits}</div>
                 <div className="text-sm text-muted-foreground">หน่วยกิตรวม</div>
               </div>
               <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
-                <div className="text-3xl font-bold text-blue-600">{Object.keys(coursesByYear).length}</div>
+                <div className="text-3xl font-bold text-blue-600">{officialCurriculum?.duration || Object.keys(coursesByYear).length}</div>
                 <div className="text-sm text-muted-foreground">ปี</div>
               </div>
               <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
