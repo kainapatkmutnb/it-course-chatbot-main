@@ -487,6 +487,9 @@
 
 /* ----- Loading and Connection Error States ----- */
 [data-chatbot-state].chatbot-state {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -588,6 +591,18 @@
   [data-chatbot-state] .chatbot-state__skeleton span,
   #n8n-chat .chat-window {
     animation: none !important;
+  }
+
+  #n8n-chat [class*="sendButton"],
+  #n8n-chat .chat-input-send-button,
+  #n8n-chat button[type="submit"],
+  #n8n-chat [class*="send"] button,
+  #n8n-chat .chat-window-toggle,
+  #n8n-chat .chat-toggle,
+  #n8n-chat [class*="toggle"],
+  #n8n-chat [class*="launcher"] {
+    transition: none !important;
+    transform: none !important;
   }
 }
 

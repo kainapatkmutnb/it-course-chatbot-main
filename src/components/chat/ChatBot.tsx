@@ -363,8 +363,7 @@ const ChatBot: React.FC = () => {
     sessionStorage.setItem('chatLastFeedbackCount', String(currentStored));
   };
 
-  if (dataIsLoading || isInitializing) {
-    return (
+  const statePanel = (dataIsLoading || isInitializing) ? (
       <div data-chatbot-state className="chatbot-state chatbot-state--loading" role="status" aria-live="polite">
         <div className="chatbot-state__panel">
           <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
@@ -376,11 +375,7 @@ const ChatBot: React.FC = () => {
           <p>กำลังเตรียมผู้ช่วยแนะนำหลักสูตร</p>
         </div>
       </div>
-    );
-  }
-
-  if (chatError) {
-    return (
+  ) : chatError ? (
       <div data-chatbot-state className="chatbot-state chatbot-state--error" role="alert">
         <div className="chatbot-state__panel">
           <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
@@ -389,12 +384,12 @@ const ChatBot: React.FC = () => {
           <p className="chatbot-state__hint">โปรดลองใหม่อีกครั้งในภายหลัง หรือติดต่อผู้ดูแลระบบ</p>
         </div>
       </div>
-    );
-  }
+  ) : null;
 
   return (
     <>
       <div id="n8n-chat"></div>
+      {statePanel}
       {showFeedback && (
         <FeedbackBanner
           sessionId={sessionIdRef.current}
