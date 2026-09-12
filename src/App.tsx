@@ -23,8 +23,8 @@ const App = () => (
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
-        {/* position=bottom-left เพื่อไม่ทับ chatbot toggle ที่ bottom-right */}
-        <Sonner position="bottom-left" />
+        {/* position=top-right สอดคล้องกับ Toaster และไม่ทับ chatbot toggle ที่ bottom-right */}
+        <Sonner position="top-right" />
         <BrowserRouter>
           <div className="min-h-screen bg-background flex flex-col">
             <Header />
