@@ -627,7 +627,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
       </div>
 
       {/* Flowchart */}
-      <div className="bg-white overflow-x-auto">
+      <div className="academic-scroll-region bg-white overflow-x-auto">
         <div className="inline-block min-w-full p-4">
           {/* Semester Headers */}
           <div className="relative mb-2" style={{ 

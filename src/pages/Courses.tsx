@@ -225,21 +225,21 @@ const Courses: React.FC = () => {
   const currentCurriculum = getCurrentCurriculum();
 
   return (
-    <div className="min-h-screen p-6 gradient-subtle">
+    <div className="academic-page min-h-screen p-6 gradient-subtle">
       <div className="container mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center space-x-2">
             <GraduationCap className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold">หลักสูตรเทคโนโลยีสารสนเทศ</h1>
+            <h1 className="academic-title text-4xl font-bold">หลักสูตรเทคโนโลยีสารสนเทศ</h1>
           </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="academic-copy text-xl text-muted-foreground max-w-2xl mx-auto">
             สำรวจรายวิชาในหลักสูตรและวางแผนการเรียนของคุณ
           </p>
         </div>
 
         {/* Filters */}
-        <Card className="shadow-medium">
+        <Card className="academic-panel shadow-medium">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Filter className="w-5 h-5" />
@@ -249,17 +249,17 @@ const Courses: React.FC = () => {
           <CardContent>
             <div className="grid md:grid-cols-5 gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="ค้นหารายวิชา..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="academic-control pl-10"
                 />
               </div>
               
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="สาขาวิชา" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -277,7 +277,7 @@ const Courses: React.FC = () => {
                 onValueChange={setSelectedCurriculum}
                 disabled={selectedDepartment === 'all'}
               >
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="หลักสูตรปีการศึกษา" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -291,7 +291,7 @@ const Courses: React.FC = () => {
               </Select>
 
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เทอม" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg z-50">
@@ -305,6 +305,7 @@ const Courses: React.FC = () => {
 
               <Button 
                 variant="outline" 
+                className="academic-control"
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedDepartment('all');
@@ -343,7 +344,7 @@ const Courses: React.FC = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => (
-                <Card key={course.id} className="shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+                <Card key={course.id} className="academic-panel shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -357,7 +358,7 @@ const Courses: React.FC = () => {
                       </div>
                       <div className="text-right space-y-1">
                         {getCategoryBadge(course.category)}
-                        <div className="text-sm text-muted-foreground">
+                        <div className="academic-number text-sm text-muted-foreground">
                           {course.credits} หน่วยกิต
                         </div>
                       </div>
@@ -373,12 +374,12 @@ const Courses: React.FC = () => {
                     <div className="flex items-center justify-between pt-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" className="flex items-center space-x-2">
+                          <Button size="sm" variant="outline" className="academic-control flex items-center space-x-2">
                             <Info className="w-4 h-4" />
                             <span>รายละเอียด</span>
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogContent className="academic-dialog max-w-2xl max-h-[80vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle className="flex items-center space-x-2">
                               <BookOpen className="w-5 h-5 text-primary" />
@@ -388,7 +389,7 @@ const Courses: React.FC = () => {
                           <div className="space-y-4">
                             <div className="flex items-center space-x-4">
                               {getCategoryBadge(course.category)}
-                              <span className="text-sm text-muted-foreground">{course.credits} หน่วยกิต</span>
+                              <span className="academic-number text-sm text-muted-foreground">{course.credits} หน่วยกิต</span>
                               <span className="text-sm text-muted-foreground">ภาค {course.semester}/ปี {course.year}</span>
                             </div>
                             
@@ -440,7 +441,7 @@ const Courses: React.FC = () => {
                       </Dialog>
                       
                       {isAuthenticated && (
-                        <Button size="sm">
+                        <Button size="sm" className="academic-control">
                           เพิ่มในแผน
                         </Button>
                       )}
@@ -453,7 +454,7 @@ const Courses: React.FC = () => {
 
             {/* No Results */}
             {!isLoading && filteredCourses.length === 0 && (
-              <Card className="shadow-medium">
+              <Card className="academic-panel shadow-medium">
                 <CardContent className="text-center py-12">
                   <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">ไม่พบรายวิชา</h3>
@@ -465,33 +466,33 @@ const Courses: React.FC = () => {
             )}
 
             {/* Summary Statistics */}
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-5">
                   <div className="text-center space-y-2 min-h-[80px] bg-primary/5 rounded-lg flex flex-col justify-center p-4">
-                    <div className="text-2xl font-bold text-primary">{filteredCourses.length}</div>
+                    <div className="academic-number text-2xl font-bold text-primary">{filteredCourses.length}</div>
                     <div className="text-sm text-muted-foreground">รายวิชาทั้งหมด</div>
                   </div>
                   <div className="text-center space-y-2 min-h-[80px] bg-secondary/10 rounded-lg flex flex-col justify-center p-4">
-                    <div className="text-2xl font-bold text-emerald-600">
+                    <div className="academic-number text-2xl font-bold text-emerald-600">
                       {filteredCourses.reduce((sum, course) => sum + course.credits, 0)}
                     </div>
                     <div className="text-sm text-muted-foreground">หน่วยกิตรวม</div>
                   </div>
-                  <div className="text-center space-y-2 min-h-[80px] bg-blue-50 rounded-lg flex flex-col justify-center p-4">
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-center space-y-2 min-h-[80px] bg-blue-50 dark:bg-blue-950/40 rounded-lg flex flex-col justify-center p-4">
+                    <div className="academic-number text-2xl font-bold text-blue-600">
                       {filteredCourses.filter(course => course.mainCategory === 'หมวดวิชาเฉพาะ').length}
                     </div>
                     <div className="text-sm text-muted-foreground">วิชาเฉพาะ</div>
                   </div>
-                  <div className="text-center space-y-2 min-h-[80px] bg-green-50 rounded-lg flex flex-col justify-center p-4">
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="text-center space-y-2 min-h-[80px] bg-green-50 dark:bg-green-950/40 rounded-lg flex flex-col justify-center p-4">
+                    <div className="academic-number text-2xl font-bold text-green-600">
                       {filteredCourses.filter(course => course.mainCategory === 'หมวดวิชาศึกษาทั่วไป').length}
                     </div>
                     <div className="text-sm text-muted-foreground">วิชาทั่วไป</div>
                   </div>
                   <div className="text-center space-y-2 min-h-[80px] bg-warning/10 rounded-lg flex flex-col justify-center p-4">
-                    <div className="text-2xl font-bold text-warning">
+                    <div className="academic-number text-2xl font-bold text-warning">
                       {filteredCourses.filter(course => course.mainCategory === 'หมวดวิชาเลือกเสรี').length}
                     </div>
                     <div className="text-sm text-muted-foreground">วิชาเลือกเสรี</div>
@@ -509,7 +510,7 @@ const Courses: React.FC = () => {
                 departmentName={departments?.find(dept => dept.code === selectedDepartment)?.name || 'หลักสูตร'}
               />
             ) : (
-              <Card className="shadow-medium">
+              <Card className="academic-panel shadow-medium">
                 <CardContent className="p-12 text-center space-y-4">
                   <Network className="w-16 h-16 text-muted-foreground mx-auto" />
                   <h3 className="text-xl font-semibold text-muted-foreground">

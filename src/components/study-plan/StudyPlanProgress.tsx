@@ -510,7 +510,7 @@ const StudyPlanProgress: React.FC = () => {
   // No study plan
   if (!studyPlanData) {
     return (
-      <Card className="shadow-medium">
+      <Card className="academic-panel shadow-medium">
         <CardContent className="p-12 text-center">
           <div className="space-y-4">
             <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto" />
@@ -529,16 +529,16 @@ const StudyPlanProgress: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+        <h2 className="academic-title text-2xl font-bold">
           ภาพรวมความคืบหน้าการเรียน
         </h2>
-        <p className="text-lg text-muted-foreground">
+        <p className="academic-copy text-lg text-muted-foreground">
           หลักสูตร {studyPlanData.program} {studyPlanData.curriculumYear}
         </p>
       </div>
 
       {/* Legend & Summary */}
-      <Card className="shadow-soft">
+      <Card className="academic-panel shadow-soft">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Legend */}
@@ -562,20 +562,20 @@ const StudyPlanProgress: React.FC = () => {
             </div>
             {/* Stats */}
             <div className="flex flex-wrap items-center gap-4">
-              <Badge className="bg-green-100 text-green-800 text-sm px-3 py-1">
+              <Badge className="academic-number bg-green-100 text-green-800 text-sm px-3 py-1">
                 <CheckCircle2 className="w-4 h-4 mr-1" /> ผ่าน {stats.passed} วิชา ({stats.passedCredits} หน่วยกิต)
               </Badge>
               {stats.incomplete > 0 && (
-                <Badge className="bg-yellow-100 text-yellow-800 text-sm px-3 py-1">
+                <Badge className="academic-number bg-yellow-100 text-yellow-800 text-sm px-3 py-1">
                   <AlertTriangle className="w-4 h-4 mr-1" /> การประเมินผลยังไม่สมบูรณ์ (I) {stats.incomplete} วิชา
                 </Badge>
               )}
               {stats.failed > 0 && (
-                <Badge className="bg-red-100 text-red-800 text-sm px-3 py-1">
+                <Badge className="academic-number bg-red-100 text-red-800 text-sm px-3 py-1">
                   <XCircle className="w-4 h-4 mr-1" /> ไม่ผ่าน {stats.failed} วิชา
                 </Badge>
               )}
-              <Badge className="bg-gray-100 text-gray-700 text-sm px-3 py-1">
+              <Badge className="academic-number bg-gray-100 text-gray-700 text-sm px-3 py-1">
                 <Clock className="w-4 h-4 mr-1" /> เหลือ {stats.noGrade} วิชา
               </Badge>
             </div>
@@ -584,11 +584,11 @@ const StudyPlanProgress: React.FC = () => {
       </Card>
 
       {/* Progress Bar */}
-      <Card className="shadow-soft">
+      <Card className="academic-panel shadow-soft">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">ความคืบหน้าภาพรวม</span>
-            <span className="text-sm text-muted-foreground">
+            <span className="academic-number text-sm text-muted-foreground">
               {stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0}%
             </span>
           </div>
@@ -623,7 +623,7 @@ const StudyPlanProgress: React.FC = () => {
           </div>
 
           {/* Flowchart Content */}
-          <div className="bg-white overflow-x-auto">
+          <div className="academic-scroll-region bg-white overflow-x-auto">
             <div className="inline-block min-w-full p-4">
               {/* Semester Headers */}
               <div className="relative mb-2" style={{ 

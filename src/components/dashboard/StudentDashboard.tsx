@@ -130,7 +130,7 @@ const StudentDashboard: React.FC = () => {
   // Update loading/error conditions to include GPA data
   if (studyPlanLoading || gpaLoading) {
     return (
-      <div className="min-h-screen p-6 gradient-subtle flex items-center justify-center">
+      <div className="academic-page min-h-screen p-6 gradient-subtle flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-lg text-muted-foreground">กำลังโหลดข้อมูล...</p>
@@ -141,13 +141,13 @@ const StudentDashboard: React.FC = () => {
 
   if (studyPlanError || gpaError) {
     return (
-      <div className="min-h-screen p-6 gradient-subtle flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="academic-page min-h-screen p-6 gradient-subtle flex items-center justify-center">
+        <Card className="academic-panel w-full max-w-md">
           <CardContent className="p-6 text-center">
             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">เกิดข้อผิดพลาด</h2>
             <p className="text-muted-foreground">{studyPlanError || gpaError}</p>
-            <Button className="mt-4" onClick={() => window.location.reload()}>
+            <Button className="academic-control mt-4" onClick={() => window.location.reload()}>
               ลองใหม่
             </Button>
           </CardContent>
@@ -157,10 +157,10 @@ const StudentDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen p-6 gradient-subtle print:p-0 print:bg-white">
+    <div className="academic-page min-h-screen p-6 gradient-subtle print:p-0 print:bg-white">
       <div className="container mx-auto space-y-6 print:space-y-0 print:max-w-none print:p-0">
         {/* Welcome Section with User Info */}
-        <Card className="shadow-soft border-0 bg-gradient-to-r from-student/10 to-primary/10 print:hidden">
+        <Card className="academic-welcome shadow-soft border-0 bg-gradient-to-r from-student/10 to-primary/10 print:hidden">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
@@ -170,10 +170,10 @@ const StudentDashboard: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground">
+                <h1 className="academic-title text-2xl font-bold text-foreground">
                   ยินดีต้อนรับ, {user?.name}
                 </h1>
-                <p className="text-muted-foreground mb-2">แดชบอร์ดนักศึกษา - คณะเทคโนโลยีและการจัดการอุตสาหกรรม</p>
+                <p className="academic-copy text-muted-foreground mb-2">แดชบอร์ดนักศึกษา - คณะเทคโนโลยีและการจัดการอุตสาหกรรม</p>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Mail className="w-4 h-4 shrink-0" />
@@ -219,7 +219,7 @@ const StudentDashboard: React.FC = () => {
           
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card className="shadow-medium">
+            <Card className="academic-panel shadow-medium">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -227,17 +227,17 @@ const StudentDashboard: React.FC = () => {
                     <span>ข้อมูลส่วนตัว</span>
                   </div>
                   {!isEditingProfile ? (
-                    <Button onClick={handleEditProfile} variant="outline" size="sm">
+                    <Button onClick={handleEditProfile} variant="outline" size="sm" className="academic-control">
                       <Edit className="w-4 h-4 mr-2" />
                       แก้ไข
                     </Button>
                   ) : (
                     <div className="flex space-x-2">
-                      <Button onClick={handleSaveProfile} size="sm">
+                      <Button onClick={handleSaveProfile} size="sm" className="academic-control">
                         <Save className="w-4 h-4 mr-2" />
                         บันทึก
                       </Button>
-                      <Button onClick={handleCancelEdit} variant="outline" size="sm">
+                      <Button onClick={handleCancelEdit} variant="outline" size="sm" className="academic-control">
                         <X className="w-4 h-4 mr-2" />
                         ยกเลิก
                       </Button>
@@ -257,14 +257,15 @@ const StudentDashboard: React.FC = () => {
                         id="name" 
                         value={editedProfile.name} 
                         onChange={(e) => setEditedProfile(prev => ({ ...prev, name: e.target.value }))}
+                        className="academic-control"
                       />
                     ) : (
-                      <Input id="name" value={user?.name || ''} readOnly />
+                      <Input id="name" value={user?.name || ''} readOnly className="academic-control" />
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">อีเมล</Label>
-                    <Input id="email" value={user?.email || ''} readOnly />
+                    <Input id="email" value={user?.email || ''} readOnly className="academic-control" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="studentId">รหัสนักศึกษา</Label>
@@ -274,9 +275,10 @@ const StudentDashboard: React.FC = () => {
                         value={editedProfile.studentId} 
                         onChange={(e) => setEditedProfile(prev => ({ ...prev, studentId: e.target.value }))}
                         placeholder="เช่น s6506022620052"
+                        className="academic-control"
                       />
                     ) : (
-                      <Input id="studentId" value={user?.studentId || 'ไม่ระบุ'} readOnly />
+                      <Input id="studentId" value={user?.studentId || 'ไม่ระบุ'} readOnly className="academic-control" />
                     )}
                   </div>
                   <div className="space-y-2">
@@ -286,7 +288,7 @@ const StudentDashboard: React.FC = () => {
                         value={editedProfile.department} 
                         onValueChange={(value) => setEditedProfile(prev => ({ ...prev, department: value }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="academic-control">
                           <SelectValue placeholder="เลือกสาขาวิชา" />
                         </SelectTrigger>
                         <SelectContent>
@@ -302,6 +304,7 @@ const StudentDashboard: React.FC = () => {
                         id="department" 
                         value={departments.find(d => d.id === currentDepartment)?.nameThai || currentDepartment || 'ไม่ระบุ'} 
                         readOnly 
+                        className="academic-control"
                       />
                     )}
                   </div>
@@ -311,23 +314,23 @@ const StudentDashboard: React.FC = () => {
                   <h3 className="text-lg font-semibold mb-4">สถิติการเรียน</h3>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-primary">{completedCredits}</div>
+                      <div className="academic-number text-2xl font-bold text-primary">{completedCredits}</div>
                       <div className="text-sm text-muted-foreground">หน่วยกิตที่เรียนแล้ว</div>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-success">{currentGPA.toFixed(2)}</div>
+                      <div className="academic-number text-2xl font-bold text-success">{currentGPA.toFixed(2)}</div>
                       <div className="text-sm text-muted-foreground">เกรดเฉลี่ย</div>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-emerald-600">{completedCourses.length}</div>
+                      <div className="academic-number text-2xl font-bold text-emerald-600">{completedCourses.length}</div>
                       <div className="text-sm text-muted-foreground">วิชาที่เรียนผ่านแล้ว</div>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-warning">{inProgressCourses.length}</div>
+                      <div className="academic-number text-2xl font-bold text-warning">{inProgressCourses.length}</div>
                       <div className="text-sm text-muted-foreground">วิชาที่กำลังเรียน</div>
                     </div>
                     <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-info">{Math.round(progressPercentage)}%</div>
+                      <div className="academic-number text-2xl font-bold text-info">{Math.round(progressPercentage)}%</div>
                       <div className="text-sm text-muted-foreground">ความคืบหน้า</div>
                     </div>
                   </div>

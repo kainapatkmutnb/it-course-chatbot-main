@@ -956,15 +956,15 @@ const StudyPlanManager: React.FC = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold">เลือกหลักสูตรของคุณ</h2>
+          <h2 className="academic-title text-2xl font-bold">เลือกหลักสูตรของคุณ</h2>
         </div>
 
-        <Card>
+        <Card className="academic-panel">
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
               <Label>หลักสูตร</Label>
               <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent>
@@ -984,7 +984,7 @@ const StudyPlanManager: React.FC = () => {
                 onValueChange={setSelectedCurriculumYear}
                 disabled={!selectedProgram}
               >
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกปีหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1000,7 +1000,7 @@ const StudyPlanManager: React.FC = () => {
             <Button
               onClick={createStudyPlan}
               disabled={!selectedProgram || !selectedCurriculumYear || curriculumCourses.length === 0}
-              className="w-full"
+              className="academic-control w-full"
             >
               ยืนยันและสร้างแผนการเรียน
             </Button>
@@ -1008,7 +1008,7 @@ const StudyPlanManager: React.FC = () => {
         </Card>
 
         {curriculumCourses.length > 0 && (
-          <Card>
+          <Card className="academic-panel">
             <CardHeader>
               <CardTitle>ตัวอย่างรายวิชา ({curriculumCourses.length} วิชา)</CardTitle>
             </CardHeader>
@@ -1358,7 +1358,7 @@ const StudyPlanManager: React.FC = () => {
         <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="outline"
-            className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+            className="academic-control gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
             onClick={() => {
               if (!showRecommendPanel) {
                 const defaults: Record<string, { year: number; semester: number }> = {};
@@ -1373,7 +1373,7 @@ const StudyPlanManager: React.FC = () => {
           </Button>
           <Button
             variant="outline"
-            className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            className="academic-control gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
             onClick={() => {
               setAddCourseSearch('');
               setAddCourseFilterYear('1');
@@ -1388,7 +1388,7 @@ const StudyPlanManager: React.FC = () => {
         </div>
 
         {showRecommendPanel && (
-          <Card className="border-purple-200">
+          <Card className="academic-panel border-purple-200">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between">
                 <span className="flex items-center gap-2">
@@ -1522,7 +1522,7 @@ const StudyPlanManager: React.FC = () => {
         return (
           <div className="space-y-4">
             {/* Year Selector Tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3 rounded-lg border shadow-sm">
+            <div className="academic-panel flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3 rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin">
                 <span className="text-sm font-semibold text-muted-foreground mr-1 shrink-0">เลือกชั้นปี:</span>
                 <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-lg">
@@ -1546,7 +1546,7 @@ const StudyPlanManager: React.FC = () => {
                       >
                         <span>ปีที่ {y}</span>
                         <span
-                          className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          className={`academic-number text-xs px-1.5 py-0.5 rounded-full ${
                             isSelected
                               ? 'bg-primary-foreground/20 text-primary-foreground'
                               : 'bg-muted text-muted-foreground'
@@ -1563,7 +1563,7 @@ const StudyPlanManager: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs shrink-0"
+                    className="academic-control h-8 text-xs shrink-0"
                     onClick={() => {
                       const nextYear = availableViewYears.length + 1;
                       setExtraYears(nextYear);
@@ -1576,21 +1576,21 @@ const StudyPlanManager: React.FC = () => {
               </div>
 
               <div className="text-xs text-muted-foreground sm:text-right shrink-0">
-                รวมปีที่ {selectedYearView}: <strong className="text-foreground">{totalYearCredits} หน่วยกิต</strong>
+                รวมปีที่ {selectedYearView}: <strong className="academic-number text-foreground">{totalYearCredits} หน่วยกิต</strong>
               </div>
             </div>
 
             {/* Side-by-Side Semesters Grid (Term 1 & Term 2) */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Term 1 Card */}
-              <Card className="flex flex-col border shadow-sm">
+              <Card className="academic-panel flex flex-col border shadow-sm">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
                       ภาคเรียนที่ 1
                     </CardTitle>
-                    <Badge variant="secondary" className="font-normal text-xs">
+                    <Badge variant="secondary" className="academic-number font-normal text-xs">
                       {term1Courses.length} วิชา | {term1Credits} หน่วยกิต
                     </Badge>
                   </div>
@@ -1608,14 +1608,14 @@ const StudyPlanManager: React.FC = () => {
               </Card>
 
               {/* Term 2 Card */}
-              <Card className="flex flex-col border shadow-sm">
+              <Card className="academic-panel flex flex-col border shadow-sm">
                 <CardHeader className="pb-3 border-b bg-muted/20">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
                       ภาคเรียนที่ 2
                     </CardTitle>
-                    <Badge variant="secondary" className="font-normal text-xs">
+                    <Badge variant="secondary" className="academic-number font-normal text-xs">
                       {term2Courses.length} วิชา | {term2Credits} หน่วยกิต
                     </Badge>
                   </div>
@@ -1635,7 +1635,7 @@ const StudyPlanManager: React.FC = () => {
 
             {/* Summer Semester (ภาคเรียนฤดูร้อน) */}
             {term3Courses.length > 0 || showSummerYear[selectedYearView] ? (
-              <Card className="border-amber-200/80 bg-amber-50/10 shadow-sm">
+              <Card className="academic-panel border-amber-200/80 bg-amber-50/10 shadow-sm">
                 <CardHeader className="pb-3 border-b border-amber-200/50 bg-amber-50/40">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold flex items-center gap-2 text-amber-900">
@@ -1769,7 +1769,7 @@ const StudyPlanManager: React.FC = () => {
       )}
       {/* ===== Dialog เพิ่มวิชาเรียน (manual) ===== */}
       <Dialog open={showAddCourseDialog} onOpenChange={setShowAddCourseDialog}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogContent className="academic-dialog max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <PlusCircle className="w-5 h-5 text-blue-600" />

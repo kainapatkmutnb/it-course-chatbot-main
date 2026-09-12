@@ -181,21 +181,21 @@ const CurriculumDashboard: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen p-6 gradient-subtle">
+    <div className="academic-page min-h-screen p-6 gradient-subtle">
       <div className="container mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center space-x-2">
             <GraduationCap className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold">แดชบอร์ดหลักสูตร</h1>
+            <h1 className="academic-title text-4xl font-bold">แดชบอร์ดหลักสูตร</h1>
           </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="academic-copy text-xl text-muted-foreground max-w-2xl mx-auto">
             เลือกหลักสูตรและเทอมเพื่อดูรายวิชาที่เรียนในแต่ละภาคการศึกษา
           </p>
         </div>
 
         {/* Search and Filters */}
-        <Card className="shadow-medium">
+        <Card className="academic-panel shadow-medium">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Search className="w-5 h-5" />
@@ -206,18 +206,18 @@ const CurriculumDashboard: React.FC = () => {
             <div className="grid md:grid-cols-4 gap-4">
               {/* Search Bar */}
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="ค้นหารายวิชา..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="academic-control pl-10"
                 />
               </div>
               
               {/* Curriculum Selection */}
               <Select value={selectedCurriculum} onValueChange={setSelectedCurriculum}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg">
@@ -235,7 +235,7 @@ const CurriculumDashboard: React.FC = () => {
                 onValueChange={setSelectedSemester}
                 disabled={!selectedCurriculum}
               >
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกเทอม" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border shadow-lg">
@@ -250,6 +250,7 @@ const CurriculumDashboard: React.FC = () => {
               {/* Clear Filters */}
               <Button 
                 variant="outline" 
+                className="academic-control"
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCurriculum('');
@@ -264,7 +265,7 @@ const CurriculumDashboard: React.FC = () => {
 
         {/* Curriculum Description */}
         {selectedCurriculumData && (
-          <Card className="shadow-medium">
+          <Card className="academic-panel shadow-medium">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Award className="w-5 h-5 text-primary" />
@@ -274,31 +275,31 @@ const CurriculumDashboard: React.FC = () => {
             <CardContent>
               <div className="grid md:grid-cols-5 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-primary">
+                  <div className="academic-number text-2xl font-bold text-primary">
                     {summaryStats.displayedCount}
                   </div>
                   <div className="text-sm text-muted-foreground">รายวิชาที่แสดง</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-secondary">
+                  <div className="academic-number text-2xl font-bold text-secondary">
                     {summaryStats.totalCredits}
                   </div>
                   <div className="text-sm text-muted-foreground">หน่วยกิตรวม</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-success">
+                  <div className="academic-number text-2xl font-bold text-success">
                     {summaryStats.specialized}
                   </div>
                   <div className="text-sm text-muted-foreground">วิชาเฉพาะ</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-warning">
+                  <div className="academic-number text-2xl font-bold text-warning">
                     {summaryStats.general}
                   </div>
                   <div className="text-sm text-muted-foreground">วิชาศึกษาทั่วไป</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold">
+                  <div className="academic-number text-2xl font-bold">
                     {summaryStats.freeElective}
                   </div>
                   <div className="text-sm text-muted-foreground">วิชาเลือกเสรี</div>
@@ -325,7 +326,7 @@ const CurriculumDashboard: React.FC = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCourses.map((course) => (
-                <Card key={course.id} className="shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+                <Card key={course.id} className="academic-panel shadow-soft hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
@@ -339,7 +340,7 @@ const CurriculumDashboard: React.FC = () => {
                       </div>
                       <div className="text-right space-y-1">
                         {getCategoryBadge(course.category)}
-                        <div className="text-sm text-muted-foreground">
+                        <div className="academic-number text-sm text-muted-foreground">
                           {course.credits} หน่วยกิต
                         </div>
                       </div>
@@ -404,7 +405,7 @@ const CurriculumDashboard: React.FC = () => {
                         {course.isActive ? 'เปิดสอน' : 'ปิดสอน'}
                       </Badge>
                       
-                      <Button size="sm" variant="outline" onClick={() => { setSelectedCourse(course); setDetailOpen(true); }}>
+                      <Button size="sm" variant="outline" className="academic-control" onClick={() => { setSelectedCourse(course); setDetailOpen(true); }}>
                         ดูรายละเอียด
                       </Button>
                     </div>
@@ -417,7 +418,7 @@ const CurriculumDashboard: React.FC = () => {
 
         {/* No Selection State */}
         {!selectedCurriculum && (
-          <Card className="shadow-medium">
+          <Card className="academic-panel shadow-medium">
             <CardContent className="text-center py-12">
               <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">เลือกหลักสูตรเพื่อเริ่มต้น</h3>
@@ -430,7 +431,7 @@ const CurriculumDashboard: React.FC = () => {
 
         {/* No Semester Selection */}
         {selectedCurriculum && !selectedSemester && (
-          <Card className="shadow-medium">
+          <Card className="academic-panel shadow-medium">
             <CardContent className="text-center py-12">
               <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">เลือกเทอมการศึกษา</h3>
@@ -443,7 +444,7 @@ const CurriculumDashboard: React.FC = () => {
 
         {/* No Results */}
         {selectedCurriculum && selectedSemester && (filteredCourses && filteredCourses.length === 0) && (
-          <Card className="shadow-medium">
+          <Card className="academic-panel shadow-medium">
             <CardContent className="text-center py-12">
               <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">ไม่พบรายวิชา</h3>
@@ -456,7 +457,7 @@ const CurriculumDashboard: React.FC = () => {
       </div>
       {/* Detail Modal */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent>
+        <DialogContent className="academic-dialog">
           {selectedCourse && (
             <>
               <DialogHeader>
