@@ -9,7 +9,7 @@ const HomeOverview = () => (
       className="h-auto w-full rounded-xl border border-border shadow-sm"
     />
     <figcaption className="mt-3 text-sm text-muted-foreground">
-      ตัวอย่างหน้าจอหลักสูตรจากข้อมูลทดสอบ
+      ตัวอย่างหน้าจอค้นหาและสำรวจรายวิชาจากระบบจริง
     </figcaption>
   </figure>
 );

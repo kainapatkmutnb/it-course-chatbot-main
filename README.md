@@ -35,6 +35,14 @@
 
 ตัวระบบถูกสร้างขึ้นบนรากฐานภาษาโมเดลโดเมน [CONTEXT.md](CONTEXT.md) ตามมาตรฐานวิศวกรรมซอฟต์แวร์ ควบคุมการทำงานด้วยระเบียบหน่วยกิตและภาวะวิทยาทัณฑ์ (Academic Standing Rules) พร้อมอินเทอร์เฟซระดับพรีเมียมโทนสีกรมท่า น้ำเงิน และขาว (KMUTNB Institutional Palette) ใช้งานได้อย่างลื่นไหลบนทุกขนาดหน้าจอ
 
+<div align="center">
+
+<img src="public/images/academic-course-preview.webp" alt="ตัวอย่างหน้าจอสำรวจและค้นหาข้อมูลหลักสูตร IT Assistant" width="90%" style="border-radius: 12px; border: 1px solid rgba(11, 22, 55, 0.12); box-shadow: 0 8px 24px rgba(11, 22, 55, 0.12);" />
+
+*ตัวอย่างหน้าจอสำรวจและค้นหารายวิชาในหลักสูตร (Curriculum Catalog) แสดงผลข้อมูลจริงพร้อมฟอนต์ภาษาไทยคมชัด*
+
+</div>
+
 ---
 
 ## สถาปัตยกรรมระบบ
