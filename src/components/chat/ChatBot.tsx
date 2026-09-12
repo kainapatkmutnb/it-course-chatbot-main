@@ -365,10 +365,15 @@ const ChatBot: React.FC = () => {
 
   if (dataIsLoading || isInitializing) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">กำลังโหลดแชทบอท...</p>
+      <div className="chatbot-state chatbot-state--loading" role="status" aria-live="polite">
+        <div className="chatbot-state__panel">
+          <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
+          <div className="chatbot-state__skeleton" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <p>กำลังเตรียมผู้ช่วยแนะนำหลักสูตร</p>
         </div>
       </div>
     );
@@ -376,18 +381,12 @@ const ChatBot: React.FC = () => {
 
   if (chatError) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
-          <div className="text-yellow-600 mb-2">
-            <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">แชทบอทไม่พร้อมใช้งาน</h3>
-          <p className="text-yellow-700 text-sm mb-4">{chatError}</p>
-          <p className="text-yellow-600 text-xs">
-            กรุณาติดต่อผู้ดูแลระบบหรือลองใหม่อีกครั้งในภายหลัง
-          </p>
+      <div className="chatbot-state chatbot-state--error" role="alert">
+        <div className="chatbot-state__panel">
+          <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
+          <h3>ยังเชื่อมต่อผู้ช่วยไม่ได้</h3>
+          <p>{chatError}</p>
+          <p className="chatbot-state__hint">โปรดลองใหม่อีกครั้งในภายหลัง หรือติดต่อผู้ดูแลระบบ</p>
         </div>
       </div>
     );
