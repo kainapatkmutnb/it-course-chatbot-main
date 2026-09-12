@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,17 @@ const Register: React.FC = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Auto-dismiss error alert after 5 seconds
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => {
+      setError('');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   const handleInputChange = (field: keyof RegisterData, value: string) => {
+    if (error) setError('');
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -210,7 +220,10 @@ const Register: React.FC = () => {
                     type="password"
                     placeholder="ยืนยันรหัสผ่าน"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      if (error) setError('');
+                    }}
                     className="pl-10"
                     required
                     disabled={isLoading}
