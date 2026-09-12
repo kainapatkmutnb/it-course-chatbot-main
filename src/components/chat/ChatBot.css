@@ -190,9 +190,7 @@
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5) !important;
 }
 
-/* ----- Footer & Powered By (White-labeled) ----- */
-#n8n-chat [class*="footer"],
-#n8n-chat .chat-footer,
+/* ----- Welcome Screen Powered By (White-labeled) ----- */
 #n8n-chat .chat-powered-by,
 #n8n-chat .chat-get-started-footer,
 #n8n-chat [class*="poweredBy"],
