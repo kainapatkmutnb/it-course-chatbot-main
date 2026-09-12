@@ -17,6 +17,12 @@
 - **Course**: An accredited academic subject containing course code (standard or custom), course name (Thai & English), credit weight, curriculum year, semester, prerequisites, and corequisites.
 - **StudyPlan**: A student's registered 4-year academic roadmap detailing course progression, pass/fail status, and grade history.
 - **AcademicStanding**: Student GPA and completed credits tracked for automated advising and credit cap validation.
+- **RegistrationCreditLimit**: University credit bounds enforced per semester:
+  - *Regular Semester (เทอม 1 & 2)*: Minimum 9 credits, Maximum 22 credits (exempt for final graduating term).
+  - *Academic Probation (ติดวิทยาทัณฑ์)*: Maximum 16 credits; overload requires special exceptional approval petition.
+  - *Summer Session (ภาคฤดูร้อน)*: Maximum 6 credits.
+- **GraduationTermExemption**: Policy waiver allowing students in their expected final graduation semester to register for fewer than 9 credits.
+- **ProbationPetition**: Special approval workflow required when a student on academic probation needs to register beyond 16 credits to satisfy compulsory graduation requirements or maintain status.
 
 ### System Notification Domain
 

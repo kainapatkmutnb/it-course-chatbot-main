@@ -5,6 +5,9 @@ import { chatLogService } from '@/services/chatLogService';
 interface FeedbackBannerProps {
   sessionId: string;
   userId: string;
+  userName?: string;
+  studentId?: string;
+  curriculum?: string;
   messageCount: number;
   onDismiss: () => void;
 }
@@ -12,6 +15,9 @@ interface FeedbackBannerProps {
 export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
   sessionId,
   userId,
+  userName,
+  studentId,
+  curriculum,
   messageCount,
   onDismiss,
 }) => {
@@ -25,6 +31,9 @@ export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
       await chatLogService.saveFeedback({
         sessionId: sessionId || 'unknown_session',
         userId: userId || 'guest',
+        userName,
+        studentId,
+        curriculum,
         feedback: type,
         messageCount,
       });

@@ -616,7 +616,9 @@ const ChatAnalyticsDashboard: React.FC = () => {
       const fbHeaders = [
         'ลำดับ',
         'วันที่-เวลา',
-        'ผู้ใช้งาน',
+        'ชื่อผู้ใช้งาน (UID)',
+        'หลักสูตร',
+        'รหัสนักศึกษา',
         'ผลการประเมิน',
         'จำนวนข้อความในรอบ',
         'รหัสเซสชัน (Session ID)'
@@ -628,7 +630,9 @@ const ChatAnalyticsDashboard: React.FC = () => {
         return [
           idx + 1,
           dateStr,
-          f.userId || 'Guest',
+          f.userName ? `${f.userName} (${f.userId})` : f.userId || 'Guest',
+          f.curriculum || '-',
+          f.studentId || '-',
           FEEDBACK_LABELS[f.feedback] || f.feedback,
           f.messageCount,
           f.sessionId
@@ -642,12 +646,14 @@ const ChatAnalyticsDashboard: React.FC = () => {
       ]);
 
       ws4['!cols'] = [
-        { wch: 8 },
-        { wch: 22 },
-        { wch: 22 },
-        { wch: 18 },
-        { wch: 20 },
-        { wch: 38 }
+        { wch: 8 },  // ลำดับ
+        { wch: 22 }, // วันที่-เวลา
+        { wch: 40 }, // ชื่อผู้ใช้งาน (UID)
+        { wch: 18 }, // หลักสูตร
+        { wch: 18 }, // รหัสนักศึกษา
+        { wch: 18 }, // ผลการประเมิน
+        { wch: 20 }, // จำนวนข้อความในรอบ
+        { wch: 38 }  // รหัสเซสชัน
       ];
 
       XLSX.utils.book_append_sheet(wb, ws4, 'ประเมินความพึงพอใจ');
@@ -1297,8 +1303,18 @@ const ChatAnalyticsDashboard: React.FC = () => {
                               {meta.emoji} {meta.label}
                             </Badge>
                             <span className="text-sm font-semibold text-foreground">
-                              {item.userId === 'guest' ? 'ผู้เยี่ยมชม (Guest)' : item.userId}
+                              {item.userId === 'guest' ? 'ผู้เยี่ยมชม (Guest)' : (item.userName ? `${item.userName} (${item.userId})` : item.userId)}
                             </span>
+                            {item.studentId && (
+                              <Badge variant="secondary" className="text-[11px] font-normal">
+                                {item.studentId}
+                              </Badge>
+                            )}
+                            {item.curriculum && (
+                              <Badge variant="secondary" className="text-[11px] font-normal">
+                                {item.curriculum}
+                              </Badge>
+                            )}
                             <Badge variant="outline" className="text-[11px] text-muted-foreground font-normal">
                               สนทนา {item.messageCount} ข้อความ
                             </Badge>

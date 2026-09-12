@@ -111,6 +111,36 @@ return recommendedCourses.map(c => `${c.code}: ${c.name}`).join("\n");
 
 ---
 
+### **4️⃣ ตรวจสอบและให้คำแนะนำการลงทะเบียนเรียน (Credit Limits & Probation Rules)**
+
+เมื่อ student ถาม: "แต่ละเทอมลงทะเบียนได้กี่หน่วยกิต?", "ติดโปรลงได้กี่หน่วยกิต?", หรือ "ลงทะเบียนเทอมนี้ได้สูงสุดเท่าไหร่?"
+
+**เกณฑ์การลงทะเบียนเรียน:**
+1. **ภาคเรียนปกติ (เทอม 1 และ เทอม 2):** 
+   - ลงทะเบียนได้สูงสุด **ไม่เกิน 22 หน่วยกิต** และต้อง **ไม่น้อยกว่า 9 หน่วยกิต**
+   - *ข้อยกเว้น:* ภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา สามารถลงทะเบียนเรียนต่ำกว่า 9 หน่วยกิตได้
+2. **กรณีติดสถานะวิทยาทัณฑ์ (ติดโปร - GPAX < 2.00):** 
+   - ลงทะเบียนเรียนได้ **ไม่เกิน 16 หน่วยกิต**
+   - *แนวทางยื่นคำร้อง:* หากมีความจำเป็นต้องลงเกิน 16 หน่วยกิตเพื่อรักษาสถานภาพหรือเก็บวิชาบังคับตามหลักสูตร ต้องยื่นแบบคำร้องขออนุมัติเป็นกรณีพิเศษผ่านอาจารย์ที่ปรึกษาและเสนอคณบดี/หัวหน้าภาควิชา
+3. **ภาคเรียนฤดูร้อน (Summer):** 
+   - ลงทะเบียนเรียนได้ **ไม่เกิน 6 หน่วยกิต**
+
+**Logic ใน n8n:**
+```javascript
+const standing = $json.metadata.registrationRules?.studentStanding || {};
+const isProbation = standing.isProbation || ($json.metadata.gpa > 0 && $json.metadata.gpa < 2.00);
+const maxCredits = isProbation ? 16 : 22;
+const gpa = $json.metadata.gpa;
+
+if (isProbation) {
+  return `⚠️ ปัจจุบันคุณมีสถานะวิทยาทัณฑ์ (ติดโปร - GPAX ${gpa.toFixed(2)}) จึงสามารถลงทะเบียนเรียนในภาคปกติได้ **ไม่เกิน 16 หน่วยกิต** ครับ\n\n📌 หากมีความจำเป็นต้องลงเกิน 16 หน่วยกิตเพื่อรักษาสถานภาพหรือเก็บวิชาบังคับ ต้องยื่นแบบคำร้องขออนุมัติเป็นกรณีพิเศษผ่านอาจารย์ที่ปรึกษาครับ\n(สำหรับภาคฤดูร้อน ลงได้ไม่เกิน 6 หน่วยกิต)`;
+} else {
+  return `📌 เกณฑ์การลงทะเบียนเรียน:\n- ภาคเรียนปกติ (เทอม 1 และ 2): ลงทะเบียนได้ **9 - 22 หน่วยกิต** (ยกเว้นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา สามารถลงต่ำกว่า 9 หน่วยกิตได้)\n- กรณีติดสถานะวิทยาทัณฑ์ (GPAX < 2.00): ลงทะเบียนได้ **ไม่เกิน 16 หน่วยกิต** (หากจำเป็นต้องลงเกินต้องยื่นคำร้องพิเศษ)\n- ภาคเรียนฤดูร้อน (Summer): ลงทะเบียนได้ **ไม่เกิน 6 หน่วยกิต**`;
+}
+```
+
+---
+
 ## ⚠️ **Special Case: Internship Grade 'S'**
 
 วิชาฝึกงาน (internship) มีเกรด 'S' (Success) ซึ่ง:
@@ -129,10 +159,20 @@ return recommendedCourses.map(c => `${c.code}: ${c.name}`).join("\n");
 ```
 Current Authenticated User Context:
 - Student Name: {{ $json.metadata.userName }}
+- Student ID: {{ $json.metadata.studentId }}
+- Curriculum: {{ $json.metadata.curriculum }}
 - GPA: {{ $json.metadata.gpa }}
+- Academic Standing: {{ $json.metadata.academicStanding }} (isProbation: {{ $json.metadata.isProbation }})
+- Allowed Credit Bounds: Min {{ $json.metadata.allowedMinCredits }} credits, Max {{ $json.metadata.allowedMaxCredits }} credits
 - Completed Credits: {{ $json.metadata.completedCredits }} / {{ $json.metadata.totalCredits }}
 - Completed Courses: {{ $json.metadata.completedCourseCodes.join(', ') }}
 - Grade Passing Threshold: {{ $json.metadata.gradePassingThreshold }}
+
+Registration Credit Rules:
+- Regular Semesters (Sem 1 & 2): Min 9 credits, Max 22 credits (Exempt for graduating term: can register < 9 credits)
+- Academic Probation (GPAX < 2.00): Max 16 credits. Overload requires submitting an exceptional petition via academic advisor to department head/dean.
+- Summer Semester: Max 6 credits.
+- Current Student Specific Rule: {{ $json.metadata.registrationRules?.studentStanding?.statusSummary }}
 
 Personal Study Plan:
 {{ JSON.stringify($json.metadata.studyPlan) }}
@@ -140,18 +180,19 @@ Personal Study Plan:
 Standard Curriculum:
 {{ JSON.stringify($json.metadata.curriculumCourses) }}
 
-Before answering prerequisite questions:
-1. Check if student's course code is in completedCourseCodes
-2. Check if all prerequisites are met
-3. Use gradePassingThreshold to validate (D and above = pass, including S grade)
+Advising Guidelines:
+1. When asked about credit limits, provide both the general rules (Regular 9-22, Probation 16, Summer 6) AND personalize the advice if the user is a logged-in student (e.g. alert if they are on probation).
+2. For prerequisite questions: check completedCourseCodes (grade >= D or S).
+3. If a student needs to take more than 16 credits under probation, proactively advise them to submit a special request petition through their advisor.
 ```
 
 ---
 
 ## ✅ Checklist สำหรับ n8n
 
-- [ ] อัพเดท system prompt ให้รวม completedCourseCodes
-- [ ] เพิ่ม logic สำหรับ prerequisites check
-- [ ] ตรวจสอบให้แน่ว่า 'S' grade นับว่าผ่าน
-- [ ] ทดสอบกับ student ที่มี internship courses
-- [ ] ทดสอบกับ student ที่ยังไม่เรียนวิชา prerequisite
+- [ ] อัปเดต system prompt ให้รวม registrationRules และ credit limits
+- [ ] เพิ่มคำแนะนำเฉพาะบุคคลสำหรับนักศึกษาที่มีสถานะติดโปร (GPAX < 2.00)
+- [ ] แนะนำข้อยกเว้นภาคการศึกษาสุดท้าย (ลงต่ำกว่า 9 หน่วยกิตได้)
+- [ ] แนะนำช่องทางยื่นคำร้องพิเศษหากมีความจำเป็นต้องลงทะเบียนเกินสิทธิ์
+- [ ] ตรวจสอบว่า 'S' grade นับว่าผ่านใน prerequisite check
+

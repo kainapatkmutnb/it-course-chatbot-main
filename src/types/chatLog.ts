@@ -54,6 +54,9 @@ export interface ChatFeedback {
   id: string;
   sessionId: string;
   userId: string;
+  userName?: string;
+  studentId?: string;
+  curriculum?: string;
   feedback: FeedbackType;
   messageCount: number;
   timestamp: string;

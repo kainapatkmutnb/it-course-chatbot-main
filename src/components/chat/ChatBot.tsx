@@ -118,6 +118,27 @@ const ChatBot: React.FC = () => {
           }[c.grade.toUpperCase()])
           .map(c => c.code) || [];
 
+        const userGpa = Number(gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0);
+        const isProbation = userGpa > 0 && userGpa < 2.00;
+        const academicStanding = userGpa === 0 ? 'unknown' : (isProbation ? 'probation' : 'normal');
+
+        const registrationRules = {
+          regularSemester: {
+            minCredits: 9,
+            maxCredits: 22,
+            exception: 'สามารถลงทะเบียนเรียนต่ำกว่า 9 หน่วยกิตได้ หากเป็นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา'
+          },
+          probation: {
+            maxCredits: 16,
+            condition: 'นักศึกษาที่มีเกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 2.00 ติดสถานะวิทยาทัณฑ์ (ติดโปร)',
+            petitionGuideline: 'หากมีความจำเป็นต้องลงทะเบียนเรียนเกิน 16 หน่วยกิตเพื่อรักษาสถานภาพหรือเก็บวิชาบังคับตามหลักสูตร ต้องยื่นแบบคำร้องขออนุมัติเป็นกรณีพิเศษผ่านอาจารย์ที่ปรึกษาและเสนอหัวหน้าภาควิชา/คณบดี'
+          },
+          summerSemester: {
+            maxCredits: 6,
+            note: 'ภาคเรียนฤดูร้อนลงทะเบียนเรียนได้สูงสุดไม่เกิน 6 หน่วยกิต'
+          }
+        };
+
         const metadata = user 
           ? {
               sessionId: sessionIdRef.current,
@@ -131,7 +152,24 @@ const ChatBot: React.FC = () => {
               program: studyPlan?.program || '',
               curriculumYear: studyPlan?.curriculumYear || '',
               curriculum: studyPlan?.program && studyPlan?.curriculumYear ? `${studyPlan.program}-${studyPlan.curriculumYear}` : (studyPlan?.curriculum || ''),
-              gpa: gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0,
+              gpa: userGpa,
+              isProbation,
+              academicStanding,
+              allowedMaxCredits: isProbation ? 16 : 22,
+              allowedMinCredits: 9,
+              registrationRules: {
+                ...registrationRules,
+                studentStanding: {
+                  gpa: userGpa,
+                  isProbation,
+                  academicStanding,
+                  allowedMaxCredits: isProbation ? 16 : 22,
+                  allowedMinCredits: 9,
+                  statusSummary: isProbation
+                    ? `สถานะวิทยาทัณฑ์ (ติดโปร - GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้สูงสุดไม่เกิน 16 หน่วยกิต หากจำเป็นต้องลงเกินต้องยื่นคำร้องพิเศษ`
+                    : `สถานะปกติ (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้ 9-22 หน่วยกิต (ยกเว้นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา)`
+                }
+              },
               completedCredits: gpaData?.completedCredits ?? studyPlan?.completedCredits ?? 0,
               totalCredits: studyPlan?.totalCredits || gpaData?.totalCredits || 0,
               gradePassingThreshold: 'D',  // D and above counts as passing
@@ -165,6 +203,21 @@ const ChatBot: React.FC = () => {
               role: 'guest',
               department: 'guest',
               gpa: 0,
+              isProbation: false,
+              academicStanding: 'guest',
+              allowedMaxCredits: 22,
+              allowedMinCredits: 9,
+              registrationRules: {
+                ...registrationRules,
+                studentStanding: {
+                  gpa: 0,
+                  isProbation: false,
+                  academicStanding: 'guest',
+                  allowedMaxCredits: 22,
+                  allowedMinCredits: 9,
+                  statusSummary: 'ผู้เยี่ยมชม (Guest) แสดงกฎระเบียบการลงทะเบียนทั่วไป: ภาคปกติ 9-22 หน่วยกิต, ติดโปรไม่เกิน 16 หน่วยกิต, ภาคฤดูร้อนไม่เกิน 6 หน่วยกิต'
+                }
+              },
               completedCredits: 0,
               totalCredits: 0,
               studyPlan: [],
@@ -319,6 +372,9 @@ const ChatBot: React.FC = () => {
         <FeedbackBanner
           sessionId={sessionIdRef.current}
           userId={user?.id || 'guest'}
+          userName={user?.name}
+          studentId={user?.studentId}
+          curriculum={studyPlan?.curriculum}
           messageCount={currentMessageCount}
           onDismiss={handleDismissFeedback}
         />

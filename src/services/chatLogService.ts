@@ -319,10 +319,13 @@ class ChatLogService {
           id: key,
           sessionId: cleanString(item?.sessionId),
           userId: cleanString(item?.userId) || 'guest',
+          userName: item?.userName ? cleanString(item.userName) : undefined,
+          studentId: item?.studentId ? cleanString(item.studentId) : undefined,
+          curriculum: item?.curriculum ? cleanString(item.curriculum) : undefined,
           feedback: (cleanString(item?.feedback) as FeedbackType) || 'like',
           messageCount: Number(item?.messageCount) || 1,
           timestamp: cleanString(item?.timestamp) || new Date().toISOString(),
-        };
+        } as ChatFeedback;
       });
 
       // Sort newest first
