@@ -48,7 +48,7 @@ export interface ChatAnalytics {
   failedQueries: ChatLog[];
 }
 
-export type FeedbackType = 'like' | 'dislike' | 'excellent';
+export type FeedbackType = 'dislike' | 'neutral' | 'like' | 'excellent';
 
 export interface ChatFeedback {
   id: string;
@@ -61,8 +61,9 @@ export interface ChatFeedback {
 
 export interface FeedbackStats {
   total: number;
-  likeCount: number;
   dislikeCount: number;
-  excellentCount: number;
+  neutralCount: number;
+  likeCount: number;
+  excellentCount?: number;
   satisfactionRate: number;
 }

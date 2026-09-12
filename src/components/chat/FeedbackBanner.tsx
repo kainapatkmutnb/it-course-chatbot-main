@@ -67,15 +67,6 @@ export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
             <button
               type="button"
               disabled={isSubmitting}
-              className="chat-feedback-btn chat-feedback-btn--like"
-              onClick={() => handleFeedback('like')}
-            >
-              <span>👍</span>
-              <span>ชอบ</span>
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting}
               className="chat-feedback-btn chat-feedback-btn--dislike"
               onClick={() => handleFeedback('dislike')}
             >
@@ -85,11 +76,20 @@ export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
             <button
               type="button"
               disabled={isSubmitting}
-              className="chat-feedback-btn chat-feedback-btn--excellent"
-              onClick={() => handleFeedback('excellent')}
+              className="chat-feedback-btn chat-feedback-btn--neutral"
+              onClick={() => handleFeedback('neutral')}
             >
-              <span>✨</span>
-              <span>สุดยอด</span>
+              <span>😐</span>
+              <span>ปานกลาง</span>
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting}
+              className="chat-feedback-btn chat-feedback-btn--like"
+              onClick={() => handleFeedback('like')}
+            >
+              <span>👍</span>
+              <span>ชอบ</span>
             </button>
           </div>
         </div>

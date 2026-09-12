@@ -35,20 +35,25 @@ import { ChatLog, ChatAnalytics, ChatFeedback, FeedbackStats, FeedbackType } fro
 import { useToast } from '@/hooks/use-toast';
 
 const FEEDBACK_META: Record<string, { label: string; emoji: string; badgeClass: string }> = {
-  like: {
-    label: 'ชอบ',
-    emoji: '👍',
-    badgeClass: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
-  },
   dislike: {
     label: 'ไม่ชอบ',
     emoji: '👎',
     badgeClass: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800'
   },
-  excellent: {
-    label: 'สุดยอด',
-    emoji: '✨',
+  neutral: {
+    label: 'ปานกลาง',
+    emoji: '😐',
     badgeClass: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
+  },
+  like: {
+    label: 'ชอบ',
+    emoji: '👍',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+  },
+  excellent: {
+    label: 'ชอบ (สุดยอด)',
+    emoji: '✨',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
   }
 };
 
@@ -592,18 +597,19 @@ const ChatAnalyticsDashboard: React.FC = () => {
       const fbStats = feedbackExport.stats;
 
       const FEEDBACK_LABELS: Record<string, string> = {
-        like: '👍 ชอบ',
         dislike: '👎 ไม่ชอบ',
-        excellent: '✨ สุดยอด'
+        neutral: '😐 ปานกลาง',
+        like: '👍 ชอบ',
+        excellent: '👍 ชอบ (สุดยอด)'
       };
 
       const fbSummaryBlock = [
         ['รายงานผลการประเมินความพึงพอใจของผู้ใช้งาน (User Feedback)'],
         ['จำนวนการประเมินทั้งหมด:', `${fbStats.total} ครั้ง`],
-        ['คะแนนความพึงพอใจเชิงบวก (👍 + ✨):', `${fbStats.satisfactionRate}%`],
-        ['จำนวน "ชอบ" (👍):', `${fbStats.likeCount} ครั้ง`],
-        ['จำนวน "สุดยอด" (✨):', `${fbStats.excellentCount} ครั้ง`],
+        ['คะแนนความพึงพอใจเชิงบวก (%):', `${fbStats.satisfactionRate}%`],
         ['จำนวน "ไม่ชอบ" (👎):', `${fbStats.dislikeCount} ครั้ง`],
+        ['จำนวน "ปานกลาง" (😐):', `${fbStats.neutralCount} ครั้ง`],
+        ['จำนวน "ชอบ" (👍):', `${fbStats.likeCount} ครั้ง`],
         []
       ];
 
@@ -824,14 +830,26 @@ const ChatAnalyticsDashboard: React.FC = () => {
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">ความพึงพอใจ (Satisfaction)</CardTitle>
-            <ThumbsUp className="w-4 h-4 text-rose-500" />
+            <ThumbsUp className={`w-4 h-4 ${
+              feedbackStats.total === 0 || feedbackStats.satisfactionRate >= 80
+                ? 'text-emerald-500'
+                : feedbackStats.satisfactionRate >= 50
+                ? 'text-amber-500'
+                : 'text-rose-500'
+            }`} />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-rose-600 dark:text-rose-400">
+            <div className={`text-3xl font-bold ${
+              feedbackStats.total === 0 || feedbackStats.satisfactionRate >= 80
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : feedbackStats.satisfactionRate >= 50
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-rose-600 dark:text-rose-400'
+            }`}>
               {feedbackStats.total > 0 ? `${feedbackStats.satisfactionRate}%` : '-'}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              จาก {feedbackStats.total} ครั้ง (👍 {feedbackStats.likeCount} | ✨ {feedbackStats.excellentCount} | 👎 {feedbackStats.dislikeCount})
+              จาก {feedbackStats.total} ครั้ง (👎 {feedbackStats.dislikeCount} | 😐 {feedbackStats.neutralCount} | 👍 {feedbackStats.likeCount})
             </p>
           </CardContent>
         </Card>
@@ -1217,9 +1235,9 @@ const ChatAnalyticsDashboard: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">ทั้งหมด ({feedbacks.length})</SelectItem>
-                      <SelectItem value="like">👍 ชอบ ({feedbackStats.likeCount})</SelectItem>
-                      <SelectItem value="excellent">✨ สุดยอด ({feedbackStats.excellentCount})</SelectItem>
                       <SelectItem value="dislike">👎 ไม่ชอบ ({feedbackStats.dislikeCount})</SelectItem>
+                      <SelectItem value="neutral">😐 ปานกลาง ({feedbackStats.neutralCount})</SelectItem>
+                      <SelectItem value="like">👍 ชอบ ({feedbackStats.likeCount})</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1235,17 +1253,17 @@ const ChatAnalyticsDashboard: React.FC = () => {
                   <span>ความพึงพอใจเชิงบวก:</span>
                   <span className="font-bold">{feedbackStats.satisfactionRate}%</span>
                 </Badge>
-                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300">
-                  <span>👍 ชอบ:</span>
-                  <span className="font-bold">{feedbackStats.likeCount}</span>
-                </Badge>
-                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
-                  <span>✨ สุดยอด:</span>
-                  <span className="font-bold">{feedbackStats.excellentCount}</span>
-                </Badge>
                 <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300">
                   <span>👎 ไม่ชอบ:</span>
                   <span className="font-bold">{feedbackStats.dislikeCount}</span>
+                </Badge>
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
+                  <span>😐 ปานกลาง:</span>
+                  <span className="font-bold">{feedbackStats.neutralCount}</span>
+                </Badge>
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <span>👍 ชอบ:</span>
+                  <span className="font-bold">{feedbackStats.likeCount}</span>
                 </Badge>
               </div>
             </CardHeader>

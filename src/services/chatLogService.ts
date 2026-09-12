@@ -301,8 +301,9 @@ class ChatLogService {
 
       const emptyStats: FeedbackStats = {
         total: 0,
-        likeCount: 0,
         dislikeCount: 0,
+        neutralCount: 0,
+        likeCount: 0,
         excellentCount: 0,
         satisfactionRate: 100,
       };
@@ -327,18 +328,20 @@ class ChatLogService {
       // Sort newest first
       allFeedbacks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-      // Calculate stats on ALL feedbacks before filter
+      // Calculate stats on ALL feedbacks before filter (order: dislike -> neutral -> like)
       const total = allFeedbacks.length;
-      const likeCount = allFeedbacks.filter(f => f.feedback === 'like').length;
       const dislikeCount = allFeedbacks.filter(f => f.feedback === 'dislike').length;
+      const neutralCount = allFeedbacks.filter(f => f.feedback === 'neutral').length;
+      const likeCount = allFeedbacks.filter(f => f.feedback === 'like').length;
       const excellentCount = allFeedbacks.filter(f => f.feedback === 'excellent').length;
       const positiveCount = likeCount + excellentCount;
       const satisfactionRate = total > 0 ? Math.round((positiveCount / total) * 1000) / 10 : 100;
 
       const stats: FeedbackStats = {
         total,
-        likeCount,
         dislikeCount,
+        neutralCount,
+        likeCount: likeCount + excellentCount,
         excellentCount,
         satisfactionRate,
       };

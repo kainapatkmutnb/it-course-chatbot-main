@@ -16,16 +16,24 @@ Accepted
 1. **Periodic Message Threshold:**
    - Increase the feedback trigger interval from 3 to 5 messages (`chatFeedbackMsgCount - chatLastFeedbackCount >= 5`).
    - Counter persists per session in `sessionStorage` and triggers only when the chat window is active.
-2. **Database Schema & Service Layer:**
+2. **Standard 3-Level Rating Scale & Order:**
+   - Standardize rating scale to 3 sequential levels: `dislike` (👎 ไม่ชอบ) ➔ `neutral` (😐 ปานกลาง) ➔ `like` (👍 ชอบ).
+   - Maintain uniform sorting (Negative ➔ Neutral ➔ Positive) across user chatbot banners, filter selectors, summary badges, and exported reports.
+3. **Database Schema & Service Layer:**
    - Feedback records are stored under `/chatFeedback` in Firebase Realtime Database.
-   - Enhance `chatLogService` with `getFeedbacks()` to support pagination, filtering, and summary calculation.
-3. **Admin Dashboard Integration:**
-   - Add a **Satisfaction Rate KPI Card** to the top metrics grid in `ChatAnalyticsDashboard.tsx`, presenting overall positive percentage (👍 + ✨) and total response count.
+   - Enhance `chatLogService` with `getFeedbacks()` to support pagination, filtering, and summary calculation (`dislikeCount`, `neutralCount`, `likeCount`, `satisfactionRate`).
+4. **Admin Dashboard Integration & Dynamic Visual Hierarchy:**
+   - Add a **Satisfaction Rate KPI Card** to the top metrics grid in `ChatAnalyticsDashboard.tsx`.
+   - Apply dynamic color coding based on threshold:
+     - $\ge 80\%$: Emerald Green (`text-emerald-600`)
+     - $50\% - 79\%$: Amber Yellow (`text-amber-600`)
+     - $< 50\%$: Rose Red (`text-rose-600`)
    - Add a dedicated **"ความพึงพอใจ (Feedback)" tab** with interactive search and role/sentiment filtering.
-4. **Excel Export (.xlsx):**
+5. **Excel Export (.xlsx):**
    - Add a dedicated sheet named `ประเมินความพึงพอใจ` to the multi-sheet Excel export, including timestamps, users, ratings, and conversation lengths.
 
 ## Consequences
 - Less disruption for students during chat interactions.
+- Clear visual hierarchy where high satisfaction scores display in positive green rather than alarming red.
 - Administrators gain direct insights into chatbot helpfulness and student satisfaction trends.
 - Fully compatible with guest sessions and authenticated student accounts.
