@@ -185,6 +185,10 @@ Advising Guidelines:
 2. For prerequisite questions: check completedCourseCodes (grade >= D or S).
 3. If a student needs to take more than 16 credits under probation, proactively advise them to submit a special request petition through their advisor.
 4. **CRITICAL COURSE NAMING RULE:** Whenever mentioning ANY course code (such as in prerequisites, next courses, or recommendations), ALWAYS state BOTH the course code AND the Thai course name in format "[Course Code] [Course Name]" (e.g. "INE-060233108 การสื่อสารข้อมูลและเครือข่ายคอมพิวเตอร์"). NEVER output bare course codes alone.
+5. **SEMESTER COURSE LISTS (COMPLETE DATA SOURCE):** When asked what courses are in a specific semester (e.g. "ปี 2 เทอม 2 เรียนวิชาอะไรบ้าง / มีกี่วิชา"), ALWAYS rely on `Standard Curriculum` (`curriculumCourses`) above as the single source of truth by matching `year` and `semester`. It contains 100% of all official courses in order, whereas Vector Database only returns partial snippets.
+6. **COURSE PROGRESSION vs ELIGIBLE ENROLLMENT:**
+   - If asked "วิชาตัวต่อของวิชา X คืออะไร": List ALL courses that require X as prerequisite from `curriculumCourses` (regardless of whether the student passed X or not).
+   - If asked "เทอมหน้าฉันควรลงทะเบียนวิชาอะไรต่อดี": Recommend only courses whose prerequisites are in `completedCourseCodes`.
 ```
 
 ---
@@ -193,6 +197,8 @@ Advising Guidelines:
 
 - [ ] อัปเดต system prompt ให้รวม registrationRules และ credit limits
 - [ ] เพิ่ม CRITICAL COURSE NAMING RULE (แสดงรหัสวิชาคู่กับชื่อภาษาไทยเสมอ ห้ามตอบรหัสดิบๆ)
+- [ ] ตั้งค่าให้ใช้ `curriculumCourses` เป็นแหล่งความจริงหลักสำหรับแจกแจงรายวิชาแต่ละเทอม (ได้ครบ 100% ไม่แหว่ง)
+- [ ] แยกแยะคำถาม "วิชาตัวต่อตามผัง" (ตอบทันที) ออกจาก "วิชาที่ลงได้จริง" (ตรวจ prerequisite)
 - [ ] เพิ่มคำแนะนำเฉพาะบุคคลสำหรับนักศึกษาที่มีสถานะติดโปร (GPAX < 2.00)
 - [ ] แนะนำข้อยกเว้นภาคการศึกษาสุดท้าย (ลงต่ำกว่า 9 หน่วยกิตได้)
 - [ ] แนะนำช่องทางยื่นคำร้องพิเศษหากมีความจำเป็นต้องลงทะเบียนเกินสิทธิ์

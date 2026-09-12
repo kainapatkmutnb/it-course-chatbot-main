@@ -111,7 +111,7 @@ export function Toaster() {
         const { resolvedVariant, icon } = getToastMeta(variant as string, title, description)
 
         return (
-          <Toast key={id} variant={resolvedVariant} {...props}>
+          <Toast key={id} variant={resolvedVariant} duration={5000} {...props}>
             <div className="flex items-start gap-3 w-full pr-3">
               {icon}
               <div className="flex-1 min-w-0 pt-0.5">

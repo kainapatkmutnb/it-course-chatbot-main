@@ -161,6 +161,14 @@ function toast({ ...props }: Toast) {
     },
   })
 
+  // Guaranteed timeout fallback (5000ms default) to ensure toast closes even if browser window focus changes (e.g. file download)
+  const duration = typeof props.duration === 'number' ? props.duration : 5000
+  if (duration > 0 && duration !== Infinity) {
+    setTimeout(() => {
+      dismiss()
+    }, duration)
+  }
+
   return {
     id: id,
     dismiss,

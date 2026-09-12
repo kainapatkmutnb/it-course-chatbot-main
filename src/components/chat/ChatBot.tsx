@@ -36,20 +36,26 @@ const ChatBot: React.FC = () => {
     }
   }, [gpaData, studyPlan, user, authLoading]);
 
-  // Fetch standard curriculum courses if student is logged in
+  // Fetch standard curriculum courses (for student, admin, or guest)
   useEffect(() => {
-    if (authLoading || studyPlanLoading || !user || !studyPlan?.curriculum) {
-      setCurriculumCourses([]);
+    if (authLoading || (user && studyPlanLoading)) {
       return;
     }
 
     const fetchCurriculum = async () => {
       try {
         setCurriculumLoading(true);
-        const parts = studyPlan.curriculum.split('-');
-        const program = parts[0] || 'IT';
-        const curriculumYear = parts[1] || '67';
-        
+        let program = 'IT';
+        let curriculumYear = '67';
+
+        if (studyPlan?.curriculum) {
+          const parts = studyPlan.curriculum.split('-');
+          program = parts[0] || 'IT';
+          curriculumYear = parts[1] || '67';
+        } else if (user?.department) {
+          program = user.department;
+        }
+
         const { getCoursesByProgram } = await import('@/services/courseService');
         const courses = await getCoursesByProgram(program, curriculumYear);
         setCurriculumCourses(courses);
@@ -61,7 +67,7 @@ const ChatBot: React.FC = () => {
     };
 
     fetchCurriculum();
-  }, [authLoading, studyPlanLoading, user, studyPlan?.curriculum]);
+  }, [authLoading, studyPlanLoading, user?.id, user?.department, studyPlan?.curriculum]);
 
   // Only consider study plan & gpa & curriculum loading when there is a logged-in user
   const dataIsLoading = authLoading || (!!user && (studyPlanLoading || gpaLoading || curriculumLoading));
@@ -221,7 +227,16 @@ const ChatBot: React.FC = () => {
               completedCredits: 0,
               totalCredits: 0,
               studyPlan: [],
-              curriculumCourses: []
+              curriculumCourses: curriculumCourses.map(c => ({
+                code: c.code,
+                name: c.name,
+                credits: c.credits,
+                category: c.category,
+                year: c.year,
+                semester: c.semester,
+                prerequisites: c.prerequisites || [],
+                corequisites: c.corequisites || []
+              }))
             };
 
         createChat({
