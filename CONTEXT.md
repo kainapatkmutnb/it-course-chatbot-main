@@ -15,6 +15,7 @@
 ### Academic & Curriculum Domain
 
 - **Course**: An accredited academic subject containing course code (standard or custom), course name (Thai & English), credit weight, curriculum year, semester, prerequisites, and corequisites.
+- **CoursePresentationFormat**: The standardized presentation pattern for mentioning academic courses across chatbot answers: `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` (and optional credit weight), guaranteeing students never receive raw, ambiguous alphanumeric codes in isolation.
 - **StudyPlan**: A student's registered 4-year academic roadmap detailing course progression, pass/fail status, and grade history.
 - **AcademicStanding**: Student GPA and completed credits tracked for automated advising and credit cap validation.
 - **RegistrationCreditLimit**: University credit bounds enforced per semester:
