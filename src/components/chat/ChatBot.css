@@ -474,7 +474,7 @@
 }
 
 /* ----- Loading and Connection Error States ----- */
-.chatbot-state {
+#n8n-chat.chatbot-state {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -484,7 +484,7 @@
   font-family: 'Noto Sans Thai', sans-serif;
 }
 
-.chatbot-state__panel {
+#n8n-chat .chatbot-state__panel {
   box-sizing: border-box;
   width: 100%;
   max-width: 28rem;
@@ -497,7 +497,7 @@
   box-shadow: 0 18px 42px rgba(11, 22, 55, 0.12);
 }
 
-.chatbot-state__eyebrow {
+#n8n-chat .chatbot-state__eyebrow {
   display: block;
   margin-bottom: 1rem;
   color: #1769aa;
@@ -506,7 +506,7 @@
   letter-spacing: 0.12em;
 }
 
-.chatbot-state__panel h3 {
+#n8n-chat .chatbot-state__panel h3 {
   margin: 0 0 0.75rem;
   color: #0b1637;
   font-size: 1.25rem;
@@ -514,20 +514,20 @@
   line-height: 1.5;
 }
 
-.chatbot-state__panel p {
+#n8n-chat .chatbot-state__panel p {
   margin: 0;
   color: #334155;
   font-size: 0.95rem;
   line-height: 1.7;
 }
 
-.chatbot-state__hint {
+#n8n-chat .chatbot-state__hint {
   margin-top: 0.75rem !important;
   color: #64748b !important;
   font-size: 0.85rem !important;
 }
 
-.chatbot-state__skeleton {
+#n8n-chat .chatbot-state__skeleton {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
@@ -535,7 +535,7 @@
   margin: 1.75rem auto 1.25rem;
 }
 
-.chatbot-state__skeleton span {
+#n8n-chat .chatbot-state__skeleton span {
   display: block;
   height: 0.7rem;
   background: #dbe7f2;
@@ -543,15 +543,15 @@
   animation: chatbotSkeleton 1.4s ease-in-out infinite;
 }
 
-.chatbot-state__skeleton span:nth-child(2) {
+#n8n-chat .chatbot-state__skeleton span:nth-child(2) {
   width: 82%;
 }
 
-.chatbot-state__skeleton span:nth-child(3) {
+#n8n-chat .chatbot-state__skeleton span:nth-child(3) {
   width: 62%;
 }
 
-.chatbot-state--loading .chatbot-state__panel > p {
+#n8n-chat.chatbot-state--loading .chatbot-state__panel > p {
   color: #334155;
   font-weight: 500;
 }
@@ -562,18 +562,18 @@
 }
 
 @media (max-width: 480px) {
-  .chatbot-state {
+  #n8n-chat.chatbot-state {
     min-height: 15rem;
     padding: 1rem;
   }
 
-  .chatbot-state__panel {
+  #n8n-chat .chatbot-state__panel {
     padding: 1.5rem 1.25rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chatbot-state__skeleton span,
+  #n8n-chat .chatbot-state__skeleton span,
   #n8n-chat .chat-window {
     animation: none !important;
   }

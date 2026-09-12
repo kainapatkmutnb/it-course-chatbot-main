@@ -365,7 +365,7 @@ const ChatBot: React.FC = () => {
 
   if (dataIsLoading || isInitializing) {
     return (
-      <div className="chatbot-state chatbot-state--loading" role="status" aria-live="polite">
+      <div id="n8n-chat" className="chatbot-state chatbot-state--loading" role="status" aria-live="polite">
         <div className="chatbot-state__panel">
           <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
           <div className="chatbot-state__skeleton" aria-hidden="true">
@@ -381,7 +381,7 @@ const ChatBot: React.FC = () => {
 
   if (chatError) {
     return (
-      <div className="chatbot-state chatbot-state--error" role="alert">
+      <div id="n8n-chat" className="chatbot-state chatbot-state--error" role="alert">
         <div className="chatbot-state__panel">
           <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
           <h3>ยังเชื่อมต่อผู้ช่วยไม่ได้</h3>
