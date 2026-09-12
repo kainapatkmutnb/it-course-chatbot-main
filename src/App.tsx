@@ -26,7 +26,7 @@ const App = () => (
         {/* position=top-right สอดคล้องกับ Toaster และไม่ทับ chatbot toggle ที่ bottom-right */}
         <Sonner position="top-right" />
         <BrowserRouter>
-          <div className="min-h-screen bg-background flex flex-col">
+          <div className="academic-shell min-h-screen bg-background flex flex-col">
             <Header />
             <main className="flex-1">
               <Routes>

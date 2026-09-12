@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import HomeOverview from '@/components/home/HomeOverview';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -13,7 +14,6 @@ import {
   Shield,
   Sparkles,
   ArrowRight,
-  MessageCircle,
   UserCheck,
   Target
 } from 'lucide-react';
@@ -27,37 +27,26 @@ const Home: React.FC = () => {
     console.log('Home component state:', { isAuthenticated, user: user?.role, isLoading });
   }, [isAuthenticated, user, isLoading]);
 
-  // Only redirect if user came from login/register, not from navigation
-  // Remove automatic redirect to allow users to visit home page when logged in
-
   const features = [
     {
-      icon: <Bot className="w-8 h-8" />,
+      icon: <Bot className="w-6 h-6" />,
       title: 'AI Chatbot',
-      description: 'แชทบอทอัจฉริยะตอบคำถามเรื่องหลักสูตรและการเรียน',
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20'
+      description: 'แชทบอทอัจฉริยะตอบคำถามเรื่องหลักสูตรและการเรียนอย่างตรงจุด'
     },
     {
-      icon: <BookOpen className="w-8 h-8" />,
+      icon: <BookOpen className="w-6 h-6" />,
       title: 'จัดการหลักสูตร',
-      description: 'ระบบจัดการรายวิชาและหลักสูตรแบบครบวงจร',
-      color: 'text-green-500',
-      bgColor: 'bg-green-50 dark:bg-green-900/20'
+      description: 'ระบบจัดการรายวิชาและหลักสูตรแบบครบวงจร 5 สาขาวิชา 13 หลักสูตร'
     },
     {
-      icon: <Target className="w-8 h-8" />,
+      icon: <Target className="w-6 h-6" />,
       title: 'วางแผนการเรียน',
-      description: 'วางแผนและติดตามความก้าวหน้าการเรียนของคุณ',
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20'
+      description: 'วางแผนและติดตามความก้าวหน้าการเรียน 4 ปี พร้อมคำนวณหน่วยกิตและ GPA'
     },
     {
-      icon: <Shield className="w-8 h-8" />,
-      title: 'ระบบสิทธิ์',
-      description: 'การจัดการสิทธิ์การเข้าถึงตามบทบาทผู้ใช้',
-      color: 'text-red-500',
-      bgColor: 'bg-red-50 dark:bg-red-900/20'
+      icon: <Shield className="w-6 h-6" />,
+      title: 'ระบบสิทธิ์การใช้งาน',
+      description: 'การจัดการสิทธิ์การเข้าถึงแยกตามบทบาท นักศึกษา อาจารย์ บุคลากร และผู้ดูแล'
     }
   ];
 
@@ -66,142 +55,122 @@ const Home: React.FC = () => {
       role: 'student',
       icon: <GraduationCap className="w-6 h-6" />,
       title: 'นักศึกษา',
-      description: 'ดูแผนการเรียน ตรวจสอบผลการเรียน วางแผนการเรียน',
-      features: ['ดูแผนการเรียน', 'ตรวจสอบเงื่อนไขวิชา', 'วางแผนการเรียน']
+      description: 'ดูแผนการเรียน ตรวจสอบผลการเรียน และวางแผนการลงทะเบียนล่วงหน้า',
+      features: ['ดูแผนการเรียน 4 ปี', 'ตรวจสอบเงื่อนไขวิชาบังคับก่อน', 'ส่งออกรายงาน PDF / Excel']
     },
     {
       role: 'instructor',
       icon: <UserCheck className="w-6 h-6" />,
-      title: 'อาจารย์',
-      description: 'ดูข้อมูลนักศึกษา ติดตามความก้าวหน้าการเรียน',
-      features: ['ดูรายชื่อนักศึกษา', 'ติดตามผลการเรียน', 'สถิติการเรียน']
+      title: 'อาจารย์ที่ปรึกษา',
+      description: 'ติดตามและให้คำปรึกษาแผนการเรียนของนักศึกษาในความดูแล',
+      features: ['ดูรายชื่อนักศึกษาในความดูแล', 'ตรวจสอบผลการเรียนรายบุคคล', 'สถิติการเรียนและคำแนะนำ']
     },
     {
       role: 'staff',
       icon: <Users className="w-6 h-6" />,
-      title: 'บุคลากร',
-      description: 'จัดการเงื่อนไขรายวิชาและความต่อเนื่องของหลักสูตร',
-      features: ['ตั้งค่าเงื่อนไขวิชา', 'จัดการ Prerequisite', 'อัปเดตหลักสูตร']
+      title: 'บุคลากรภาควิชา',
+      description: 'จัดการเงื่อนไขรายวิชา โครงสร้างหลักสูตร และความต่อเนื่องทางการศึกษา',
+      features: ['ตั้งค่าเงื่อนไขวิชา', 'จัดการ Prerequisite & Corequisite', 'อัปเดตข้อมูลหลักสูตร']
     },
     {
       role: 'admin',
       icon: <Shield className="w-6 h-6" />,
       title: 'ผู้ดูแลระบบ',
-      description: 'จัดการระบบทั้งหมด ผู้ใช้ หลักสูตร และการตั้งค่า',
-      features: ['จัดการผู้ใช้', 'จัดการหลักสูตร', 'Audit Log',]
+      description: 'จัดการระบบทั้งหมด บัญชีผู้ใช้ การกำหนดสิทธิ์ และตรวจสอบสถิติแชทบอท',
+      features: ['จัดการผู้ใช้งานและสิทธิ์', 'จัดการฐานข้อมูลหลักสูตร', 'Chat Analytics Dashboard']
     }
   ];
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 gradient-hero text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="container mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="academic-home-hero border-b border-border">
+        <div className="container mx-auto">
+          <div className="grid items-center gap-8 lg:grid-cols-[5fr_7fr] lg:gap-12">
             <div className="space-y-6">
               <div className="space-y-4">
-                <Badge className="bg-white/20 text-white hover:bg-white/30">
-                  <Sparkles className="w-4 h-4 mr-1" />
-                  ระบบแนะนำหลักสูตร
+                <Badge variant="secondary" className="font-medium text-xs px-3 py-1">
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                  ระบบแนะนำและวางแผนหลักสูตร
                 </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold leading-tight tracking-tight">
+                <h1 className="academic-hero-title font-bold tracking-tight">
                   IT Assistant
-                  <span className="block text-primary-light">
-                    Professional IT Guidance
+                  <span className="academic-hero-subtitle block font-normal">
+                    Professional IT Guidance · KMUTNB
                   </span>
                 </h1>
-                <p className="text-xl text-white/90 leading-relaxed font-light">
-                  ระบบให้คำปรึกษาหลักสูตรเทคโนโลยีสารสนเทศแบบครบวงจร 
-                  ด้วยเทคโนโลยี AI ที่ทันสมัย เพื่อการวางแผนการเรียนที่มีประสิทธิภาพ
+                <p className="academic-copy font-normal">
+                  ระบบให้คำปรึกษาหลักสูตรเทคโนโลยีสารสนเทศแบบครบวงจร
+                  ด้วยเทคโนโลยี AI เพื่อการวางแผนการเรียนที่มีประสิทธิภาพ ตรวจสอบเงื่อนไขหน่วยกิตและหลักสูตรได้ทันที
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-4">
                 {!isAuthenticated ? (
                   <>
-                    <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
+                    <Button size="lg" asChild className="academic-control">
                       <Link to="/register">
                         เริ่มใช้งาน
-                        <ArrowRight className="w-5 h-5 ml-2" />
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Link>
                     </Button>
-                    <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
+                    <Button size="lg" variant="outline" asChild className="academic-control">
                       <Link to="/login">เข้าสู่ระบบ</Link>
                     </Button>
                   </>
                 ) : (
-                  <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
+                  <Button size="lg" asChild className="academic-control">
                     <Link to={`/dashboard/${user?.role}`}>
                       ไปยังแดชบอร์ด
-                      <ArrowRight className="w-5 h-5 ml-2" />
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Link>
                   </Button>
                 )}
               </div>
 
               {isAuthenticated && (
-                <div className="flex items-center space-x-2 bg-white/10 rounded-lg p-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-sm font-bold">
-                      {(user?.name || '').split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </span>
+                <div className="flex min-w-0 items-center gap-3 rounded-lg bg-muted p-3 text-foreground">
+                  <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+                    {(user?.name || '').split(' ').map(n => n[0]).join('').toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-medium">ยินดีต้อนรับ {user?.name}</p>
-                    <p className="text-sm text-white/70">บทบาท: {user?.role}</p>
+                    <p className="font-medium text-sm">ยินดีต้อนรับ {user?.name}</p>
+                    <p className="text-xs text-muted-foreground">บทบาท: {user?.role}</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Hero Image/Illustration */}
-            <div className="lg:ml-8 flex justify-center">
-              <div className="relative">
-                <div className="w-96 h-96 gradient-primary rounded-2xl shadow-elegant flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <Bot className="w-24 h-24 mx-auto mb-4 opacity-80" />
-                    <p className="text-lg font-medium opacity-90">AI-Powered Assistance</p>
-                    <p className="text-sm opacity-70">Available 24/7</p>
-                  </div>
-                </div>
-                <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white rounded-xl shadow-medium flex items-center justify-center">
-                  <MessageCircle className="w-8 h-8 text-primary" />
-                </div>
-              </div>
+            {/* Hero Image / Authentic Screenshot */}
+            <div className="flex justify-center">
+              <HomeOverview />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 gradient-subtle">
+      <section className="academic-home-section">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+          <div className="mb-8 text-left">
+            <h2 className="text-2xl lg:text-3xl font-bold tracking-tight mb-2">
               ฟีเจอร์หลักของระบบ
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              ระบบครบครันสำหรับการจัดการหลักสูตรและการเรียนการสอน
+            <p className="academic-copy">
+              ระบบครบครันสำหรับการจัดการหลักสูตรและการวางแผนการเรียนการสอนภาควิชาเทคโนโลยีสารสนเทศ
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-              <Card key={feature.title} className="text-center hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
-                <CardHeader>
-                  <div className={`w-16 h-16 mx-auto rounded-2xl ${feature.bgColor} flex items-center justify-center mb-4`}>
-                    <div className={feature.color}>
-                      {feature.icon}
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
+          <div className="grid gap-6 md:grid-cols-2">
+            {features.map((feature) => (
+              <Card key={feature.title} className="academic-feature academic-panel p-5">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  {feature.icon}
+                </div>
+                <CardTitle className="text-lg font-bold mb-1.5">{feature.title}</CardTitle>
+                <CardDescription className="academic-copy text-sm">
+                  {feature.description}
+                </CardDescription>
               </Card>
             ))}
           </div>
@@ -209,38 +178,38 @@ const Home: React.FC = () => {
       </section>
 
       {/* Roles Section */}
-      <section className="py-20 px-4">
+      <section className="academic-home-section border-t border-border">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              บทบาทผู้ใช้งาน
+          <div className="mb-8 text-left">
+            <h2 className="text-2xl lg:text-3xl font-bold tracking-tight mb-2">
+              บทบาทผู้ใช้งานในระบบ
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              ระบบรองรับผู้ใช้หลากหลายบทบาทด้วยสิทธิ์การเข้าถึงที่เหมาะสม
+            <p className="academic-copy">
+              ระบบรองรับผู้ใช้งานตามโครงสร้างจริงของภาควิชา ด้วยสิทธิ์การเข้าถึงข้อมูลที่เหมาะสม
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {roles.map((roleData, index) => (
-              <Card key={roleData.role} className="hover:shadow-medium transition-all duration-300">
-                <CardHeader>
+          <div className="grid md:grid-cols-2 gap-6">
+            {roles.map((roleData) => (
+              <Card key={roleData.role} className="academic-panel p-6">
+                <CardHeader className="p-0 mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="p-3 gradient-primary rounded-lg text-white">
+                    <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
                       {roleData.icon}
                     </div>
                     <div>
-                      <CardTitle className="text-xl">{roleData.title}</CardTitle>
-                      <CardDescription>{roleData.description}</CardDescription>
+                      <CardTitle className="text-lg font-bold">{roleData.title}</CardTitle>
+                      <CardDescription className="text-sm">{roleData.description}</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-muted-foreground">ฟีเจอร์เฉพาะ:</h4>
-                    <ul className="space-y-1">
-                      {roleData.features.map((feature, featureIndex) => (
-                        <li key={feature} className="flex items-center text-sm">
-                          <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
+                    <h4 className="font-medium text-xs text-muted-foreground uppercase tracking-wider">ฟีเจอร์เฉพาะบทบาท:</h4>
+                    <ul className="space-y-1.5">
+                      {roleData.features.map((feature) => (
+                        <li key={feature} className="flex items-center text-sm text-foreground/90">
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2.5 shrink-0" />
                           {feature}
                         </li>
                       ))}
@@ -254,26 +223,26 @@ const Home: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 gradient-primary text-white">
-        <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <h2 className="text-3xl lg:text-4xl font-bold">
+      <section className="academic-home-cta">
+        <div className="container mx-auto text-left">
+          <div className="max-w-3xl space-y-4">
+            <h2 className="text-2xl lg:text-3xl font-bold tracking-tight">
               พร้อมเริ่มต้นใช้งานแล้วหรือยัง?
             </h2>
-            <p className="text-xl text-white/90">
-              เข้าร่วมกับเราวันนี้และสัมผัสประสบการณ์การเรียนรู้ที่ดีขึ้น
+            <p className="academic-copy">
+              เข้าสู่ระบบหรือสมัครสมาชิกเพื่อเริ่มต้นสำรวจหลักสูตรและจัดทำแผนการเรียนของตนเอง
             </p>
             
             {!isAuthenticated && (
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Button size="lg" asChild className="academic-control">
                   <Link to="/register">
-                    สมัครสมาชิกฟรี
-                    <ArrowRight className="w-5 h-5 ml-2" />
+                    สมัครสมาชิก
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Link>
                 </Button>
-                <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
-                  <Link to="/courses">ดูหลักสูตร</Link>
+                <Button size="lg" variant="outline" asChild className="academic-control">
+                  <Link to="/courses">สืบค้นหลักสูตร</Link>
                 </Button>
               </div>
             )}

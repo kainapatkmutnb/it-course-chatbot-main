@@ -62,24 +62,24 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="academic-auth min-h-[calc(100vh-14rem)] flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <Bot className="w-8 h-8 text-white" />
+            <div className="bg-primary/10 p-3 rounded-full border border-primary/20">
+              <Bot className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">IT Course Chatbot</h1>
-          <p className="text-gray-600 mt-2">ระบบแนะนำหลักสูตรและวางแผนการเรียน</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">IT Course Chatbot</h1>
+          <p className="text-sm text-muted-foreground mt-1">ระบบแนะนำหลักสูตรและวางแผนการเรียน</p>
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">เข้าสู่ระบบ</CardTitle>
-            <CardDescription className="text-center">
+        <Card className="academic-panel">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-xl text-center">เข้าสู่ระบบ</CardTitle>
+            <CardDescription className="text-center text-xs">
               ระบบวางแผนการเรียน มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
             </CardDescription>
           </CardHeader>
@@ -95,10 +95,10 @@ const Login: React.FC = () => {
             <Button
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 shadow-sm"
+              className="w-full academic-control bg-background hover:bg-muted text-foreground border border-input shadow-none"
               variant="outline"
             >
-              <Chrome className="w-5 h-5 mr-3 text-blue-500" />
+              <Chrome className="w-5 h-5 mr-3 text-primary" />
               {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบด้วย Google'}
             </Button>
 
@@ -116,7 +116,7 @@ const Login: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="email">อีเมล</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -126,7 +126,7 @@ const Login: React.FC = () => {
                       setEmail(e.target.value);
                       if (error) setError('');
                     }}
-                    className="pl-10"
+                    className="academic-control pl-10"
                     required
                     disabled={isLoading}
                   />
@@ -136,7 +136,7 @@ const Login: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="password">รหัสผ่าน</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -146,14 +146,14 @@ const Login: React.FC = () => {
                       setPassword(e.target.value);
                       if (error) setError('');
                     }}
-                    className="pl-10"
+                    className="academic-control pl-10"
                     required
                     disabled={isLoading}
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full academic-control" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -166,31 +166,18 @@ const Login: React.FC = () => {
             </form>
 
             {/* Domain Info */}
-            <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-              <p className="font-medium">สำหรับบุคลากรและนักศึกษา KMUTNB เท่านั้น</p>
-              <p>ใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th</p>
+            <div className="text-center text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border">
+              <p className="font-medium text-foreground">สำหรับบุคลากรและนักศึกษา KMUTNB เท่านั้น</p>
+              <p className="mt-0.5">ใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th</p>
             </div>
-
-            {/* Role Information - commented out as requested */}
-            {/*
-            <div className="text-center text-xs text-gray-500 space-y-1">
-              <p>บทบาทจะถูกกำหนดอัตโนมัติตามอีเมล:</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>นักศึกษา: s######@email.kmutnb.ac.th</div>
-                <div>อาจารย์: ชื่อ.นามสกุล@kmutnb.ac.th</div>
-                <div>บุคลากร: ชื่อ.นามสกุล@kmutnb.ac.th</div>
-                <div>ผู้ดูแล: admin@kmutnb.ac.th</div>
-              </div>
-            </div>
-            */}
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           <p>
             ยังไม่มีบัญชี?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline">
+            <Link to="/register" className="text-primary hover:underline font-medium">
               สมัครสมาชิก
             </Link>
           </p>
