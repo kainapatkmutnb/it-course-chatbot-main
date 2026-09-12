@@ -16,8 +16,8 @@ const NotFound = () => {
       <div className="academic-panel max-w-md w-full p-8 text-center">
         <h1 className="academic-title mb-2">404</h1>
         <p className="academic-copy mb-6 mx-auto">ไม่พบหน้าที่คุณต้องการ</p>
-        <a 
-          href="/" 
+        <a
+          href="/"
           className="inline-flex items-center justify-center academic-control px-6 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:opacity-90 transition-opacity"
         >
           กลับหน้าหลัก

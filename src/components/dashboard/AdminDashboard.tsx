@@ -1952,7 +1952,7 @@ const AdminDashboard: React.FC = () => {
                           </p>
                         )}
                         <Button 
-                          className="academic-control w-full" 
+                          className="academic-control w-full"
                           variant="outline"
                           onClick={importData}
                           disabled={isLoading || !importFile}
