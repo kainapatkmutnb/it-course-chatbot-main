@@ -246,7 +246,7 @@ const ChatBot: React.FC = () => {
         setCurrentMessageCount(newStored);
 
         const lastFeedback = parseInt(sessionStorage.getItem('chatLastFeedbackCount') || '0', 10);
-        if (newStored - lastFeedback >= 3 && isChatOpen) {
+        if (newStored - lastFeedback >= 5 && isChatOpen) {
           setShowFeedback(true);
         }
       } else if (!isChatOpen) {

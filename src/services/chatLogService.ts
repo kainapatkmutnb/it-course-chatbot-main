@@ -1,6 +1,6 @@
 import { db as database } from '@/config/firebase';
 import { ref, get, set, push, remove } from 'firebase/database';
-import { ChatLog, ChatAnalytics, ChatIntentType, ChatFeedback } from '@/types/chatLog';
+import { ChatLog, ChatAnalytics, ChatIntentType, ChatFeedback, FeedbackStats } from '@/types/chatLog';
 
 function cleanString(val: any): string {
   if (typeof val !== 'string') return val !== undefined && val !== null ? String(val) : '';
@@ -285,6 +285,100 @@ class ChatLogService {
     } catch (error) {
       console.error('Error saving chat feedback:', error);
       return null;
+    }
+  }
+
+  /**
+   * ดึงรายการข้อเสนอแนะ (Feedback) ทั้งหมด และคำนวณสถิติ
+   */
+  async getFeedbacks(options: {
+    feedback?: FeedbackType | 'all';
+    limit?: number;
+  } = {}): Promise<{ feedbacks: ChatFeedback[]; stats: FeedbackStats }> {
+    try {
+      const feedbackRef = ref(database, 'chatFeedback');
+      const snapshot = await get(feedbackRef);
+
+      const emptyStats: FeedbackStats = {
+        total: 0,
+        likeCount: 0,
+        dislikeCount: 0,
+        excellentCount: 0,
+        satisfactionRate: 100,
+      };
+
+      if (!snapshot.exists()) {
+        return { feedbacks: [], stats: emptyStats };
+      }
+
+      const rawData = snapshot.val();
+      let allFeedbacks: ChatFeedback[] = Object.keys(rawData).map(key => {
+        const item = rawData[key];
+        return {
+          id: key,
+          sessionId: cleanString(item?.sessionId),
+          userId: cleanString(item?.userId) || 'guest',
+          feedback: (cleanString(item?.feedback) as FeedbackType) || 'like',
+          messageCount: Number(item?.messageCount) || 1,
+          timestamp: cleanString(item?.timestamp) || new Date().toISOString(),
+        };
+      });
+
+      // Sort newest first
+      allFeedbacks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      // Calculate stats on ALL feedbacks before filter
+      const total = allFeedbacks.length;
+      const likeCount = allFeedbacks.filter(f => f.feedback === 'like').length;
+      const dislikeCount = allFeedbacks.filter(f => f.feedback === 'dislike').length;
+      const excellentCount = allFeedbacks.filter(f => f.feedback === 'excellent').length;
+      const positiveCount = likeCount + excellentCount;
+      const satisfactionRate = total > 0 ? Math.round((positiveCount / total) * 1000) / 10 : 100;
+
+      const stats: FeedbackStats = {
+        total,
+        likeCount,
+        dislikeCount,
+        excellentCount,
+        satisfactionRate,
+      };
+
+      // Filter if requested
+      if (options.feedback && options.feedback !== 'all') {
+        allFeedbacks = allFeedbacks.filter(f => f.feedback === options.feedback);
+      }
+
+      if (options.limit && options.limit > 0) {
+        allFeedbacks = allFeedbacks.slice(0, options.limit);
+      }
+
+      return { feedbacks: allFeedbacks, stats };
+    } catch (error) {
+      console.error('Error fetching chat feedbacks:', error);
+      return {
+        feedbacks: [],
+        stats: {
+          total: 0,
+          likeCount: 0,
+          dislikeCount: 0,
+          excellentCount: 0,
+          satisfactionRate: 100,
+        }
+      };
+    }
+  }
+
+  /**
+   * ลบรายการ Feedback
+   */
+  async deleteFeedback(feedbackId: string): Promise<boolean> {
+    try {
+      const feedbackRef = ref(database, `chatFeedback/${feedbackId}`);
+      await remove(feedbackRef);
+      return true;
+    } catch (error) {
+      console.error('Error deleting chat feedback:', error);
+      return false;
     }
   }
 }

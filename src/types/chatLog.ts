@@ -58,3 +58,11 @@ export interface ChatFeedback {
   messageCount: number;
   timestamp: string;
 }
+
+export interface FeedbackStats {
+  total: number;
+  likeCount: number;
+  dislikeCount: number;
+  excellentCount: number;
+  satisfactionRate: number;
+}

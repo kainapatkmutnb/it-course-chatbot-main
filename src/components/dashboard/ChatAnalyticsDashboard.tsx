@@ -23,12 +23,34 @@ import {
   HelpCircle,
   BarChart3,
   Bot,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ThumbsUp,
+  ThumbsDown,
+  Star,
+  UserCheck
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { chatLogService } from '@/services/chatLogService';
-import { ChatLog, ChatAnalytics } from '@/types/chatLog';
+import { ChatLog, ChatAnalytics, ChatFeedback, FeedbackStats, FeedbackType } from '@/types/chatLog';
 import { useToast } from '@/hooks/use-toast';
+
+const FEEDBACK_META: Record<string, { label: string; emoji: string; badgeClass: string }> = {
+  like: {
+    label: 'ชอบ',
+    emoji: '👍',
+    badgeClass: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+  },
+  dislike: {
+    label: 'ไม่ชอบ',
+    emoji: '👎',
+    badgeClass: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800'
+  },
+  excellent: {
+    label: 'สุดยอด',
+    emoji: '✨',
+    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
+  }
+};
 
 const INTENT_NAMES: Record<string, string> = {
   course_info: 'ข้อมูลรายวิชา',
@@ -69,24 +91,39 @@ const ChatAnalyticsDashboard: React.FC = () => {
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isExportingExcel, setIsExportingExcel] = useState<boolean>(false);
 
+  // Feedback states
+  const [feedbacks, setFeedbacks] = useState<ChatFeedback[]>([]);
+  const [feedbackStats, setFeedbackStats] = useState<FeedbackStats>({
+    total: 0,
+    likeCount: 0,
+    dislikeCount: 0,
+    excellentCount: 0,
+    satisfactionRate: 100
+  });
+  const [feedbackFilter, setFeedbackFilter] = useState<string>('all');
+  const [feedbackSearch, setFeedbackSearch] = useState<string>('');
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const days = parseInt(timeRange, 10);
-      const [analyticsData, logsData] = await Promise.all([
+      const [analyticsData, logsData, feedbackData] = await Promise.all([
         chatLogService.getAnalytics(days),
         chatLogService.getChatLogs({
           limit: 15,
           page,
           intent: selectedIntentFilter !== 'all' ? selectedIntentFilter : undefined,
           isSuccess: selectedStatusFilter === 'success' ? true : selectedStatusFilter === 'failure' ? false : undefined
-        })
+        }),
+        chatLogService.getFeedbacks()
       ]);
 
       setAnalytics(analyticsData);
       setLogs(logsData.logs);
       setTotalPages(logsData.totalPages || 1);
       setTotalCount(logsData.totalCount || 0);
+      setFeedbacks(feedbackData.feedbacks);
+      setFeedbackStats(feedbackData.stats);
     } catch (error) {
       console.error('Error loading chat analytics:', error);
       toast({
@@ -98,6 +135,27 @@ const ChatAnalyticsDashboard: React.FC = () => {
       setLoading(false);
     }
   }, [timeRange, page, selectedIntentFilter, selectedStatusFilter, toast]);
+
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!window.confirm('คุณต้องการลบรายการประเมินความพึงพอใจนี้ใช่หรือไม่?')) return;
+    try {
+      const success = await chatLogService.deleteFeedback(feedbackId);
+      if (success) {
+        toast({
+          title: 'ลบสำเร็จ',
+          description: 'ลบรายการประเมินความพึงพอใจเรียบร้อยแล้ว'
+        });
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถลบรายการได้',
+        variant: 'destructive'
+      });
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -526,13 +584,75 @@ const ChatAnalyticsDashboard: React.FC = () => {
 
       XLSX.utils.book_append_sheet(wb, ws3, 'คำถามที่ตอบไม่ได้');
 
+      // ==========================================
+      // SHEET 4: ประเมินความพึงพอใจ (Feedback)
+      // ==========================================
+      const feedbackExport = await chatLogService.getFeedbacks();
+      const fbList = feedbackExport.feedbacks;
+      const fbStats = feedbackExport.stats;
+
+      const FEEDBACK_LABELS: Record<string, string> = {
+        like: '👍 ชอบ',
+        dislike: '👎 ไม่ชอบ',
+        excellent: '✨ สุดยอด'
+      };
+
+      const fbSummaryBlock = [
+        ['รายงานผลการประเมินความพึงพอใจของผู้ใช้งาน (User Feedback)'],
+        ['จำนวนการประเมินทั้งหมด:', `${fbStats.total} ครั้ง`],
+        ['คะแนนความพึงพอใจเชิงบวก (👍 + ✨):', `${fbStats.satisfactionRate}%`],
+        ['จำนวน "ชอบ" (👍):', `${fbStats.likeCount} ครั้ง`],
+        ['จำนวน "สุดยอด" (✨):', `${fbStats.excellentCount} ครั้ง`],
+        ['จำนวน "ไม่ชอบ" (👎):', `${fbStats.dislikeCount} ครั้ง`],
+        []
+      ];
+
+      const fbHeaders = [
+        'ลำดับ',
+        'วันที่-เวลา',
+        'ผู้ใช้งาน',
+        'ผลการประเมิน',
+        'จำนวนข้อความในรอบ',
+        'รหัสเซสชัน (Session ID)'
+      ];
+
+      const fbRows = fbList.map((f, idx) => {
+        const d = new Date(f.timestamp);
+        const dateStr = isNaN(d.getTime()) ? f.timestamp : `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())} ${padZero(d.getHours())}:${padZero(d.getMinutes())}:${padZero(d.getSeconds())}`;
+        return [
+          idx + 1,
+          dateStr,
+          f.userId || 'Guest',
+          FEEDBACK_LABELS[f.feedback] || f.feedback,
+          f.messageCount,
+          f.sessionId
+        ];
+      });
+
+      const ws4 = XLSX.utils.aoa_to_sheet([
+        ...fbSummaryBlock,
+        fbHeaders,
+        ...(fbRows.length > 0 ? fbRows : [['-', '-', 'ยังไม่มีข้อมูลการประเมิน', '-', '-', '-']])
+      ]);
+
+      ws4['!cols'] = [
+        { wch: 8 },
+        { wch: 22 },
+        { wch: 22 },
+        { wch: 18 },
+        { wch: 20 },
+        { wch: 38 }
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws4, 'ประเมินความพึงพอใจ');
+
       // Download .xlsx file
       const fileDateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
       XLSX.writeFile(wb, `chatbot_analytics_${fileDateStr}.xlsx`);
 
       toast({
         title: 'ส่งออก Excel สำเร็จ 🎉',
-        description: `สร้างไฟล์ Excel พร้อม 3 แผ่นงาน (Sheets) เรียบร้อยแล้ว (${totalCount} รายการ)`
+        description: `สร้างไฟล์ Excel พร้อม 4 แผ่นงาน (Sheets) เรียบร้อยแล้ว (${totalCount} รายการ)`
       });
     } catch (error) {
       console.error('Error exporting Excel:', error);
@@ -555,6 +675,19 @@ const ChatAnalyticsDashboard: React.FC = () => {
       (l.response && l.response.toLowerCase().includes(term)) ||
       (l.userName && l.userName.toLowerCase().includes(term)) ||
       (l.studentId && l.studentId.includes(term))
+    );
+  });
+
+  // Filter feedbacks locally by search term and filter
+  const filteredFeedbacks = feedbacks.filter(f => {
+    if (feedbackFilter !== 'all' && f.feedback !== feedbackFilter) {
+      return false;
+    }
+    if (!feedbackSearch) return true;
+    const term = feedbackSearch.toLowerCase();
+    return (
+      (f.userId && f.userId.toLowerCase().includes(term)) ||
+      (f.sessionId && f.sessionId.toLowerCase().includes(term))
     );
   });
 
@@ -623,8 +756,8 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 4 KPI Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 5 KPI Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Card 1 */}
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -683,6 +816,22 @@ const ChatAnalyticsDashboard: React.FC = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {analytics?.failedQueries?.length || 0} คำถามที่ต้องการข้อมูลเพิ่ม
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card 5 */}
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">ความพึงพอใจ (Satisfaction)</CardTitle>
+            <ThumbsUp className="w-4 h-4 text-rose-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-rose-600 dark:text-rose-400">
+              {feedbackStats.total > 0 ? `${feedbackStats.satisfactionRate}%` : '-'}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              จาก {feedbackStats.total} ครั้ง (👍 {feedbackStats.likeCount} | ✨ {feedbackStats.excellentCount} | 👎 {feedbackStats.dislikeCount})
             </p>
           </CardContent>
         </Card>
@@ -825,15 +974,23 @@ const ChatAnalyticsDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Tabs: Detailed Logs & Failure Analysis */}
+      {/* Tabs: Detailed Logs, Failure Analysis & Feedback */}
       <Tabs defaultValue="all-logs" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="all-logs">ประวัติการสนทนาทั้งหมด</TabsTrigger>
           <TabsTrigger value="failed-logs">
             คำถามที่ตอบไม่ได้
             {analytics?.failedQueries && analytics.failedQueries.length > 0 && (
               <Badge variant="destructive" className="ml-2 px-1.5 py-0.5 text-xs">
                 {analytics.failedQueries.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="feedback-logs">
+            ความพึงพอใจของผู้ใช้
+            {feedbackStats.total > 0 && (
+              <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                {feedbackStats.total}
               </Badge>
             )}
           </TabsTrigger>
@@ -1021,6 +1178,148 @@ const ChatAnalyticsDashboard: React.FC = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-500 opacity-60" />
                     <p className="text-emerald-700 font-medium">ยอดเยี่ยม! ไม่มีคำถามที่บอทตอบไม่ได้ในช่วงเวลานี้</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 3: User Feedback */}
+        <TabsContent value="feedback-logs" className="space-y-4">
+          <Card className="shadow-sm border-rose-100 dark:border-rose-950/40">
+            <CardHeader className="pb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <ThumbsUp className="w-5 h-5 text-rose-500" />
+                    ประเมินความพึงพอใจของผู้ใช้ (Chatbot Feedback)
+                  </CardTitle>
+                  <CardDescription>
+                    ผลประเมินที่ผู้ใช้กดเลือกหลังสนทนาครบทุก 5 ข้อความ เพื่อติดตามคุณภาพและความพึงพอใจ
+                  </CardDescription>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-60">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="ค้นหาผู้ใช้ / Session ID..."
+                      value={feedbackSearch}
+                      onChange={(e) => setFeedbackSearch(e.target.value)}
+                      className="pl-8 h-9 text-sm"
+                    />
+                  </div>
+
+                  <Select value={feedbackFilter} onValueChange={setFeedbackFilter}>
+                    <SelectTrigger className="w-[140px] h-9 text-xs">
+                      <SelectValue placeholder="ประเภทประเมิน" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ทั้งหมด ({feedbacks.length})</SelectItem>
+                      <SelectItem value="like">👍 ชอบ ({feedbackStats.likeCount})</SelectItem>
+                      <SelectItem value="excellent">✨ สุดยอด ({feedbackStats.excellentCount})</SelectItem>
+                      <SelectItem value="dislike">👎 ไม่ชอบ ({feedbackStats.dislikeCount})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Feedback Summary Mini Badges */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-background">
+                  <span>ประเมินทั้งหมด:</span>
+                  <span className="font-bold">{feedbackStats.total}</span>
+                </Badge>
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <span>ความพึงพอใจเชิงบวก:</span>
+                  <span className="font-bold">{feedbackStats.satisfactionRate}%</span>
+                </Badge>
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300">
+                  <span>👍 ชอบ:</span>
+                  <span className="font-bold">{feedbackStats.likeCount}</span>
+                </Badge>
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
+                  <span>✨ สุดยอด:</span>
+                  <span className="font-bold">{feedbackStats.excellentCount}</span>
+                </Badge>
+                <Badge variant="outline" className="gap-1.5 py-1 px-2.5 bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300">
+                  <span>👎 ไม่ชอบ:</span>
+                  <span className="font-bold">{feedbackStats.dislikeCount}</span>
+                </Badge>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="space-y-3">
+                {filteredFeedbacks.length > 0 ? (
+                  filteredFeedbacks.map((item) => {
+                    const meta = FEEDBACK_META[item.feedback] || {
+                      label: item.feedback,
+                      emoji: '💬',
+                      badgeClass: 'bg-muted text-muted-foreground'
+                    };
+                    const dateFormatted = new Date(item.timestamp).toLocaleString('th-TH', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit'
+                    });
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="p-4 rounded-lg border bg-card/60 hover:bg-muted/40 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className={`text-xs border px-2.5 py-0.5 font-medium ${meta.badgeClass}`}>
+                              {meta.emoji} {meta.label}
+                            </Badge>
+                            <span className="text-sm font-semibold text-foreground">
+                              {item.userId === 'guest' ? 'ผู้เยี่ยมชม (Guest)' : item.userId}
+                            </span>
+                            <Badge variant="outline" className="text-[11px] text-muted-foreground font-normal">
+                              สนทนา {item.messageCount} ข้อความ
+                            </Badge>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              {dateFormatted}
+                            </span>
+                            <span className="flex items-center gap-1 font-mono text-[11px]">
+                              Session: {item.sessionId}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteFeedback(item.id)}
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+                          title="ลบรายการนี้"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <ThumbsUp className="w-10 h-10 mx-auto mb-2 opacity-30 text-rose-500" />
+                    <p className="font-medium">
+                      {feedbackSearch || feedbackFilter !== 'all'
+                        ? 'ไม่พบข้อมูลที่ตรงกับเงื่อนไขการค้นหา'
+                        : 'ยังไม่มีประวัติการประเมินความพึงพอใจในระบบ'}
+                    </p>
+                    <p className="text-xs mt-1">
+                      เมื่อผู้ใช้สนทนาผ่านแชทบอทครบ 5 ข้อความและกดให้คะแนน ข้อมูลจะปรากฏที่นี่อัตโนมัติ
+                    </p>
                   </div>
                 )}
               </div>
