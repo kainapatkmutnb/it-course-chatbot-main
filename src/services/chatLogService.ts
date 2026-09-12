@@ -1,6 +1,6 @@
 import { db as database } from '@/config/firebase';
 import { ref, get, set, push, remove } from 'firebase/database';
-import { ChatLog, ChatAnalytics, ChatIntentType } from '@/types/chatLog';
+import { ChatLog, ChatAnalytics, ChatIntentType, ChatFeedback } from '@/types/chatLog';
 
 function cleanString(val: any): string {
   if (typeof val !== 'string') return val !== undefined && val !== null ? String(val) : '';
@@ -264,6 +264,27 @@ class ChatLogService {
     } catch (error) {
       console.error('Error deleting chat log:', error);
       return false;
+    }
+  }
+
+  /**
+   * บันทึกความคิดเห็น (Feedback) จากผู้ใช้ลง Firebase Realtime Database ที่ /chatFeedback
+   */
+  async saveFeedback(data: Omit<ChatFeedback, 'id' | 'timestamp'> & { timestamp?: string }): Promise<string | null> {
+    try {
+      const feedbackRef = ref(database, 'chatFeedback');
+      const newRef = push(feedbackRef);
+
+      const record = removeUndefinedFields({
+        ...data,
+        timestamp: data.timestamp || new Date().toISOString()
+      });
+
+      await set(newRef, record);
+      return newRef.key;
+    } catch (error) {
+      console.error('Error saving chat feedback:', error);
+      return null;
     }
   }
 }

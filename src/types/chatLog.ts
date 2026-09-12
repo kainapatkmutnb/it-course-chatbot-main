@@ -47,3 +47,14 @@ export interface ChatAnalytics {
   messagesByDate: { date: string; count: number }[];
   failedQueries: ChatLog[];
 }
+
+export type FeedbackType = 'like' | 'dislike' | 'excellent';
+
+export interface ChatFeedback {
+  id: string;
+  sessionId: string;
+  userId: string;
+  feedback: FeedbackType;
+  messageCount: number;
+  timestamp: string;
+}

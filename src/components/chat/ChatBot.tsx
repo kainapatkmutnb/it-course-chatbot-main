@@ -5,6 +5,7 @@ import './ChatBot.css';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
 import { Course } from '@/types/course';
+import { FeedbackBanner } from './FeedbackBanner';
 
 const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
@@ -215,6 +216,70 @@ const ChatBot: React.FC = () => {
     (studyPlan?.updatedAt as any)?.toString?.()
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Periodic feedback banner states
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [currentMessageCount, setCurrentMessageCount] = useState(0);
+
+  // Monitor chat messages and trigger feedback every 3 messages
+  useEffect(() => {
+    if (dataIsLoading || isInitializing) return;
+
+    let prevUserMsgCount = 0;
+
+    const checkMessages = () => {
+      const container = document.getElementById('n8n-chat');
+      if (!container) return;
+
+      const isChatOpen = !!container.querySelector('.chat-window');
+      const userMsgElements = container.querySelectorAll(
+        '.chat-message-from-user, [class*="chat-message-from-user"], [class*="userMessage"], [data-role="user"]'
+      );
+      const count = userMsgElements.length;
+
+      if (count > prevUserMsgCount) {
+        const diff = count - prevUserMsgCount;
+        prevUserMsgCount = count;
+
+        const currentStored = parseInt(sessionStorage.getItem('chatFeedbackMsgCount') || '0', 10);
+        const newStored = currentStored + diff;
+        sessionStorage.setItem('chatFeedbackMsgCount', String(newStored));
+        setCurrentMessageCount(newStored);
+
+        const lastFeedback = parseInt(sessionStorage.getItem('chatLastFeedbackCount') || '0', 10);
+        if (newStored - lastFeedback >= 3 && isChatOpen) {
+          setShowFeedback(true);
+        }
+      } else if (!isChatOpen) {
+        setShowFeedback(false);
+      }
+    };
+
+    const targetNode = document.getElementById('n8n-chat');
+    if (!targetNode) return;
+
+    const observer = new MutationObserver(() => {
+      checkMessages();
+    });
+
+    observer.observe(targetNode, {
+      childList: true,
+      subtree: true,
+    });
+
+    const intervalId = setInterval(checkMessages, 1000);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(intervalId);
+    };
+  }, [dataIsLoading, isInitializing]);
+
+  const handleDismissFeedback = () => {
+    setShowFeedback(false);
+    const currentStored = parseInt(sessionStorage.getItem('chatFeedbackMsgCount') || '0', 10);
+    sessionStorage.setItem('chatLastFeedbackCount', String(currentStored));
+  };
+
   if (dataIsLoading || isInitializing) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -245,7 +310,19 @@ const ChatBot: React.FC = () => {
     );
   }
 
-  return <div id="n8n-chat"></div>;
+  return (
+    <>
+      <div id="n8n-chat"></div>
+      {showFeedback && (
+        <FeedbackBanner
+          sessionId={sessionIdRef.current}
+          userId={user?.id || 'guest'}
+          messageCount={currentMessageCount}
+          onDismiss={handleDismissFeedback}
+        />
+      )}
+    </>
+  );
 };
 
 export default ChatBot;
