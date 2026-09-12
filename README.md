@@ -103,7 +103,7 @@ flowchart TD
     classDef external fill:#78350F,stroke:#FBBF24,stroke-width:2px,color:#FEF3C7;
 
     User(["👤 ผู้ใช้งาน (User)"]):::entity
-    
+
     P1(["1.0 การยืนยันตัวตน<br/>(Authentication)"]):::process
     P2(["2.0 การจัดการผู้ใช้<br/>(User Management)"]):::process
     P3(["3.0 จัดการข้อมูลหลักสูตร<br/>(Curriculum Management)"]):::process
@@ -495,8 +495,11 @@ it-course-chatbot-main/
 | [ADR-006](docs/adr/ADR-006-multi-curriculum-context-resolution-and-catalog-injection.md) | กลไกชี้ขาดบริบทหลักสูตรและการป้อนข้อมูลแคตตาล็อกสู่ n8n | **Accepted** |
 | [ADR-007](docs/adr/ADR-007-theme-adaptive-architectural-diagram-standards.md) | มาตรฐานไดอะแกรมสถาปัตยกรรมแบบปรับตามธีม (Dark/Light Mode) และการใช้ Native Mermaid | **Accepted** |
 
-### รายงานการตรวจสอบคุณภาพ (Quality Assurance & Audits)
+### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
+- [Modern Academic Web Redesign QA Audit](docs/audits/modern-academic-web-redesign-qa.md) — รายงานการตรวจรับส่วนติดต่อผู้ใช้สไตล์วิชาการร่วมสมัย ครอบคลุม 13 มิติการทดสอบและผลการตรวจรับ Protected Files 100%
+- [Modern Academic Web Redesign Specification](docs/superpowers/specs/2026-09-13-modern-academic-web-redesign.md) — ข้อกำหนดรายละเอียดการออกแบบระบบวิชาการร่วมสมัย (Opt-in Architecture, Color Tokens, Typography, Accessibility)
+- [Modern Academic Web Redesign Implementation Plan](docs/superpowers/plans/2026-09-13-modern-academic-web-redesign.md) — แผนปฏิบัติการ 9 ระยะสำหรับการยกระดับ UI และการควบคุมความเสี่ยง
 - [Firebase CRUD & Credit Validation Audit](docs/audits/firebase-crud-credit-audit.md) — ผลการตรวจสอบความถูกต้องของการบันทึกข้อมูลและคำนวณหน่วยกิต (อัตราผ่าน 100%, 8/8 การทดสอบ)
 - [Responsive Navigation & Student Flow QA](docs/audits/mobile-navigation-student-qa.md) — ผลการทดสอบการใช้งานบนอุปกรณ์พกพาและการนำทางของผู้ใช้นักศึกษา
 
