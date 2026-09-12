@@ -1,238 +1,161 @@
+<div align="center">
+
 # IT Assistant
 
-ระบบวางแผนการเรียนและช่วยเหลือข้อมูลหลักสูตร คณะเทคโนโลยีและการจัดการอุตสาหกรรม ภาควิชาเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)
+**ผู้ช่วยวางแผนการเรียนและค้นหาข้อมูลหลักสูตร**<br />
+ระบบสำหรับนักศึกษาและบุคลากร ภาควิชาเทคโนโลยีสารสนเทศ<br />
+คณะเทคโนโลยีและการจัดการอุตสาหกรรม · มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
+
+[เริ่มใช้งาน](#เริ่มต้นใช้งาน) · [คุณสมบัติ](#คุณสมบัติ) · [เทคโนโลยี](#เทคโนโลยี) · [การพัฒนา](#การพัฒนาในเครื่อง)
+
+</div>
 
 ---
 
-## 🔍 ภาพรวมระบบ (System Architecture)
+## ภาพรวม
 
-ระบบประกอบด้วยเว็บแอปพลิเคชัน (React + TypeScript) ทำหน้าที่จัดการข้อมูลโครงสร้างการเรียน ดึงข้อมูลประวัติส่วนตัวและแผนการเรียนจาก Firebase Realtime Database ส่งต่อไปยังระบบประมวลผลคำถามด้วย AI Agent ผ่าน n8n Webhook และค้นหาเงื่อนไขรายวิชาด้วย Pinecone Vector Database (RAG) พร้อมระบบสร้างรายงานแผนการศึกษาและส่งออกเอกสาร PDF มาตรฐานทางการ
+IT Assistant เป็นเว็บแอปสำหรับสำรวจหลักสูตร จัดทำแผนการเรียน ติดตามหน่วยกิตและผลการเรียน พร้อมแชทบอทช่วยตอบคำถามด้านหลักสูตรและการลงทะเบียน อินเทอร์เฟซรองรับภาษาไทยและออกแบบตาม CI โทนกรมท่า น้ำเงิน และขาว
 
 ```mermaid
-graph TD
-    Client[React SPA Client] <--> |Auth / Realtime DB| Firebase[(Firebase Database)]
-    Client --> |Export Engine| PDFEngine[Smart A4 PDF & Print Engine]
-    Client --> |Secure Webhook + Student Metadata| n8n[n8n Workflow Webhook]
-    n8n <--> |Query Context| AIAgent[n8n AI Agent Node]
-    AIAgent <--> |Context Retrieval| Pinecone[(Pinecone Vector Store RAG)]
-    AIAgent <--> |Processing| LLM[OpenAI Chat Model]
+flowchart LR
+    Browser[React web app] -->|Sign-in and academic data| Firebase[Firebase Auth and Realtime Database]
+    Browser -->|Chat requests| Workflow[n8n workflow]
+    Workflow -->|Retrieval| Vector[(Pinecone)]
+    Workflow --> Model[AI model]
+    Browser -->|Print and export| PDF[PDF and browser print]
 ```
 
----
+## คุณสมบัติ
 
-## ⚡ คุณลักษณะสำคัญ (Core Features)
+| พื้นที่ | ความสามารถ |
+| --- | --- |
+| หลักสูตร | ค้นหาและกรองรายวิชา ดูรายละเอียด เงื่อนไขวิชา และแผนผังหลักสูตร |
+| แผนการเรียน | จัดวิชาตามปีและภาคเรียน ตรวจสอบวิชาบังคับก่อน และติดตามสถานะการเรียน |
+| ผลการเรียน | สรุปหน่วยกิตและ GPA พร้อมรายงานที่พิมพ์หรือส่งออกเป็น PDF ได้ |
+| แชทบอท | ถามข้อมูลหลักสูตรและการเรียนผ่าน workflow ที่เชื่อมกับแหล่งความรู้ของภาควิชา |
+| เครื่องมือบุคลากร | จัดการข้อมูลรายวิชา เงื่อนไข และบัญชีตามสิทธิ์ที่ได้รับ |
+| วิเคราะห์การใช้งาน | ดูสถิติและส่งออกข้อมูลการสนทนาสำหรับผู้มีสิทธิ์ |
+| Responsive UI | ใช้งานเมนูและหน้าหลักบนมือถือ แท็บเล็ต และเดสก์ท็อป |
 
-### 1. ระบบจัดการแผนการเรียนส่วนบุคคล (Interactive Study Plan Manager)
-- **2-Level Tabs & Side-by-Side Semesters View:** แถบแท็บเลือกชั้นปีด้านบน (ปีที่ 1 ถึง ปีที่ 8) พร้อม Badge สรุปหน่วยกิตของแต่ละปี และแสดงผลภาคเรียนที่ 1 และ ภาคเรียนที่ 2 เคียงคู่กันแบบ 2 คอลัมน์ (Side-by-Side Responsive Grid) ช่วยให้เปรียบเทียบและเห็นภาพรวมของปีการศึกษาครบถ้วนในหน้าเดียว พร้อมการ์ดแสดงผลภาคฤดูร้อน (Summer) อัตโนมัติ
-- **Custom Course Code & Name Editing:** รองรับการระบุและแก้ไขทั้ง **รหัสวิชาจริง** (`customCode`) และ **ชื่อวิชา** (`customName`) สำหรับรายวิชาเลือก (เช่น เปลี่ยนจากรหัสแม่แบบ `INE-080xxxxxx` เป็นรหัสวิชาจริง `080203906`) พร้อมซิงก์ข้อมูลอัตโนมัติไปยังใบรายงานผลและตัวติดตามความคืบหน้า
-- **Dynamic 8-Year Plan Scaling:** ปลดล็อกข้อจำกัดชั้นปี รองรับการจัดตารางและการเปิดดูแผนการเรียนขยายได้สูงสุดถึง **ชั้นปีที่ 8** พร้อมปุ่ม `+ เพิ่มปีที่ N` สำหรับนักศึกษาที่ศึกษาเกิน 4 ปี
-- **Intelligent Prerequisite Validation & Auto-Navigation:** ตรวจสอบเงื่อนไขวิชาบังคับก่อน (Prerequisites) แบบเรียลไทม์ ป้องกันการจัดตารางผิดลำดับ พร้อมสลับแท็บชั้นปีไปยังเทอมเป้าหมายให้อัตโนมัติเมื่อกดจัดตารางหรือเพิ่มวิชา
-- **Unscheduled Course Repository:** คลังวิชาที่ยังไม่ได้จัดตาราง รองรับการนำวิชาออกจากตารางเพื่อพักไว้ชั่วคราว และกดจัดตารางกลับเข้าสู่ภาคเรียนที่ต้องการได้อย่างอิสระ
-- **Unified Academic GPA Calculator:** คำนวณเกรดเฉลี่ยสะสม (GPA) ตามเกณฑ์สถาบันอย่างถูกต้อง โดยเกรด `S` (Satisfactory) ให้นับสะสมหน่วยกิต (`completedCredits`) แต่ไม่นำไปหารคิด GPA
-- **Multi-Curriculum Standard Support:** รองรับคำนวณยอดหน่วยกิตรวมตามหลักสูตรจริงของนักศึกษาจาก 5 สาขาวิชา รวม 9 รูปแบบหลักสูตร (`IT-62`, `IT-62 สหกิจ`, `IT-67`, `IT-67 สหกิจ`, `INE-62`, `INE-62 สหกิจ`, `INE-67`, `INE-67 สหกิจ`, `INET-62`, `INET-67`, `ITI-61`, `ITI-66`, `ITT-67`)
-- **Dynamic Course Status Tracking:** บันทึกและปรับเปลี่ยนสถานะรายวิชาได้ยืดหยุ่น 4 สถานะ: `ผ่าน` (Completed), `ไม่ผ่าน` (Failed), `กำลังเรียน` (In Progress), และ `วางแผน` (Planned)
+## บทบาทผู้ใช้
 
-### 2. ระบบรายงานแผนการเรียนและพิมพ์เอกสารทางการ (Official Study Plan Report & PDF Export)
-- **Individual Study Plan Report:** หน้ารายงานสรุปผลแผนการเรียนและผลการศึกษาแยกตามรายภาคการศึกษา พร้อมข้อมูลนักศึกษาและหลักสูตรแบบทางการ
-- **4 Status Summary & KPI Metrics:** สรุปภาพรวม 4 สถานะรายวิชา (ผ่าน / ไม่ผ่าน / กำลังเรียน / วางแผน) พร้อมการ์ดสรุป KPI สำคัญ 4 ด้าน (GPAX สะสม, สัดส่วนหน่วยกิตสะสมที่ผ่าน, ความคืบหน้าหลักสูตร %, และจำนวนวิชาในแผน)
-- **Pure Typography Status Indicators:** ใช้การแสดงผลสถานะด้วยตัวหนังสือสีตัวหนาชัดเจน (เขียว, แดง, ส้ม, เทา) ช่วยให้อ่านง่าย คมชัดทุกขนาดหน้าจอ และไม่เกิดปัญหาตัวหนังสือตกขอบ
-- **Smart A4 Section-Aware PDF Export:** ส่งออกไฟล์ PDF ขนาด A4 ผ่านระบบตรวจจับขอบเขตภาคการศึกษา ป้องกันการตัดผ่ากลางตารางรายวิชา 100%
-- **Native Browser Print Optimization:** ปรับแต่งสไตล์ `@media print` สำหรับการพิมพ์ผ่านเบราว์เซอร์ ซ่อนแถบนำทางและวิดเจ็ตส่วนเกิน พร้อมบล็อกช่องลงนามนักศึกษาและอาจารย์ที่ปรึกษาในหน้าสุดท้าย
+| บทบาท | การใช้งานหลัก |
+| --- | --- |
+| นักศึกษา | จัดการแผนการเรียนและดูความก้าวหน้าของตนเอง |
+| อาจารย์ | ติดตามและให้คำปรึกษาแผนการเรียนของนักศึกษาในความดูแล |
+| บุคลากร | จัดการรายวิชาและเงื่อนไขหลักสูตร |
+| ผู้ดูแลระบบ | จัดการผู้ใช้และดูแลเครื่องมือบริหารระบบ |
 
-### 3. แผงสถิติการเรียน 5 มิติ (5-Metric Learning Statistics Dashboard & Profile)
-- **Real-Time Academic Metrics:** แสดงสถิติการเรียนของผู้ใช้งานแบบ Real-time ครอบคลุม 5 มิติสำคัญ:
-  1. **หน่วยกิตที่เรียนแล้ว** (Completed Credits)
-  2. **เกรดเฉลี่ยสะสม** (GPA)
-  3. **วิชาที่เรียนผ่านแล้ว** (Completed Courses Count)
-  4. **วิชาที่กำลังเรียน** (In-Progress Courses Count)
-  5. **ความคืบหน้าการศึกษา (%)** (Progress Percentage)
+## เทคโนโลยี
 
-### 4. แผนภูมิโครงสร้างหลักสูตร (Curriculum Flowchart)
-- **Visual Chart Configurations:** แสดงรายวิชาในรูปแบบตารางเรียนมาตรฐาน (Grid View) หรือไทม์ไลน์ความสัมพันธ์ (Timeline View)
-- **Interactive Prerequisite Lines:** แสดงเส้นเชื่อมโยงวิชาบังคับก่อนหน้า (Prerequisites) และวิชาเรียนควบคู่ (Corequisites) แบบ Visual
+- **Web:** React 18, TypeScript, Vite
+- **UI:** Tailwind CSS 3, shadcn/ui, Radix UI, Lucide
+- **Routing and state:** React Router, TanStack Query
+- **Identity and data:** Firebase Authentication, Realtime Database
+- **AI workflow:** n8n, Pinecone retrieval, configured language model
+- **Reports:** jsPDF, html2canvas, SheetJS
 
-### 5. ระบบแชทบอทอัจฉริยะแบบ Real-Time Data Sync (n8n AI Assistant & Firebase Integration)
-- **Real-Time Metadata Sync:** ซิงก์ข้อมูลโปรไฟล์, เกรดเฉลี่ย (GPA), ยอดหน่วยกิตผ่าน, รายวิชาที่ผ่าน และวิชาที่กำลังเรียนส่งไปยัง n8n AI Agent แบบ Real-time ทุกครั้งที่มีการอัปเดตแผนการเรียน
-- **Context-Aware Responses:** บอทตอบคำถามสถิติการเรียนส่วนตัว รายวิชาที่ขาด และคำแนะนำการลงทะเบียนวิชาถัดไปได้อย่างแม่นยำตรงกับหน้า Dashboard และ Profile 100%
-- **Automated Curriculum Comparison:** เปรียบเทียบแผนการเรียนจริงของนักศึกษากับหลักสูตรมาตรฐาน เพื่อหาและรายงานรายวิชาบังคับที่ยังไม่ได้ศึกษา
-- **Academic Advising & Credit Limits Policy:** ระบบวิเคราะห์และให้คำแนะนำเพดานหน่วยกิตการลงทะเบียนเรียนตามเกณฑ์และข้อบังคับมหาวิทยาลัยฯ อย่างเคร่งครัด
-  - **ภาคการศึกษาปกติ:** กำหนดการลงทะเบียนเรียนระหว่าง 9 – 22 หน่วยกิต
-  - **เงื่อนไขวิทยาทัณฑ์ / ทัณฑ์บน (Academic Probation):** กรณีเกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 2.00 ระบบจะจำกัดการลงทะเบียนไม่เกิน 16 หน่วยกิต และแนะนำขั้นตอนการยื่นคำร้องขออนุมัติต่อคณะหากจำเป็น
-  - **ภาคการศึกษาพิเศษ (ฤดูร้อน Summer):** กำหนดการลงทะเบียนเรียนได้สูงสุดไม่เกิน 6 หน่วยกิต
-- **Strict Course Presentation & Complete Curriculum Context:**
-  - กำหนดมาตรฐานการนำเสนอรายวิชาในรูปแบบ `[รหัสวิชา] [ชื่อวิชา]` เสมอ (เช่น `080103001 ทักษะการใช้ภาษาอังกฤษ 1`) โดยมีระบบจับคู่รหัสวิชาอัตโนมัติ (Auto-lookup) จากฐานข้อมูลหลักสูตร แม้ผู้ใช้จะพิมพ์สอบถามเพียงชื่อวิชา
-  - ซิงก์ข้อมูลโครงสร้างหลักสูตรมาตรฐานฉบับสมบูรณ์ 100% (`curriculumCourses`) ไปยัง AI Agent ในทุกกรณี (รวมถึง Guest Mode และ Admin) ช่วยแก้ปัญหาข้อจำกัดของ Vector DB (Pinecone Top-K Truncation) ทำให้ตอบรายวิชาในแต่ละชั้นปีและภาคการศึกษาได้อย่างครบถ้วน 100%
-- **Interactive In-Chat Feedback Loop:** ผู้ใช้สามารถกดให้คะแนนความพึงพอใจต่อข้อความคำตอบของบอทได้ทันที 3 ระดับ (👍 พอใจ / 😐 พอใช้ / 👎 ไม่พอใจ) พร้อมระบุเหตุผลหรือข้อเสนอแนะเพิ่มเติม โดยระบบจะบันทึกเชื่อมโยงกับรหัสนักศึกษาและหลักสูตรแบบเรียลไทม์
-- **Modern Academic Chat Experience:** ปรับโฉมหน้าต่างแชตด้วย CI สีน้ำเงินกรมท่า ขาว และฟ้า ให้ header กะทัดรัด อ่านบทสนทนาได้สบายขึ้น พร้อมแยกข้อความผู้ช่วยและผู้ใช้อย่างชัดเจน
-- **Accessible & Responsive Chat UI:** รองรับหน้าจอมือถือ, แสดง focus state สำหรับการใช้งานด้วยคีย์บอร์ด, เคารพการตั้งค่า reduced motion และปรับ loading/error state ให้สอดคล้องกับธีมของระบบ
-- **Role-Based Security Guard:** กรองสิทธิ์การเข้าถึงข้อมูลรายวิชา หากเป็นผู้เยี่ยมชม (Guest Mode) ระบบจะจำกัดการดูข้อมูลส่วนตัว และค้นหาข้อมูลวิชาเรียนทั่วไปผ่าน Pinecone RAG เท่านั้น
+## เริ่มต้นใช้งาน
 
-### 6. ระบบจัดเก็บและวิเคราะห์ Log การใช้งาน Chatbot (Chatbot Logging & Analytics Dashboard)
-- **Automated Chat Conversation Logging:** บันทึกประวัติการถาม-ตอบทุกข้อความลง Firebase Realtime Database (`/chatLogs`) แบบเรียลไทม์ ครอบคลุม 10 มิติข้อมูล (Session ID, User ID, ชื่อผู้ใช้, บทบาท, รหัสนักศึกษา, ข้อความคำถาม, ข้อความคำตอบ, หมวดหมู่คำถาม Intent, สถานะความสำเร็จ, เวลาตอบสนอง Response Time, ช่องทาง Channel, วันที่-เวลา Timestamp)
-- **Smart NLP Intent Classifier:** ระบบจำแนกหมวดหมู่คำถามอัตโนมัติ 8 หมวดหมู่หลัก (ตรวจวิชาบังคับก่อน, ข้อมูลรายวิชา, แผนการเรียน, คำแนะนำลงทะเบียน, เปรียบเทียบหลักสูตร, เกรดและผลการเรียน, ทักทาย, คำถามทั่วไป) พร้อมตรวจจับ Fallback Response แม่นยำ
-- **4 Key Performance Indicators (KPI Cards):** แสดงสรุปภาพรวมสำคัญ:
-  1. **ข้อความทั้งหมด (Total Messages)**
-  2. **อัตราการตอบสำเร็จ (Success Rate %)**
-  3. **เวลาตอบกลับเฉลี่ย (Average Response Time in Seconds/ms)**
-  4. **อัตรา Fallback / คำถามที่ตอบไม่ได้ (%)**
-- **4 Interactive Visual Charts (Recharts):**
-  - **Top Intents Bar Chart:** กราฟแท่งแสดงความถี่หมวดหมู่คำถามยอดนิยม
-  - **Success vs Fallback Donut Chart:** แผนภูมิวงแหวนแสดงสัดส่วนคำถามที่ตอบสำเร็จเทียบกับคำถามที่ตอบไม่ได้
-  - **Daily Trend Area Chart:** กราฟพื้นที่แสดงปริมาณการใช้งานแชทบอทรายวัน
-  - **24-Hour Peak Hours Bar Chart:** กราฟแท่งแสดงช่วงเวลาการใช้งานหนาแน่นที่สุดในรอบ 24 ชั่วโมง
-- **Conversation Logs Explorer & Filters:** ตารางประวัติการสนทนาละเอียด ค้นหาตามคำถาม/ชื่อผู้ใช้, กรองตามหมวดหมู่ Intent, กรองตามสถานะความสำเร็จ, แบ่งหน้า (Pagination), และลบ Log รายการเดี่ยว
-- **Failure Analysis View:** แท็บวิเคราะห์คำถามที่บอทตอบไม่ได้ เพื่อให้ผู้ดูแลระบบและอาจารย์นำคำถามไปเพิ่มเอกสารใน Pinecone Vector Store (RAG)
-- **User Feedback & Student Context Analytics:** แท็บวิเคราะห์ความคิดเห็นและคะแนนความพึงพอใจ แสดงผลการประเมินพร้อมระบุบริบทของผู้เรียน (ชื่อผู้ใช้, รหัสนักศึกษา, หลักสูตรที่ศึกษา) อย่างชัดเจน ช่วยให้อาจารย์และแอดมินเข้าใจปัญหาของนักศึกษาเฉพาะกลุ่มได้ตรงจุด
-- **Multi-Format Export Engine:**
-  - **Excel (.xlsx) Export 4 แผ่นงาน:** ส่งออกสมุดงาน Excel ครอบคลุม 4 แผ่นงาน:
-    1. `ประวัติการสนทนา` (Conversation Logs)
-    2. `สถิติตามหมวดหมู่` (Category Statistics)
-    3. `คำถามที่ตอบไม่ได้` (Unanswered/Fallback Questions)
-    4. `ประเมินความพึงพอใจ` (User Feedback Sheet) พร้อมข้อมูลคะแนน เหตุผล และข้อมูลนักศึกษา
-    พร้อมระบบคำนวณและปรับความกว้างคอลัมน์อัตโนมัติ (Auto Column Sizing)
-  - **CSV (.csv) Export:** ส่งออกไฟล์ CSV พร้อมส่วนหัวสรุปสถิติ (Executive Summary) และจัดการ Encoding ป้องกันสระภาษาไทยและตัวเลขอักขระเพี้ยนใน Excel
-- **Mock Data Generator:** ปุ่มสร้างข้อมูลจำลอง 15 รายการเพื่อการทดสอบและวิเคราะห์
-- **PDPA & Privacy Compliance:** ระบบแจ้งเตือน Privacy Notice ก่อนเริ่มแชท และรองรับสิทธิ์การขอลบประวัติสนทนาส่วนบุคคล (Right to Erasure)
+### ต้องมี
 
-### 7. ระบบแจ้งเตือนและความปลอดภัยของ UI (Modern Toast & Notification System)
-- **Top-Right Semantic Toast Alerts:** ย้ายตำแหน่งการแจ้งเตือนของระบบไปยังมุมขวาบน (`top-right`) โดดเด่น มองเห็นชัดเจน และไม่บดบังปุ่มหรือหน้าต่างแชทบอทที่มุมขวาล่าง ออกแบบด้วยสไตล์ Glassmorphism พร้อมไอคอน Semantic ชัดเจน (Success, Error, Warning, Info)
-- **Guaranteed 5-Second Hybrid Auto-Dismiss:** แก้ปัญหาป้ายแจ้งเตือนค้างบนหน้าจอด้วยกลไกการปิดอัตโนมัติแบบสองชั้น (Dual-layer Auto-Dismiss) ผสาน Radix UI Toast Timer กับ Native JavaScript `setTimeout` Fallback ป้องกันการค้างจากกรณีเบราว์เซอร์สูญเสีย Focus (เช่น เมื่อดาวน์โหลดไฟล์ Excel/PDF หรือสลับหน้าจอ)
-- **Intelligent Error Auto-Clearing:** ป้ายแจ้งเตือนข้อผิดพลาดในหน้าเข้าสู่ระบบ (Login) และลงทะเบียน (Register) จะปิดอัตโนมัติภายใน 5 วินาที พร้อมเคลียร์ค่าในช่องรหัสผ่านหรือช่องกรอกที่ผิดพลาดโดยอัตโนมัติ เพื่อความปลอดภัยและประสบการณ์ใช้งานที่ดีขึ้น
+- Node.js 18 ขึ้นไป
+- Firebase project ที่เปิด Firebase Authentication และ Realtime Database
+- n8n workflow URL สำหรับใช้งานแชทบอท
 
----
+### ติดตั้งและตั้งค่า
 
-## 👥 ตารางสิทธิ์เข้าใช้งานระบบ (Role & Permissions Matrix)
+```bash
+git clone <repository-url>
+cd it-course-chatbot-main
+npm ci
+```
 
-| บทบาทผู้ใช้ (Role) | สิทธิ์การทำงานหลัก |
-| :--- | :--- |
-| **นักศึกษา (Student)** | - จัดการแผนการเรียนส่วนตัวและบันทึกผลการเรียน<br>- ดูรายงานแผนการเรียนและพิมพ์/ส่งออกเอกสาร PDF ทางการ<br>- ใช้งานแชทบอท AI แบบรู้จำข้อมูลผลการเรียนส่วนบุคคล |
-| **อาจารย์ (Instructor)** | - เข้าถึงรายชื่อและข้อมูลนักศึกษาในความดูแล<br>- ตรวจสอบและพิมพ์รายงานแผนการเรียน PDF ของนักศึกษาแต่ละคน<br>- ติดตามความก้าวหน้าและให้คำปรึกษาการลงทะเบียนเรียน |
-| **บุคลากร (Staff)** | - บริหารจัดการโครงสร้างรายวิชาส่วนกลาง<br>- ตรวจสอบรายงานแผนการเรียนของนักศึกษาในภาควิชา<br>- กำหนดเงื่อนไขวิชาเรียน (Prerequisites/Corequisites) |
-| **ผู้ดูแลระบบ (Admin)** | - ตรวจสอบความปลอดภัยระบบผ่าน Audit Logs<br>- **เข้าถึงแดชบอร์ดสถิติแชทบอท (Chat Analytics Dashboard)**<br>- **วิเคราะห์คำถามที่บอทตอบไม่ได้ และส่งออกรายงาน Excel/CSV**<br>- บริหารจัดการบัญชีผู้ใช้งานและกำหนดสิทธิ์การเข้าถึงทั้งหมด |
+คัดลอก `.env.example` เป็น `.env` แล้วใส่ค่า Firebase และ n8n สำหรับ environment ของคุณ:
 
----
+```bash
+# macOS / Linux
+cp .env.example .env
 
-## 🛠️ เทคโนโลยีที่ใช้ (Tech Stack)
+# Windows PowerShell
+Copy-Item .env.example .env
+```
 
-### หน้าบ้าน (Frontend)
-- **Core:** React 18, TypeScript, Vite
-- **Styling:** Tailwind CSS, shadcn/ui (Radix UI)
-- **Routing & State:** React Router DOM, TanStack React Query (React Query v5)
-- **Document & Spreadsheet Generation:** `xlsx` (SheetJS), `html2canvas`, `jspdf`
-- **Visualization:** Recharts, Lucide React Icons
+ตัวแปรที่ใช้กับเว็บมี `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_DATABASE_URL`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID` และ `VITE_N8N_WEBHOOK_URL`; `VITE_N8N_SUMMARY_WEBHOOK_URL` ใช้เมื่อตั้งค่า workflow สรุปข้อมูล
 
-### หลังบ้าน (Backend & Database)
-- **Database & Auth:** Firebase Authentication, Firebase Realtime Database
-- **Hosting:** Firebase Hosting
+> เก็บค่าจริงไว้ในไฟล์ `.env` เฉพาะเครื่องและอย่า commit ไฟล์นี้ ตรวจ project ID และ database URL ให้ตรงกับ environment ก่อนเริ่มแอป โดยเฉพาะก่อนทำรายการเขียนข้อมูล
 
-### ระบบ AI & Chatbot
-- **Workflow Automation:** n8n Workflow Webhook & Sandboxed NLP Pipeline
-- **Vector Database:** Pinecone Vector Store (RAG)
-- **LLM Engine:** OpenAI Chat Model (`gpt-4o-mini` / `gpt-3.5-turbo`)
+### รันเว็บ
 
----
+```bash
+npm run dev
+```
 
-## 🚀 การติดตั้งและใช้งาน (Installation Guide)
+เปิด URL ที่ Vite แสดงใน terminal (โดยปกติคือ `http://localhost:8080`).
 
-### ข้อกำหนดเบื้องต้น (Prerequisites)
-- **Node.js** (เวอร์ชัน 18 ขึ้นไป)
-- **Firebase Project** ที่เปิดใช้งาน Realtime Database และ Authentication
-- **n8n Webhook URL** (สำหรับการใช้แชทบอท AI และการจัดเก็บ Chat Log)
+### สร้าง Production build
 
-### ขั้นตอนการติดตั้ง
+```bash
+npm run lint
+npm run build
+```
 
-1. **ดาวน์โหลดโครงการและติดตั้ง Dependencies**
-   ```bash
-   git clone <repository-url>
-   cd it-course-chatbot-main
-   npm install
-   ```
+## การพัฒนาในเครื่อง
 
-2. **ตั้งค่าไฟล์สภาพแวดล้อม (Environment Variables)**
-   คัดลอกไฟล์แม่แบบ `.env.example` ไปเป็น `.env` ในโฟลเดอร์หลัก (Root Directory):
-   
-   - **Linux / macOS (Bash):**
-     ```bash
-     cp .env.example .env
-     ```
-   - **Windows (Command Prompt):**
-     ```cmd
-     copy .env.example .env
-     ```
-   - **Windows (PowerShell):**
-     ```powershell
-     Copy-Item .env.example .env
-     ```
+### Firebase Emulator
 
-   จากนั้นเปิดไฟล์ `.env` เพื่อระบุค่าคอนฟิกต่างๆ ตามตารางด้านล่าง:
+ใน repository มีการตั้งค่า Emulator สำหรับ Authentication และ Realtime Database ที่ผูกกับ `127.0.0.1`:
 
-   #### 📋 รายละเอียดตัวแปรสภาพแวดล้อม (Environment Variables Reference)
+```bash
+npm run firebase:emulators
+```
 
-   | ชื่อตัวแปร | สถานะ | คำอธิบาย | แหล่งที่มา / วิธีรับค่า |
-   | :--- | :---: | :--- | :--- |
-   | `VITE_FIREBASE_API_KEY` | **Required** | Web API Key สำหรับเชื่อมต่อ Firebase Service | Firebase Console > Project Settings > General > Your apps (Web) |
-   | `VITE_FIREBASE_AUTH_DOMAIN` | **Required** | โดเมนสำหรับระบบยืนยันตัวตน (Authentication) | Firebase Console > Project Settings (เช่น `project-id.firebaseapp.com`) |
-   | `VITE_FIREBASE_DATABASE_URL` | **Required** | URL ฐานข้อมูล Realtime Database สำหรับจัดเก็บข้อมูลหลักสูตรและแผนการเรียน | Firebase Console > Realtime Database (เช่น `https://project-id-default-rtdb.asia-southeast1.firebasedatabase.app/`) |
-   | `VITE_FIREBASE_PROJECT_ID` | **Required** | รหัสระบุโปรเจกต์ของ Firebase | Firebase Console > Project Settings > Project ID |
-   | `VITE_FIREBASE_STORAGE_BUCKET` | **Required** | ที่จัดเก็บไฟล์ Cloud Storage | Firebase Console > Storage (เช่น `project-id.firebasestorage.app`) |
-   | `VITE_FIREBASE_MESSAGING_SENDER_ID` | **Required** | Sender ID สำหรับ Cloud Messaging | Firebase Console > Project Settings > Cloud Messaging |
-   | `VITE_FIREBASE_APP_ID` | **Required** | Web Application ID ใน Firebase | Firebase Console > Project Settings > Your apps (Web) |
-   | `VITE_NODE_ENV` | **Required** | สภาพแวดล้อมการทำงานของระบบ (`development` / `production`) | กำหนดเป็น `development` สำหรับการพัฒนาในเครื่อง |
-   | `VITE_N8N_WEBHOOK_URL` | **Required** | Webhook URL ของ n8n สำหรับรับคำถามและส่งคำตอบแชทบอท AI | ดูขั้นตอนการสร้าง Webhook ได้ที่ [N8N_PREREQUISITES_GUIDE.md](N8N_PREREQUISITES_GUIDE.md) |
-   | `VITE_N8N_SUMMARY_WEBHOOK_URL` | *Optional* | Webhook URL สำหรับประมวลผลสรุปผลข้อมูลการศึกษา | n8n Workflow Webhook Node สำหรับงาน Summary (ถ้ามี) |
+อีก terminal ให้เริ่มเว็บด้วย test mode:
 
-   > [!IMPORTANT]
-   > ไฟล์ `.env` มีข้อมูล Credentials และ Secret ของระบบ **ห้าม Commit หรืออัปโหลดขึ้น Git โดยเด็ดขาด** (ไฟล์ `.gitignore` ได้รับการตั้งค่าละเว้นไฟล์ `.env` ไว้แล้ว)
+```bash
+npm run dev:emulator
+```
 
-3. **นำเข้าข้อมูลหลักสูตรเริ่มต้นสู่ Firebase**
-   ```bash
-   node initialize-firebase-data.cjs
-   ```
+การรันเว็บใน test mode ต้องมี `.env.test` ที่ใช้ project ID รูปแบบ `demo-*` และตั้ง Firebase Emulator flag ตาม configuration ของ repository แอปจะปฏิเสธ test mode หากไม่มี Emulator flag หรือ project ID ไม่ใช่ demo project; ตรวจไฟล์ตั้งค่าก่อนเริ่ม และอย่าใส่ credentials ของ production ใน `.env.test`.
 
-4. **เริ่มการทำงานระบบสำหรับพัฒนา (Local Development)**
-   ```bash
-   npm run dev
-   ```
-   *ระบบจะเปิดใช้งานที่ URL: `http://localhost:8080`*
+### เอกสารเพิ่มเติม
 
-5. **การตรวจสอบและสร้างไฟล์โปรดักชัน (Production Build)**
-   ```bash
-   npm run lint   # ตรวจสอบความถูกต้องของโค้ด
-   npm run build  # คอมไพล์ไฟล์สำหรับ Production
-   ```
+- [คู่มือเตรียม n8n workflow](N8N_PREREQUISITES_GUIDE.md)
+- [แผนตรวจ Firebase CRUD และหน่วยกิต](docs/superpowers/plans/2026-09-12-firebase-crud-audit.md)
+- [ผลตรวจ Firebase CRUD](docs/audits/firebase-crud-credit-audit.md)
+- [แผน responsive navigation และ Student QA](docs/superpowers/plans/2026-09-12-mobile-navigation-student-qa.md)
+- [ผลทดสอบ responsive navigation และ Student QA](docs/audits/mobile-navigation-student-qa.md)
 
----
-
-## 📁 โครงสร้างโฟลเดอร์ที่สำคัญ (Key Directory Structure)
+## โครงสร้างโครงการ
 
 ```text
-docs/
-└── adr/                 # บันทึกการตัดสินใจทางสถาปัตยกรรม (Architecture Decision Records)
-    ├── ADR-001-custom-course-code-and-dynamic-years.md
-    ├── ADR-002-chat-feedback-system-and-admin-analytics.md
-    ├── ADR-003-chatbot-toggle-ux-and-branding.md
-    ├── ADR-004-toast-alert-redesign-and-positioning.md
-    ├── ADR-005-registration-credit-limits-and-probation-rules.md
-    └── ADR-006-multi-curriculum-context-resolution-and-catalog-injection.md
-N8N_PREREQUISITES_GUIDE.md # คู่มือการตั้งค่า n8n Webhook, Prompt, RAG และ Prerequisite Engine
 src/
-├── components/          # ส่วนประกอบอินเทอร์เฟซหลัก
-│   ├── chat/            # หน้าต่างอินเทอร์เฟซแชทบอท (ChatBot.tsx, ChatBot.css)
-│   ├── curriculum/      # หน้าแสดงแผนผังวิชาเรียนแบบ Grid และ Timeline
-│   ├── dashboard/       # แดชบอร์ดตามบทบาท (AdminDashboard.tsx, ChatAnalyticsDashboard.tsx ฯลฯ)
-│   ├── layout/          # ส่วนหัวและท้ายของเว็บ (Header.tsx, Footer.tsx)
-│   └── study-plan/      # ระบบแผนการเรียน (StudyPlanManager.tsx, StudyPlanReport.tsx ฯลฯ)
-├── contexts/            # ระบบจัดการสเตตการล็อกอิน (AuthContext.tsx)
-├── hooks/               # React Hooks ดึงข้อมูล Firebase (useFirebaseData.ts)
-├── services/            # บริการ API ข้อมูลหลักสูตรและแชทล็อก (chatLogService.ts, departmentService.ts ฯลฯ)
-├── utils/               # ยูทิลิตีระบบ (exportPdf.ts, gradeUtils.ts)
-└── types/               # การกำหนดชนิดตัวแปรและข้อมูล (chatLog.ts, course.ts, user.ts ฯลฯ)
+├── components/       # หน้าจอและคอมโพเนนต์ UI
+│   ├── chat/         # แชทบอท
+│   ├── curriculum/   # แผนผังหลักสูตร
+│   ├── dashboard/    # แดชบอร์ดตามบทบาท
+│   ├── layout/       # Header และ Footer
+│   └── study-plan/   # แผนการเรียนและรายงาน
+├── contexts/         # สถานะการยืนยันตัวตน
+├── hooks/            # React hooks
+├── pages/            # route ของแอป
+├── services/         # Firebase และบริการข้อมูล
+├── types/            # TypeScript models
+└── utils/            # ฟังก์ชันช่วยและการส่งออกรายงาน
 ```
+
+## ความปลอดภัยและข้อมูลส่วนบุคคล
+
+- การสมัครจำกัดอีเมลตามโดเมนที่ระบบกำหนด
+- Firebase Authentication ใช้ยืนยันตัวตน; Firebase Realtime Database Rules ควบคุมการเข้าถึงข้อมูล
+- อย่าใส่รหัสผ่าน, token, service account key หรือข้อมูลส่วนบุคคลใน source code, issue หรือ commit
+- ใช้ Firebase Emulator สำหรับทดสอบการเขียนและลบข้อมูล; ยืนยันปลายทางทุกครั้งก่อนทดสอบกับ project จริง
+- จัดการข้อมูลการสนทนาและข้อมูลนักศึกษาตามนโยบายความเป็นส่วนตัวของหน่วยงาน
 
 ---
 
-## 🔒 กฎความมั่นคงปลอดภัยและความเป็นส่วนตัว (Security & Privacy Policies)
-- จำกัดสิทธิ์การสมัครและเข้าใช้งานเฉพาะอีเมลภายใต้โดเมนสถาบัน `@kmutnb.ac.th` และ `@email.kmutnb.ac.th` เท่านั้น
-- มีการเข้ารหัสและตรวจสอบตัวตนผ่าน Firebase Authentication ทุกเซสชัน
-- บันทึกพฤติกรรมการเขียนหรือแก้ไขฐานข้อมูลวิชาผ่าน Audit Logs
-- จัดเก็บและควบคุมข้อมูลการใช้งานแชทบอทตามหลัก PDPA พร้อมระบบจำกัดสิทธิ์การเข้าถึงเฉพาะผู้ดูแลระบบ (Admin)
+<div align="center">
+
+ภาควิชาเทคโนโลยีสารสนเทศ · KMUTNB
+
+</div>

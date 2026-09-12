@@ -467,7 +467,7 @@ const Courses: React.FC = () => {
             {/* Summary Statistics */}
             <Card className="shadow-medium">
               <CardContent className="p-6">
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-5">
                   <div className="text-center space-y-2 min-h-[80px] bg-primary/5 rounded-lg flex flex-col justify-center p-4">
                     <div className="text-2xl font-bold text-primary">{filteredCourses.length}</div>
                     <div className="text-sm text-muted-foreground">รายวิชาทั้งหมด</div>

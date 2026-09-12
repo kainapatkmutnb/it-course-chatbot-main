@@ -174,17 +174,17 @@ const StudentDashboard: React.FC = () => {
                   ยินดีต้อนรับ, {user?.name}
                 </h1>
                 <p className="text-muted-foreground mb-2">แดชบอร์ดนักศึกษา - คณะเทคโนโลยีและการจัดการอุตสาหกรรม</p>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Mail className="w-4 h-4" />
-                    <span>{user?.email}</span>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Mail className="w-4 h-4 shrink-0" />
+                    <span className="break-all">{user?.email}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <User className="w-4 h-4" />
+                  <div className="flex items-center gap-1">
+                    <User className="w-4 h-4 shrink-0" />
                     <span>นักศึกษา</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <School className="w-4 h-4" />
+                  <div className="flex items-center gap-1">
+                    <School className="w-4 h-4 shrink-0" />
                     <span>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ</span>
                   </div>
                 </div>
@@ -195,11 +195,11 @@ const StudentDashboard: React.FC = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="study-plan" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 print:hidden">
-            <TabsTrigger value="study-plan">จัดการแผนการเรียน</TabsTrigger>
-            <TabsTrigger value="study-progress">การวางแผนการเรียน</TabsTrigger>
-            <TabsTrigger value="report">รายงานแผนการเรียน</TabsTrigger>
-            <TabsTrigger value="profile">โปรไฟล์</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 print:hidden sm:grid-cols-4">
+            <TabsTrigger className="min-h-11 whitespace-normal text-center" value="study-plan">จัดการแผนการเรียน</TabsTrigger>
+            <TabsTrigger className="min-h-11 whitespace-normal text-center" value="study-progress">การวางแผนการเรียน</TabsTrigger>
+            <TabsTrigger className="min-h-11 whitespace-normal text-center" value="report">รายงานแผนการเรียน</TabsTrigger>
+            <TabsTrigger className="min-h-11 whitespace-normal text-center" value="profile">โปรไฟล์</TabsTrigger>
           </TabsList>
 
           {/* Study Plan Management Tab */}
