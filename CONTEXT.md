@@ -29,6 +29,12 @@
 - **CurriculumMasterCatalog**: The comprehensive department catalog containing all accredited curricula across 5 programs (`IT`, `INE`, `INET`, `ITI`, `ITT`) and 13 curriculum variants, ensuring deterministic access without lossy vector truncation.
 - **CurriculumCoverageMatrix**: A structured matrix indexing the department's 5 programs (`IT`, `INE`, `INET`, `ITI`, `ITT`) across 13 accredited curriculum editions, documenting program durations, credit requirements, and curriculum cohorts.
 - **CurriculumStructureSummary**: High-level credit and course metrics per curriculum (total credits, total course count, and credit breakdown across General Education, Core/Specialized, and Free Electives), preventing hallucinated credit calculations.
+- **ActiveConversationCurriculum**: The active curriculum context preserved across multi-turn dialogs. When a user mentions a curriculum in Turn 1 and follows up with pronouns or short commands in Turn 2 (e.g. "บอกมาในแชทนี้เลย", "มีวิชาอะไรอีก"), this active curriculum persists until explicitly changed.
+- **CurriculumDurationGuard**: Program-specific academic duration constraints (`ITT`: 2 years / 4 semesters, `ITI`: 2 years / 5 semesters, `INET`: 3 years / 7 semesters, `IT`/`INE`: 4 years / 8 semesters), strictly forbidding the synthesis of non-existent years (e.g. Year 3 or Year 4 for ITT transfer programs).
+- **DirectAdvisingResponse**: The mandatory advising behavioral standard that prohibits conversational stalling, hedging, or confirmation pre-questions ("ต้องการให้ผมบอกไหมครับ?") when a user requests course listings or degree roadmaps.
+- **PassedCourseExclusionRule**: Strict negative constraint preventing any academic subject the student has already passed (recorded in `completedCourseCodes` or `passedCourses` with grades A, B, C, D, S) from being recommended in subsequent semester registration plans.
+- **RetakePrerequisiteBlock**: Academic advising rule where a failed course (Grade F) is prioritized for retake, and any upcoming semester course dependent on that failed course as a prerequisite is strictly classified as blocked from registration until cleared.
+
 
 ### System Notification Domain
 

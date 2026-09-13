@@ -122,8 +122,41 @@ const ChatBot: React.FC = () => {
             'C': true, 'C+': true, 'C-': true,
             'D': true, 'D+': true, 'D-': true,
             'S': true  // Success grade for internship (ฝึกงาน)
-          }[c.grade.toUpperCase()])
+          }[c.grade.trim().toUpperCase()])
           .map(c => c.code) || [];
+
+        // Extract passed courses with detailed attributes
+        const passedCourses = studyPlan?.courses
+          ?.filter(c => c.status === 'completed' && c.grade && {
+            'A': true, 'A-': true, 'A+': true,
+            'B': true, 'B+': true, 'B-': true,
+            'C': true, 'C+': true, 'C-': true,
+            'D': true, 'D+': true, 'D-': true,
+            'S': true
+          }[c.grade.trim().toUpperCase()])
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            year: c.year,
+            semester: c.semester,
+            grade: c.grade,
+            status: 'completed'
+          })) || [];
+
+        // Extract failed courses (Grade F or status failed)
+        const failedCourses = studyPlan?.courses
+          ?.filter(c => c.status === 'failed' || (c.grade && c.grade.trim().toUpperCase() === 'F'))
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            year: c.year,
+            semester: c.semester,
+            grade: c.grade || 'F',
+            status: 'failed'
+          })) || [];
+        const failedCourseCodes = failedCourses.map(c => c.code);
 
         const userGpa = Number(gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0);
         const isProbation = userGpa > 0 && userGpa < 2.00;
@@ -152,6 +185,66 @@ const ChatBot: React.FC = () => {
           ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
           : (studyPlan?.curriculum || '');
 
+        const uncompletedCurriculumCourses = curriculumCourses
+          .filter(c => !completedCourseCodes.includes(c.code))
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            category: c.category,
+            year: c.year,
+            semester: c.semester,
+            prerequisites: c.prerequisites || [],
+            isFailed: failedCourseCodes.includes(c.code)
+          }));
+
+        const curriculumDurationGuard = {
+          ITT: {
+            programName: 'เทคโนโลยีสารสนเทศ (เทียบโอน)',
+            durationYears: 2,
+            totalSemesters: 4,
+            validSemesters: ['1-1', '1-2', '2-1', '2-2'],
+            totalCredits: 84,
+            totalCourses: 28,
+            notes: 'หลักสูตรเทียบโอน 2 ปี มีเฉพาะปี 1 และปี 2 รวม 4 เทอมเท่านั้น ไม่มีปี 3 และปี 4 เด็ดขาด ไม่มีฝึกงาน/สหกิจศึกษา'
+          },
+          ITI: {
+            programName: 'เทคโนโลยีสารสนเทศ (ต่อเนื่อง)',
+            durationYears: 2,
+            totalSemesters: 5,
+            validSemesters: ['1-1', '1-2', '1-3', '2-1', '2-2'],
+            totalCredits: 78,
+            notes: 'หลักสูตรต่อเนื่อง 2 ปี มี 5 เทอม (ปี 1 เทอม 3 ฝึกงาน)'
+          },
+          INET: {
+            programName: 'เทคโนโลยีสารสนเทศและเครือข่าย',
+            durationYears: 3,
+            totalSemesters: 7,
+            validSemesters: ['1-1', '1-2', '2-1', '2-2', '2-3', '3-1', '3-2'],
+            totalCredits: 102,
+            notes: 'หลักสูตร 3 ปี 7 เทอม (ปี 2 เทอม 3 ฝึกงาน)'
+          },
+          IT: {
+            programName: 'เทคโนโลยีสารสนเทศ',
+            durationYears: 4,
+            totalSemesters: 8,
+            notes: 'หลักสูตร 4 ปีปกติ'
+          },
+          INE: {
+            programName: 'วิศวกรรมสารสนเทศและเครือข่าย',
+            durationYears: 4,
+            totalSemesters: 8,
+            notes: 'หลักสูตร 4 ปีปกติ'
+          }
+        };
+
+        const advisingDirectives = {
+          passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
+          retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
+          directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
+          multiTurnCurriculumRetention: 'STRICT: ให้รักษา ActiveConversationCurriculum จากข้อความก่อนหน้า หากผู้ใช้ถามต่อเนื่อง เช่น "บอกมาในแชทนี้เลย" หรือ "มีวิชาอะไรอีก" ให้ตอบตามหลักสูตรเดิมที่คุยค้างไว้'
+        };
+
         const metadata = user 
           ? {
               sessionId: sessionIdRef.current,
@@ -166,8 +259,11 @@ const ChatBot: React.FC = () => {
               curriculumYear: studyPlan?.curriculumYear || '',
               curriculum: enrolledCurr,
               enrolledCurriculum: enrolledCurr,
+              activeCurriculum: enrolledCurr || 'IT-67',
               curriculumSummaryCatalog,
               allCurriculums,
+              curriculumDurationGuard,
+              advisingDirectives,
               gpa: userGpa,
               isProbation,
               academicStanding,
@@ -190,6 +286,10 @@ const ChatBot: React.FC = () => {
               totalCredits: studyPlan?.totalCredits || gpaData?.totalCredits || 0,
               gradePassingThreshold: 'D',  // D and above counts as passing
               completedCourseCodes: completedCourseCodes,  // List of passed course codes
+              passedCourses,
+              failedCourses,
+              failedCourseCodes,
+              uncompletedCurriculumCourses,
               studyPlan: studyPlan?.courses ? studyPlan.courses.map(c => ({
                 code: c.code,
                 name: c.name,
@@ -219,8 +319,11 @@ const ChatBot: React.FC = () => {
               role: 'guest',
               department: 'guest',
               enrolledCurriculum: 'none',
+              activeCurriculum: 'IT-67',
               curriculumSummaryCatalog,
               allCurriculums,
+              curriculumDurationGuard,
+              advisingDirectives,
               gpa: 0,
               isProbation: false,
               academicStanding: 'guest',
@@ -239,6 +342,10 @@ const ChatBot: React.FC = () => {
               },
               completedCredits: 0,
               totalCredits: 0,
+              passedCourses: [],
+              failedCourses: [],
+              failedCourseCodes: [],
+              uncompletedCurriculumCourses: [],
               studyPlan: [],
               curriculumCourses: curriculumCourses.map(c => ({
                 code: c.code,
