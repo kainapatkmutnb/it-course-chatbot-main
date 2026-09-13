@@ -1235,15 +1235,17 @@ const StudyPlanManager: React.FC = () => {
                 course.status === 'in_progress' && !course.grade
                   ? 'in_progress'
                   : isInternshipCourse(course)
-                    ? (course.grade === 'S' ? 'S' : (course.status === 'in_progress' ? 'in_progress' : 'none'))
+                    ? (course.grade === 'S' || course.grade === 'U' ? course.grade : (course.status === 'in_progress' ? 'in_progress' : 'none'))
                     : (course.grade || (course.status === 'in_progress' ? 'in_progress' : 'none'))
               }
               onValueChange={(value) => {
                 if (isInternshipCourse(course)) {
                   if (value === 'in_progress') {
                     updateCourseGrade(course.id, 'in_progress');
+                  } else if (value === 'none') {
+                    updateCourseGrade(course.id, '');
                   } else {
-                    updateCourseGrade(course.id, value === 'none' ? '' : 'S');
+                    updateCourseGrade(course.id, value); // 'S' or 'U'
                   }
                   return;
                 }
@@ -1257,7 +1259,10 @@ const StudyPlanManager: React.FC = () => {
                 <SelectItem value="none">- (วางแผน)</SelectItem>
                 <SelectItem value="in_progress">กำลังเรียน</SelectItem>
                 {isInternshipCourse(course) ? (
-                  <SelectItem value="S">S (ผ่าน)</SelectItem>
+                  <>
+                    <SelectItem value="S">S (ผ่าน)</SelectItem>
+                    <SelectItem value="U">U (ไม่ผ่าน)</SelectItem>
+                  </>
                 ) : (
                   getAvailableGrades().map(grade => (
                     <SelectItem key={grade} value={grade}>
