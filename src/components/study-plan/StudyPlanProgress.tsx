@@ -593,7 +593,11 @@ const StudyPlanProgress: React.FC = () => {
         {/* Personal plan tab — derived from recorded data */}
         <TabsContent value="personal">
           {personalView ? (
-            <StudentPlanTimeline view={personalView} />
+            <StudentPlanTimeline
+              view={personalView}
+              program={studyPlanData?.program}
+              curriculumYear={studyPlanData?.curriculumYear}
+            />
           ) : (
             <div className="py-8 text-center text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />

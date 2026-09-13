@@ -767,17 +767,6 @@ const StudyPlanManager: React.FC = () => {
 
     try {
       const initialCourses: StudentCourse[] = curriculumCourses
-        .filter(course => {
-          // ปี 1 เทอม 1 → เพิ่มทุกวิชาเสมอ ไม่ว่าจะมี prerequisite หรือไม่
-          if (course.year === 1 && course.semester === 1) return true;
-          // เทอมอื่น → เพิ่มเฉพาะวิชาที่ไม่มี prerequisite ที่มีความหมาย
-          const meaningfulPrereqs = (course.prerequisites || []).filter(p =>
-            !p.includes('โดยความเห็นชอบ') &&
-            !p.includes('ความเห็นชอบของภาควิชา') &&
-            !p.includes('ตามความเห็นชอบ')
-          );
-          return meaningfulPrereqs.length === 0;
-        })
         .map((course, index) => ({
           id: `course-${Date.now()}-${index}`,
           code: course.code,

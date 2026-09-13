@@ -1,11 +1,14 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import type { StudyPlanView, DisplayCourse } from './studyPlanViewModel';
+import type { StudyPlanView, DisplayCourse, SemesterGroup } from './studyPlanViewModel';
+import { courseDatabase } from '@/services/completeCurriculumData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { X, Info } from 'lucide-react';
 
 interface StudentPlanTimelineProps {
   view: StudyPlanView;
+  program?: string;
+  curriculumYear?: string;
 }
 
 interface ConnectionPort {
@@ -26,6 +29,10 @@ interface CourseRect {
   rightCenter: ConnectionPort;
   topCenter: ConnectionPort;
   bottomCenter: ConnectionPort;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }
 
 interface PrerequisiteEdge {
@@ -40,27 +47,35 @@ interface PrerequisiteEdge {
   endCourseIndex: number;
   relationship: 'forward' | 'same_semester' | 'backward';
   pathString: string;
+  isSpecial?: boolean;
 }
 
-const COURSE_WIDTH = 150;
+const COURSE_WIDTH = 140;
 const COURSE_HEIGHT = 92;
-const GUTTER_WIDTH = 28;
+const GUTTER_WIDTH = 22;
 const GUTTER_HEIGHT = 16;
 const TOP_OFFSET = 50;
+const CLEARANCE = 6;
 
-// Helper: Extract normalized digits or cleaned code
-const extractCodeToken = (text: string): string => {
-  if (!text) return '';
-  const match = text.match(/\d{6,9}/);
-  if (match) return match[0];
-  return text.split(' ')[0].replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*$/, '').trim();
+// Helper: Remove department prefix (INE-, INET-, IT-, ITI-, ITT-)
+export const removeCodePrefix = (code: string): string => {
+  if (!code) return '';
+  return code.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '').trim();
 };
 
-const cleanCode = (code: string): string => {
+// Helper: Extract normalized digits or cleaned code for matching
+export const cleanCode = (code: string): string => {
   if (!code) return '';
   const match = code.match(/\d{6,9}/);
   if (match) return match[0];
   return code.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*$/, '').trim();
+};
+
+export const extractCodeToken = (text: string): string => {
+  if (!text) return '';
+  const match = text.match(/\d{6,9}/);
+  if (match) return match[0];
+  return text.split(' ')[0].replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*$/, '').trim();
 };
 
 function semesterTitle(year: number, semester: number): string {
@@ -69,15 +84,73 @@ function semesterTitle(year: number, semester: number): string {
   return `ปีที่ ${year} เทอมที่ ${semester}`;
 }
 
-export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
+export function StudentPlanTimeline({ view, program, curriculumYear }: StudentPlanTimelineProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
-  const groups = view.groups;
-  const totalColumns = groups.length;
+  // Build master curriculum prerequisite lookup & slot ordering map
+  const catalogLookup = useMemo(() => {
+    const orderMap = new Map<string, number>();
+    const prereqMap = new Map<string, string[]>();
+
+    if (courseDatabase) {
+      for (const p in courseDatabase) {
+        for (const y in courseDatabase[p]) {
+          for (const sem in courseDatabase[p][y]) {
+            const list = courseDatabase[p][y][sem];
+            list.forEach((c: any, idx: number) => {
+              const cleaned = cleanCode(c.code);
+              const isTargetScope = (!program || p === program) && (!curriculumYear || y === curriculumYear);
+
+              if (isTargetScope) {
+                orderMap.set(`${sem}_${cleaned}`, idx);
+                if (!orderMap.has(cleaned)) orderMap.set(cleaned, idx);
+                if (c.prerequisites && c.prerequisites.length > 0) {
+                  prereqMap.set(`${p}_${y}_${cleaned}`, c.prerequisites);
+                  prereqMap.set(cleaned, c.prerequisites);
+                }
+              } else {
+                if (!orderMap.has(cleaned)) orderMap.set(cleaned, idx);
+                if (c.prerequisites && c.prerequisites.length > 0 && !prereqMap.has(cleaned)) {
+                  prereqMap.set(cleaned, c.prerequisites);
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+
+    return { orderMap, prereqMap };
+  }, [program, curriculumYear]);
+
+  // Order courses within each semester column by official curriculum sequence
+  const orderedGroups: SemesterGroup[] = useMemo(() => {
+    return view.groups.map(group => {
+      const semKey = `${group.year}-${group.semester}`;
+      const sortedCourses = [...group.courses].sort((a, b) => {
+        const orderA =
+          catalogLookup.orderMap.get(`${semKey}_${cleanCode(a.code)}`) ??
+          catalogLookup.orderMap.get(cleanCode(a.code)) ??
+          999;
+        const orderB =
+          catalogLookup.orderMap.get(`${semKey}_${cleanCode(b.code)}`) ??
+          catalogLookup.orderMap.get(cleanCode(b.code)) ??
+          999;
+        return orderA - orderB;
+      });
+
+      return {
+        ...group,
+        courses: sortedCourses,
+      };
+    });
+  }, [view.groups, catalogLookup]);
+
+  const totalColumns = orderedGroups.length;
   const maxCoursesInCol = useMemo(() => {
-    if (groups.length === 0) return 0;
-    return Math.max(...groups.map(g => g.courses.length), 1);
-  }, [groups]);
+    if (orderedGroups.length === 0) return 0;
+    return Math.max(...orderedGroups.map(g => g.courses.length), 1);
+  }, [orderedGroups]);
 
   // Layout bounds
   const canvasWidth = totalColumns * (COURSE_WIDTH + GUTTER_WIDTH);
@@ -97,6 +170,10 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
       height: COURSE_HEIGHT,
       centerX,
       centerY,
+      left: x,
+      right: x + COURSE_WIDTH,
+      top: y,
+      bottom: y + COURSE_HEIGHT,
       leftCenter: { x, y: centerY },
       leftUpper: { x, y: centerY - 12 },
       leftLower: { x, y: centerY + 12 },
@@ -109,18 +186,18 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
   // Map each course to its grid coordinates
   const courseIndexMap = useMemo(() => {
     const map = new Map<string, { semIndex: number; courseIndex: number; course: DisplayCourse }>();
-    groups.forEach((group, semIndex) => {
+    orderedGroups.forEach((group, semIndex) => {
       group.courses.forEach((course, courseIndex) => {
         map.set(course.id, { semIndex, courseIndex, course });
       });
     });
     return map;
-  }, [groups]);
+  }, [orderedGroups]);
 
   // Fast code-to-course index for prerequisite resolution
   const codeLookup = useMemo(() => {
     const map = new Map<string, Array<{ semIndex: number; courseIndex: number; course: DisplayCourse }>>();
-    groups.forEach((group, semIndex) => {
+    orderedGroups.forEach((group, semIndex) => {
       group.courses.forEach((course, courseIndex) => {
         const tokens = [
           cleanCode(course.code),
@@ -137,62 +214,131 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
       });
     });
     return map;
-  }, [groups]);
+  }, [orderedGroups]);
 
-  // Generate orthogonal paths
+  // Check if there are blocking course boxes between start and end columns at horizontal line y
+  const hasBlockingCourses = useCallback((
+    startX: number,
+    endX: number,
+    y: number,
+    startSemIndex: number,
+    endSemIndex: number
+  ): boolean => {
+    for (let semIdx = startSemIndex + 1; semIdx < endSemIndex; semIdx++) {
+      const group = orderedGroups[semIdx];
+      if (!group) continue;
+      for (let courseIdx = 0; courseIdx < group.courses.length; courseIdx++) {
+        const courseRect = getCourseRect(semIdx, courseIdx);
+        const linePassesThroughCourse = y >= courseRect.top - CLEARANCE && y <= courseRect.bottom + CLEARANCE;
+        const lineIsInHorizontalRange = startX < courseRect.right && endX > courseRect.left;
+        if (linePassesThroughCourse && lineIsInHorizontalRange) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [orderedGroups, getCourseRect]);
+
+  // Generate strict orthogonal path with collision avoidance
   const generateOrthogonalPath = useCallback((
     startRect: CourseRect,
     endRect: CourseRect,
+    startSemIndex: number,
+    endSemIndex: number,
     relationship: 'forward' | 'same_semester' | 'backward',
-    portType: 'leftCenter' | 'leftUpper' | 'leftLower' = 'leftCenter'
+    endPortType: 'leftCenter' | 'leftUpper' | 'leftLower' = 'leftCenter'
   ): string => {
-    if (relationship === 'forward') {
-      const startPort = startRect.rightCenter;
-      const endPort = endRect[portType];
-
-      // Gutter routing
-      const gutterStartX = startPort.x + GUTTER_WIDTH / 2;
-      const gutterEndX = endPort.x - GUTTER_WIDTH / 2;
-      const midY = (startPort.y + endPort.y) / 2;
-
-      // Direct horizontal line if on same level
-      if (Math.abs(startPort.y - endPort.y) < 6) {
-        return `M ${startPort.x} ${startPort.y} L ${endPort.x} ${endPort.y}`;
-      }
-
-      return `M ${startPort.x} ${startPort.y} L ${gutterStartX} ${startPort.y} L ${gutterStartX} ${midY} L ${gutterEndX} ${midY} L ${gutterEndX} ${endPort.y} L ${endPort.x} ${endPort.y}`;
-    }
+    const startPort = startRect.rightCenter;
+    const endPort = endRect[endPortType];
 
     if (relationship === 'same_semester') {
       // Loop out to the right gutter and connect
-      const startPort = startRect.rightCenter;
-      const endPort = endRect.rightCenter;
       const loopX = startPort.x + 14;
-
       return `M ${startPort.x} ${startPort.y} L ${loopX} ${startPort.y} L ${loopX} ${endPort.y} L ${endPort.x} ${endPort.y}`;
     }
 
-    // Backward (Reverse dependency loop over top or bottom)
-    const startPort = startRect.leftCenter;
-    const endPort = endRect.rightCenter;
-    const loopX = Math.min(startPort.x, endPort.x) - 14;
-    const topY = Math.min(startPort.y, endPort.y) - GUTTER_HEIGHT / 2;
+    if (relationship === 'backward') {
+      // Reverse dependency loop over top or bottom
+      const loopX = Math.min(startPort.x, endPort.x) - 14;
+      const topY = Math.min(startRect.top, endRect.top) - GUTTER_HEIGHT / 2;
+      return `M ${startPort.x} ${startPort.y} L ${loopX} ${startPort.y} L ${loopX} ${topY} L ${endPort.x + 14} ${topY} L ${endPort.x + 14} ${endPort.y} L ${endPort.x} ${endPort.y}`;
+    }
 
-    return `M ${startPort.x} ${startPort.y} L ${loopX} ${startPort.y} L ${loopX} ${topY} L ${endPort.x + 14} ${topY} L ${endPort.x + 14} ${endPort.y} L ${endPort.x} ${endPort.y}`;
-  }, []);
+    // Forward relationship across columns:
+    const isDirectPathBlocked = hasBlockingCourses(startPort.x, endPort.x, startPort.y, startSemIndex, endSemIndex);
+    const verticalDistance = endPort.y - startPort.y;
+    const isApproximatelySameLevel = Math.abs(verticalDistance) < CLEARANCE;
+
+    // Direct clean horizontal line if on same row level and unblocked
+    if (isApproximatelySameLevel && !isDirectPathBlocked) {
+      return `M ${startPort.x} ${startPort.y} L ${endPort.x} ${endPort.y}`;
+    }
+
+    // Unblocked path between different vertical levels
+    if (!isDirectPathBlocked) {
+      const gutterStartX = startPort.x + GUTTER_WIDTH / 2;
+      const targetGutterX = endPort.x - GUTTER_WIDTH / 2;
+      return `M ${startPort.x} ${startPort.y} L ${gutterStartX} ${startPort.y} L ${targetGutterX} ${startPort.y} L ${targetGutterX} ${endPort.y} L ${endPort.x} ${endPort.y}`;
+    }
+
+    // Blocked path: route through safe gutter channel above or below course boxes
+    const gutterStartX = startPort.x + GUTTER_WIDTH / 2;
+    const targetGutterX = endPort.x - GUTTER_WIDTH / 2;
+    const aboveY = Math.min(startRect.top, endRect.top) - GUTTER_HEIGHT / 2 - 3;
+    const belowY = Math.max(startRect.bottom, endRect.bottom) + GUTTER_HEIGHT / 2 + 3;
+
+    let routingY = endPort.y;
+    if (endPortType === 'leftUpper') {
+      routingY = aboveY;
+    } else if (endPortType === 'leftLower') {
+      routingY = belowY;
+    } else {
+      routingY = Math.abs(aboveY - startPort.y) <= Math.abs(belowY - startPort.y) ? aboveY : belowY;
+    }
+    routingY = Math.max(routingY, 45);
+
+    let path = `M ${startPort.x} ${startPort.y} L ${gutterStartX} ${startPort.y} L ${gutterStartX} ${routingY} L ${targetGutterX} ${routingY}`;
+    if (Math.abs(routingY - endPort.y) > CLEARANCE) {
+      path += ` L ${targetGutterX} ${endPort.y}`;
+    }
+    path += ` L ${endPort.x} ${endPort.y}`;
+    return path;
+  }, [hasBlockingCourses]);
+
+  const isSpecialBlueConnection = (prereqCode: string, targetCode: string) => {
+    return cleanCode(prereqCode) === '060233112' && cleanCode(targetCode) === '060233501';
+  };
 
   // Compute all prerequisite edges
   const edges = useMemo((): PrerequisiteEdge[] => {
     const edgeList: PrerequisiteEdge[] = [];
     const seenEdges = new Set<string>();
+    const isINET67 = (program || '').includes('INET') && (curriculumYear || '').includes('67');
 
-    groups.forEach((group, semIndex) => {
+    orderedGroups.forEach((group, semIndex) => {
       group.courses.forEach((course, courseIndex) => {
-        const rawPrereqs = (course.source.prerequisites || []).filter(p =>
+        // Skip circular artifact on INET 67 (matching official CurriculumTimelineFlowchart)
+        if (isINET67 && cleanCode(course.code) === '060233214') return;
+
+        // 1. Check course source prerequisites
+        let rawPrereqs = (course.source.prerequisites || []).filter(p =>
           !p.includes('โดยความเห็นชอบ') &&
           !p.includes('ความเห็นชอบของภาควิชา') &&
           !p.includes('ตามความเห็นชอบ')
         );
+
+        // 2. Authoritative catalog fallback if empty
+        if (rawPrereqs.length === 0) {
+          const catalogPrereqs =
+            catalogLookup.prereqMap.get(`${program}_${curriculumYear}_${cleanCode(course.code)}`) ||
+            catalogLookup.prereqMap.get(cleanCode(course.code)) ||
+            [];
+          rawPrereqs = catalogPrereqs.filter(p =>
+            !p.includes('โดยความเห็นชอบ') &&
+            !p.includes('ความเห็นชอบของภาควิชา') &&
+            !p.includes('ตามความเห็นชอบ')
+          );
+        }
 
         rawPrereqs.forEach((prereqStr, pIdx) => {
           const token = extractCodeToken(prereqStr);
@@ -201,10 +347,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
           const candidates = codeLookup.get(token) || [];
           if (candidates.length === 0) return;
 
-          // Pick the most appropriate candidate:
-          // 1. Prefer candidate in earlier semester (prereqSem < semIndex)
-          // 2. If multiple, prefer passing or latest earlier semester
-          // 3. Else pick same semester, then backward
+          // Prefer candidate in earlier semester
           let best = candidates.find(c => c.semIndex < semIndex && c.course.result === 'completed');
           if (!best) {
             best = candidates.filter(c => c.semIndex < semIndex).sort((a, b) => b.semIndex - a.semIndex)[0];
@@ -234,7 +377,15 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
             portType = pIdx === 0 ? 'leftUpper' : 'leftLower';
           }
 
-          const pathString = generateOrthogonalPath(startRect, endRect, relationship, portType);
+          const pathString = generateOrthogonalPath(
+            startRect,
+            endRect,
+            best.semIndex,
+            semIndex,
+            relationship,
+            portType
+          );
+          const isSpecial = isSpecialBlueConnection(best.course.code, course.code);
 
           edgeList.push({
             id: edgeKey,
@@ -248,13 +399,22 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
             endCourseIndex: courseIndex,
             relationship,
             pathString,
+            isSpecial,
           });
         });
       });
     });
 
     return edgeList;
-  }, [groups, codeLookup, getCourseRect, generateOrthogonalPath]);
+  }, [
+    orderedGroups,
+    program,
+    curriculumYear,
+    catalogLookup,
+    codeLookup,
+    getCourseRect,
+    generateOrthogonalPath,
+  ]);
 
   // Handle course click/selection for interactive tracing
   const handleCourseClick = (courseId: string) => {
@@ -323,7 +483,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
     }
   };
 
-  if (groups.length === 0) {
+  if (orderedGroups.length === 0) {
     return (
       <div className="py-12 text-center text-muted-foreground">
         <Info className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -339,7 +499,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
         <div className="bg-blue-50/80 border border-blue-200 rounded-lg p-3 text-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold text-blue-950 text-sm">
-              วิชาที่เลือก: [{selectedCourseData.course.code}] {selectedCourseData.course.name}
+              วิชาที่เลือก: [{removeCodePrefix(selectedCourseData.course.code)}] {selectedCourseData.course.name}
             </span>
             <Badge variant="outline" className="bg-white">
               {selectedCourseData.course.credits} หน่วยกิต
@@ -359,7 +519,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                         : 'bg-red-100 text-red-800 border-red-300'
                     }`}
                   >
-                    {e.sourceCourse.code} ({e.sourceCourse.grade || 'ยังไม่ผ่าน'})
+                    {removeCodePrefix(e.sourceCourse.code)} ({e.sourceCourse.grade || 'ยังไม่ผ่าน'})
                   </Badge>
                 ))}
               </span>
@@ -370,8 +530,11 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                 <span className="w-2.5 h-2.5 rounded-full bg-purple-600 inline-block"></span>
                 วิชาที่เรียนต่อได้:
                 {selectedCourseData.outgoing.map(e => (
-                  <Badge key={e.id} className="bg-purple-100 text-purple-800 border-purple-300 text-[11px] py-0 px-1.5">
-                    {e.targetCourse.code}
+                  <Badge
+                    key={e.id}
+                    className="bg-purple-100 text-purple-800 border-purple-300 text-[11px] py-0 px-1.5"
+                  >
+                    {removeCodePrefix(e.targetCourse.code)}
                   </Badge>
                 ))}
               </span>
@@ -401,6 +564,9 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
               <span className="w-3 h-0.5 bg-red-500 inline-block"></span> ติด F / ยังไม่ผ่าน
             </span>
             <span className="flex items-center gap-1">
+              <span className="w-3 h-0.5 bg-blue-600 inline-block"></span> เส้นทางพิเศษ
+            </span>
+            <span className="flex items-center gap-1">
               <span className="w-3 h-0.5 border-t border-dashed border-orange-500 inline-block"></span> เทอมเดียวกัน
             </span>
           </div>
@@ -418,7 +584,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
               width: `${canvasWidth}px`,
             }}
           >
-            {groups.map((group, index) => (
+            {orderedGroups.map((group, index) => (
               <div
                 key={`hdr-${group.year}-${group.semester}`}
                 className="absolute text-center"
@@ -467,6 +633,9 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                 <marker id="student-arrow-blue" markerWidth="6.5" markerHeight="5.5" refX="6" refY="2.75" orient="auto">
                   <polygon points="0 0, 6.5 2.75, 0 5.5" fill="#2563eb" />
                 </marker>
+                <marker id="student-arrow-special-blue" markerWidth="6.5" markerHeight="5.5" refX="6" refY="2.75" orient="auto">
+                  <polygon points="0 0, 6.5 2.75, 0 5.5" fill="#1e40af" />
+                </marker>
                 <marker id="student-arrow-purple" markerWidth="6.5" markerHeight="5.5" refX="6" refY="2.75" orient="auto">
                   <polygon points="0 0, 6.5 2.75, 0 5.5" fill="#9333ea" />
                 </marker>
@@ -485,6 +654,12 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                 let markerUrl = 'url(#student-arrow-slate)';
                 let strokeWidth = 2;
                 let strokeDasharray = undefined;
+
+                if (edge.isSpecial) {
+                  strokeColor = '#1e40af';
+                  markerUrl = 'url(#student-arrow-special-blue)';
+                  strokeWidth = 2.5;
+                }
 
                 if (isIncoming) {
                   strokeColor = '#2563eb';
@@ -506,12 +681,14 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                   strokeColor = '#dc2626';
                   markerUrl = 'url(#student-arrow-red)';
                   strokeDasharray = '4 3';
-                } else if (edge.sourceCourse.result === 'completed') {
-                  strokeColor = '#16a34a';
-                  markerUrl = 'url(#student-arrow-green)';
-                } else if (edge.sourceCourse.result === 'failed') {
-                  strokeColor = '#dc2626';
-                  markerUrl = 'url(#student-arrow-red)';
+                } else if (!edge.isSpecial) {
+                  if (edge.sourceCourse.result === 'completed') {
+                    strokeColor = '#16a34a';
+                    markerUrl = 'url(#student-arrow-green)';
+                  } else if (edge.sourceCourse.result === 'failed') {
+                    strokeColor = '#dc2626';
+                    markerUrl = 'url(#student-arrow-red)';
+                  }
                 }
 
                 return (
@@ -531,7 +708,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
             </svg>
 
             {/* Course Boxes Layer */}
-            {groups.map((group, semIndex) =>
+            {orderedGroups.map((group, semIndex) =>
               group.courses.map((course, courseIndex) => {
                 const rect = getCourseRect(semIndex, courseIndex);
                 const style = getCardStyle(course);
@@ -574,9 +751,12 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                     }}
                     aria-label={`${course.code} ${course.name} ${style.statusText}`}
                   >
-                    {/* Top: Course Code */}
-                    <div className="font-bold text-center text-[12px] leading-tight px-1 truncate" style={{ color: style.text }}>
-                      {course.code}
+                    {/* Top: Course Code (without department prefix) */}
+                    <div
+                      className="font-bold text-center text-[12px] leading-tight px-1 truncate"
+                      style={{ color: style.text }}
+                    >
+                      {removeCodePrefix(course.code)}
                     </div>
 
                     {/* Middle: Course Name */}
@@ -589,7 +769,10 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
                     </div>
 
                     {/* Bottom: Grade badge or Credits */}
-                    <div className="text-center font-bold text-[10.5px] truncate" style={{ color: style.statusColor }}>
+                    <div
+                      className="text-center font-bold text-[10.5px] truncate"
+                      style={{ color: style.statusColor }}
+                    >
                       {style.statusText}
                     </div>
                   </div>
@@ -598,7 +781,7 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
             )}
 
             {/* Semester Credits Summary Footer */}
-            {groups.map((group, semIndex) => {
+            {orderedGroups.map((group, semIndex) => {
               const summaryY = maxCoursesInCol * (COURSE_HEIGHT + GUTTER_HEIGHT) + TOP_OFFSET + 10;
               const rectX = semIndex * (COURSE_WIDTH + GUTTER_WIDTH);
 
@@ -622,5 +805,6 @@ export function StudentPlanTimeline({ view }: StudentPlanTimelineProps) {
     </div>
   );
 }
+
 export default StudentPlanTimeline;
 
