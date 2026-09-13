@@ -309,10 +309,11 @@ sequenceDiagram
 ระบบถูกออกแบบโดยแยกฟังก์ชันการทำงานหลักออกเป็น 4 ขุมพลังสำคัญ เพื่อประสบการณ์การใช้งานที่ราบรื่น:
 
 ### 🧭 1. จัดทำแผนการเรียนและผังวิชาอัจฉริยะ (Curriculum & Study Plan Engine)
-> `Interactive Flowchart` · `Prerequisites Path Tracing` · `GPAX Calculator`
+> `Interactive Flowchart` · `Prerequisites Path Tracing` · `GPAX Calculator` · `S/U Internship Evaluation`
 
 - **Visual Course Flowchart**: แสดงผังรายวิชาพร้อมเส้นเชื่อมโยงวิชาบังคับก่อน (Prerequisites) และวิชาบังคับร่วม (Corequisites) ด้วยสีสันที่แยกแยะสถานะชัดเจน
 - **แผนการเรียน 4 ปี (Study Plan)**: จัดการรายวิชาตามชั้นปีและภาคการศึกษา พร้อมระบบจำลองเกรดเพื่อคำนวณ GPA รายภาคและ GPAX สะสม
+- **ระบบประเมินผลฝึกงาน/สหกิจศึกษา (S/U Evaluation System)**: รองรับการประเมินผลรายวิชาฝึกงานและสหกิจศึกษาด้วยเกรด `S` (Satisfactory - ผ่าน) และ `U` (Unsatisfactory - ไม่ผ่าน) โดยไม่นำมาถ่วงน้ำหนักแต้มระดับคะแนน (Non-graded credits) ตามข้อบังคับมหาวิทยาลัย
 - **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
 
 ### ⚖️ 2. ควบคุมกฎระเบียบวิชาการอัตโนมัติ (Academic Rules & Validation Engine)
@@ -323,9 +324,13 @@ sequenceDiagram
 - **ภาคฤดูร้อนและภาคจบการศึกษา**: จำกัดการลงทะเบียนภาคฤดูร้อนไม่เกิน 6 หน่วยกิต และเปิดระบบยกเว้น (Graduation Term Exemption) ให้ลงต่ำกว่า 9 หน่วยกิตได้ในภาคเรียนสุดท้าย
 
 ### 🤖 3. แชทบอทให้คำปรึกษาหลักสูตร (Modern Academic Chat Surface)
-> `n8n Orchestration` · `Pinecone Vector RAG` · `Sentiment Feedback System`
+> `n8n Orchestration` · `Pinecone Vector RAG` · `Curriculum Duration Guard` · `Sentiment Feedback`
 
-- **การป้อนบริบทอัตโนมัติ (Context Injection)**: ส่งรหัสหลักสูตรที่นักศึกษาศึกษาอยู่ (`EnrolledCurriculum`) เข้าสู่ Prompt แชทบอท เพื่อให้ได้คำตอบที่ตรงกับหลักสูตรของตนเองเสมอ
+- **การคงบริบทหลักสูตรต่อเนื่อง (Multi-Turn Curriculum Persistence)**: ระบบจดจำหลักสูตรที่กำลังสนทนา (`ActiveConversationCurriculum`) ข้ามเทิร์นคำถาม แม้ผู้ใช้จะไม่ได้พิมพ์ชื่อหลักสูตรซ้ำในข้อความถัดไป
+- **ระบบควบคุมระยะเวลาศึกษา (CurriculumDurationGuard)**: ป้องกันความผิดพลาดของ AI ในการสร้างข้อมูลปี 3 และปี 4 สำหรับหลักสูตรต่อเนื่อง/เทียบโอน 2 ปี (เช่น `ITT-67` มี 28 วิชา 84 หน่วยกิต เรียนเฉพาะปี 1 และปี 2)
+- **กฎการแนะนำลงทะเบียนกรณีติด F (RetakePrerequisiteBlock & PassedCourseExclusion)**: คัดแยกวิชาที่สอบผ่านแล้วออกจากแผนลงทะเบียนใหม่อัตโนมัติ พร้อมตรวจจับและบล็อกการลงวิชาต่อเนื่องที่ยังติดวิชาบังคับก่อน (Prerequisite) จนกว่าจะลงทะเบียนเรียนซ้ำวิชาที่ติด F
+- **นโยบายให้คำแนะนำทันที (Direct Advising Response Policy)**: บังคับให้บอทแสดงข้อมูล ตารางรายวิชา และคำแนะนำการลงทะเบียนที่สมบูรณ์ทันทีโดยไม่ถามย้อนเพื่อขออนุญาตแสดงผล
+- **การป้อนบริบทอัตโนมัติ (Context Injection)**: ส่งรหัสหลักสูตรที่นักศึกษาศึกษาอยู่ (`EnrolledCurriculum`) และแคตตาล็อกรวม 13 ฉบับ เข้าสู่ Prompt แชทบอท เพื่อให้ได้คำตอบที่ถูกต้องตรงกับโครงสร้างจริง 100%
 - **มาตรฐานชื่อวิชา (CoursePresentationFormat)**: คำตอบจากบอทจะประกอบด้วย `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` เสมอ ไม่ปล่อยรหัสวิชาลอยๆ ให้นักศึกษาสับสน
 - **ระบบสำรวจความพึงพอใจ 3 ระดับ (FeedbackScale)**: แสดงป้ายประเมินความพึงพอใจ (👎 ไม่ชอบ, 😐 ปานกลาง, 👍 ชอบ) ทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเข้าสู่ Realtime Database
 - **แถบเวลาการแจ้งเตือน (Alert Timeout Progress)**: Toast, inline error และข้อความขอบคุณหลังส่ง feedback ที่ปิดอัตโนมัติจะแสดงแถบบางที่ขอบล่างเพื่อบอกเวลาคงเหลือ โดยแถบและการปิดใช้ตัวจับเวลาเดียวกัน
@@ -352,7 +357,7 @@ sequenceDiagram
 
 ## เทคโนโลยีและเครื่องมือ
 
-- **Frontend Core:** React 18.3, TypeScript 5.8, Vite 5.4
+- **Frontend Core:** React 18.3, TypeScript 5.8 (Strict Mode & TS 7.0 Ready: Modern Bundler Resolution), Vite 5.4
 - **UI & Styling:** Tailwind CSS 3.4, shadcn/ui, Radix UI Primitives, Lucide Icons
 - **State & Data Synchronization:** TanStack React Query 5.83, React Router 6.30
 - **Database & Authentication:** Firebase Authentication, Firebase Realtime Database
@@ -464,7 +469,7 @@ npm run preview
 it-course-chatbot-main/
 ├── diagrams/                # แผนภาพสถาปัตยกรรม (Context, DFD, Component, Sequence)
 ├── docs/
-│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-007)
+│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-008)
 │   ├── audits/              # รายงานผลการตรวจสอบระบบ (CRUD Audit, Navigation QA)
 │   └── superpowers/         # บันทึกแผนการพัฒนาและแบบร่างระบบ
 ├── public/                  # Static Assets และฟอนต์ภาษาไทย
@@ -503,6 +508,7 @@ it-course-chatbot-main/
 | [ADR-005](docs/adr/ADR-005-registration-credit-limits-and-probation-rules.md) | ขอบเขตหน่วยกิตการลงทะเบียนและเกณฑ์การควบคุมภาวะวิทยาทัณฑ์ | **Accepted** |
 | [ADR-006](docs/adr/ADR-006-multi-curriculum-context-resolution-and-catalog-injection.md) | กลไกชี้ขาดบริบทหลักสูตรและการป้อนข้อมูลแคตตาล็อกสู่ n8n | **Accepted** |
 | [ADR-007](docs/adr/ADR-007-theme-adaptive-architectural-diagram-standards.md) | มาตรฐานไดอะแกรมสถาปัตยกรรมแบบปรับตามธีม (Dark/Light Mode) และการใช้ Native Mermaid | **Accepted** |
+| [ADR-008](docs/adr/ADR-008-multi-turn-curriculum-persistence-and-advising-prerequisite-guard.md) | การคงบริบทหลักสูตรข้ามข้อความ (Multi-Turn Persistence) และระบบป้องกันเงื่อนไขการแนะนำลงทะเบียนวิชาติด F | **Accepted** |
 
 ### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
