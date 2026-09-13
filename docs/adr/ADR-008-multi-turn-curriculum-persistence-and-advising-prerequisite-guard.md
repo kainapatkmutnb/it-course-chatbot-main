@@ -24,7 +24,7 @@ Accepted
      - `passedCourses`: List of completed subjects (Grades A, B, C, D, S) with grades and credits.
      - `failedCourses` & `failedCourseCodes`: Explicit list of courses with grade `F` or status `failed`.
      - `uncompletedCurriculumCourses`: Pre-filtered list of curriculum courses that the student has not yet passed.
-     - `curriculumDurationGuard`: Lookup map enforcing explicit duration and semester counts (`ITT`: 2 yrs / 4 sem, `ITI`: 2 yrs / 5 sem, `INET`: 3 yrs / 7 sem, `IT`/`INE`: 4 yrs / 8 sem).
+     - `curriculumDurationGuard` & `activeCurriculumRule`: Authoritative lookup matrix covering all 13 curricula enforcing duration, valid/forbidden semesters, internship, and co-op details (`ITT`: 2 yrs / 4 sem, no internship/co-op; `ITI`: 2 yrs / 5 sem with 1-3 internship; `INET`: 3 yrs / 7 sem with 2-3 internship; `IT`/`INE` Regular: 4 yrs / 9 sem with 3-3 internship; `IT`/`INE` Co-op: 4 yrs / 8 sem with co-op prep & co-op, no 3-3).
      - `advisingDirectives`: Direct machine-readable instructions prohibiting passed-course duplication, enforcing prerequisite retake blocks, and banning conversational stalling.
 2. **Active Conversation Curriculum Persistence:**
    - The n8n AI Agent system prompt is instructed to maintain the `ActiveConversationCurriculum` across turns until the user explicitly requests another program. Follow-up commands such as `"บอกมาในแชทนี้เลย"` or `"มีวิชาอะไรอีก"` must inherit the active curriculum context.

@@ -166,6 +166,8 @@ User Role: {{ $json.metadata.role }}
 Department: {{ $json.metadata.department }}
 Enrolled Curriculum: {{ $json.metadata.enrolledCurriculum }}
 Active Curriculum Context: {{ $json.metadata.activeCurriculum }}
+Authoritative Curriculum Rule (Duration, Internship, Co-op Guard):
+{{ JSON.stringify($json.metadata.activeCurriculumRule) }}
 Current GPA: {{ $json.metadata.gpa }}
 Academic Standing: {{ $json.metadata.academicStanding }} (isProbation: {{ $json.metadata.isProbation }})
 Allowed Credit Bounds: Min {{ $json.metadata.allowedMinCredits }} credits, Max {{ $json.metadata.allowedMaxCredits }} credits

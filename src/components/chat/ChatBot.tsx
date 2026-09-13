@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
 import { Course } from '@/types/course';
 import { FeedbackBanner } from './FeedbackBanner';
-import { getCurriculumSummaryCatalog, getAllCurriculumsMap } from '@/services/curriculumCatalogService';
+import { getCurriculumSummaryCatalog, getAllCurriculumsMap, getCurriculumDurationGuard, getActiveCurriculumRule } from '@/services/curriculumCatalogService';
+
 
 const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
@@ -200,48 +201,13 @@ const ChatBot: React.FC = () => {
             isFailed: failedCourseCodes.includes(c.code)
           }));
 
-        const curriculumDurationGuard = {
-          ITT: {
-            programName: 'เทคโนโลยีสารสนเทศ (เทียบโอน)',
-            durationYears: 2,
-            totalSemesters: 4,
-            validSemesters: ['1-1', '1-2', '2-1', '2-2'],
-            forbiddenSemesters: ['3-1', '3-2', '3-3', '4-1', '4-2', 'summer', 'internship', 'coop'],
-            totalCredits: 84,
-            totalCourses: 28,
-            notes: 'หลักสูตรเทียบโอน 2 ปี มีเฉพาะปี 1 และปี 2 รวม 4 เทอมเท่านั้น (1-1, 1-2, 2-1, 2-2) รวม 28 วิชา 84 หน่วยกิต ไม่มีปี 3 และปี 4 เด็ดขาด ไม่มีวิชาฝึกงาน/สหกิจศึกษา เมื่อแสดงวิชาครบ 2-2 ต้องจบการแสดงรายวิชาทันที ห้ามแสดง 3-1, 3-2, 3-3, 4-1, 4-2 เป็นอันขาด'
-          },
-          ITI: {
-            programName: 'เทคโนโลยีสารสนเทศ (ต่อเนื่อง)',
-            durationYears: 2,
-            totalSemesters: 5,
-            validSemesters: ['1-1', '1-2', '1-3', '2-1', '2-2'],
-            forbiddenSemesters: ['3-1', '3-2', '3-3', '4-1', '4-2'],
-            totalCredits: 78,
-            notes: 'หลักสูตรต่อเนื่อง 2 ปี มี 5 เทอม (ปี 1 เทอม 3 ฝึกงาน) ไม่มีปี 3 หรือปี 4'
-          },
-          INET: {
-            programName: 'เทคโนโลยีสารสนเทศและเครือข่าย',
-            durationYears: 3,
-            totalSemesters: 7,
-            validSemesters: ['1-1', '1-2', '2-1', '2-2', '2-3', '3-1', '3-2'],
-            forbiddenSemesters: ['4-1', '4-2'],
-            totalCredits: 102,
-            notes: 'หลักสูตร 3 ปี 7 เทอม (ปี 2 เทอม 3 ฝึกงาน) ไม่มีปี 4'
-          },
-          IT: {
-            programName: 'เทคโนโลยีสารสนเทศ',
-            durationYears: 4,
-            totalSemesters: 8,
-            notes: 'หลักสูตร 4 ปีปกติ'
-          },
-          INE: {
-            programName: 'วิศวกรรมสารสนเทศและเครือข่าย',
-            durationYears: 4,
-            totalSemesters: 8,
-            notes: 'หลักสูตร 4 ปีปกติ'
-          }
-        };
+
+        // Authoritative 13-curriculum guard — sourced from CURRICULUM_RULES_CATALOG in curriculumCatalogService
+        const curriculumDurationGuard = getCurriculumDurationGuard();
+        // Direct lookup for the student's own curriculum (O(1) access for n8n LLM)
+        const activeCurriculumRule = getActiveCurriculumRule(enrolledCurr);
+
+
 
         const advisingDirectives = {
           passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
@@ -270,7 +236,9 @@ const ChatBot: React.FC = () => {
               curriculumSummaryCatalog,
               allCurriculums,
               curriculumDurationGuard,
+              activeCurriculumRule,
               advisingDirectives,
+
               gpa: userGpa,
               isProbation,
               academicStanding,
@@ -330,7 +298,9 @@ const ChatBot: React.FC = () => {
               curriculumSummaryCatalog,
               allCurriculums,
               curriculumDurationGuard,
+              activeCurriculumRule: null,
               advisingDirectives,
+
               gpa: 0,
               isProbation: false,
               academicStanding: 'guest',
