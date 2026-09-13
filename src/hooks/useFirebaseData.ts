@@ -117,33 +117,45 @@ export const useStudyPlan = (studentId: string) => {
 
   useEffect(() => {
     if (!studentId) {
+      setStudyPlan(null);
+      setError(null);
       setLoading(false);
       return;
     }
 
+    let active = true; // cancellation flag
+
     const fetchStudyPlan = async () => {
       try {
         setLoading(true);
+        setStudyPlan(null); // reset stale data immediately
+        setError(null);
         const studyPlanData = await firebaseService.getStudyPlanByStudentId(studentId);
+        if (!active) return; // obsolete response, discard
         setStudyPlan(studyPlanData);
         setError(null);
       } catch (err) {
+        if (!active) return;
         setError('Failed to fetch study plan');
         console.error('Error fetching study plan:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchStudyPlan();
+
+    return () => {
+      active = false; // cancel on studentId change or unmount
+    };
   }, [studentId]);
 
   const refreshStudyPlan = async () => {
     if (!studentId) return;
-    
     try {
       const studyPlanData = await firebaseService.getStudyPlanByStudentId(studentId);
       setStudyPlan(studyPlanData);
+      setError(null);
     } catch (err) {
       setError('Failed to refresh study plan');
       console.error('Error refreshing study plan:', err);

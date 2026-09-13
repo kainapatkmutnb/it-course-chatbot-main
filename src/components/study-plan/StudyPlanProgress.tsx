@@ -6,6 +6,11 @@ import { getHybridCurriculumData, HybridCourse } from '@/services/hybridCourseSe
 import { firebaseService } from '@/services/firebaseService';
 import { getCurriculumSummaryCatalog } from '@/services/curriculumCatalogService';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useStudyPlan } from '@/hooks/useFirebaseData';
+import { buildStudyPlanView } from './studyPlanViewModel';
+import { StudentPlanTimeline } from './StudentPlanTimeline';
+import { getCurriculumTotalCredits } from '@/services/departmentService';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -495,6 +500,18 @@ const StudyPlanProgress: React.FC = () => {
     }
   };
 
+  // Personal plan view derived directly from student recorded data
+  const { studyPlan: firebaseStudyPlan } = useStudyPlan(user?.id || '');
+  const requiredCredits = useMemo(() => {
+    if (!firebaseStudyPlan?.program) return null;
+    const c = getCurriculumTotalCredits(firebaseStudyPlan.program, firebaseStudyPlan.curriculumYear);
+    return c > 0 ? c : null;
+  }, [firebaseStudyPlan]);
+  const personalView = useMemo(() => {
+    if (!firebaseStudyPlan?.courses) return null;
+    return buildStudyPlanView(firebaseStudyPlan.courses as any, requiredCredits);
+  }, [firebaseStudyPlan, requiredCredits]);
+
   // Loading state
   if (isLoadingPlan) {
     return (
@@ -537,84 +554,92 @@ const StudyPlanProgress: React.FC = () => {
         </p>
       </div>
 
-      {/* Legend & Summary */}
-      <Card className="academic-panel shadow-soft">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Legend */}
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded border-2 border-green-500 bg-green-100"></div>
-                <span className="text-sm font-medium">ผ่านแล้ว</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded border-2 border-yellow-500 bg-yellow-100"></div>
-                <span className="text-sm font-medium">การประเมินผลยังไม่สมบูรณ์ (I)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded border-2 border-red-500 bg-red-100"></div>
-                <span className="text-sm font-medium">ไม่ผ่าน (F)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded border-2 border-black bg-white"></div>
-                <span className="text-sm font-medium">ยังไม่ได้ลงเกรด</span>
-              </div>
-            </div>
-            {/* Stats */}
-            <div className="flex flex-wrap items-center gap-4">
+      {/* Shared KPI — derived from personal recorded data */}
+      {personalView && (
+        <Card className="academic-panel shadow-soft">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-4 justify-center">
               <Badge className="academic-number bg-green-100 text-green-800 text-sm px-3 py-1">
-                <CheckCircle2 className="w-4 h-4 mr-1" /> ผ่าน {stats.passed} วิชา ({stats.passedCredits} หน่วยกิต)
+                <CheckCircle2 className="w-4 h-4 mr-1" />
+                ผ่านตามแผนที่บันทึก {personalView.passedCount} วิชา · {personalView.passedCredits} หน่วยกิต
               </Badge>
-              {stats.incomplete > 0 && (
-                <Badge className="academic-number bg-yellow-100 text-yellow-800 text-sm px-3 py-1">
-                  <AlertTriangle className="w-4 h-4 mr-1" /> การประเมินผลยังไม่สมบูรณ์ (I) {stats.incomplete} วิชา
+              {officialCurriculum?.totalCredits && (
+                <Badge className="academic-number bg-blue-100 text-blue-800 text-sm px-3 py-1">
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  เป้าหมายหลักสูตร {officialCurriculum.totalCredits} หน่วยกิต
                 </Badge>
               )}
-              {stats.failed > 0 && (
-                <Badge className="academic-number bg-red-100 text-red-800 text-sm px-3 py-1">
-                  <XCircle className="w-4 h-4 mr-1" /> ไม่ผ่าน {stats.failed} วิชา
+              {personalView.progressPercent !== null && (
+                <Badge className="academic-number bg-gray-100 text-gray-700 text-sm px-3 py-1">
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  สัดส่วนหน่วยกิตที่ผ่าน {personalView.progressPercent}%
                 </Badge>
               )}
-              <Badge className="academic-number bg-gray-100 text-gray-700 text-sm px-3 py-1">
-                <Clock className="w-4 h-4 mr-1" /> เหลือ {stats.noGrade} วิชา
-              </Badge>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Progress Bar */}
-      <Card className="academic-panel shadow-soft">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">ความคืบหน้าภาพรวม</span>
-            <span className="academic-number text-sm text-muted-foreground">
-              {stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700">
-            <div 
-              className="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${stats.total > 0 ? (stats.passed / stats.total) * 100 : 0}%` }}
-            ></div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Loading courses */}
-      {isLoadingCourses && (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-            <p className="text-muted-foreground">กำลังโหลดข้อมูลหลักสูตร...</p>
-          </div>
-        </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              * ยอดนี้เป็นผลรวมจากรายวิชาที่บันทึกไว้ ไม่ใช่การตรวจเงื่อนไขสำเร็จการศึกษา
+            </p>
+          </CardContent>
+        </Card>
       )}
 
-      {/* ========== SVG FLOWCHART (same as CurriculumTimelineFlowchart) ========== */}
-      {!isLoadingCourses && semesterLayout.length > 0 && (
-        <div className="space-y-4">
-          {/* Flowchart Title */}
+      {/* Two-view Tabs */}
+      <Tabs defaultValue="personal">
+        <TabsList className="w-full">
+          <TabsTrigger value="personal" className="flex-1">📋 แผนของฉัน</TabsTrigger>
+          <TabsTrigger value="curriculum" className="flex-1">🗺️ โครงสร้างหลักสูตร</TabsTrigger>
+        </TabsList>
+
+        {/* Personal plan tab — derived from recorded data */}
+        <TabsContent value="personal">
+          {personalView ? (
+            <StudentPlanTimeline view={personalView} />
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+              <p>กำลังโหลดแผนการเรียน...</p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Curriculum reference SVG tab — keeps existing flowchart */}
+        <TabsContent value="curriculum">
+          {/* Legend */}
+          <Card className="academic-panel shadow-soft mb-4">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded border-2 border-green-500 bg-green-100"></div>
+                  <span className="text-sm font-medium">ผ่านแล้ว</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded border-2 border-yellow-500 bg-yellow-100"></div>
+                  <span className="text-sm font-medium">การประเมินผลยังไม่สมบูรณ์ (I)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded border-2 border-red-500 bg-red-100"></div>
+                  <span className="text-sm font-medium">ไม่ผ่าน (F)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded border-2 border-black bg-white"></div>
+                  <span className="text-sm font-medium">ยังไม่ได้ลงเกรด</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Loading courses */}
+          {isLoadingCourses && (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+                <p className="text-muted-foreground">กำลังโหลดข้อมูลหลักสูตร...</p>
+              </div>
+            </div>
+          )}
+          {/* SVG Flowchart (existing, unchanged) */}
+          {!isLoadingCourses && semesterLayout.length > 0 && (
+            <div className="space-y-4">
+              {/* Flowchart Title */}
           <div className="text-center bg-white p-4 border-b-2 border-black">
             <h1 className="text-lg font-bold">
               แผนภูมิแสดงความต่อเนื่องหลักสูตร {studyPlanData.program}
@@ -800,6 +825,8 @@ const StudyPlanProgress: React.FC = () => {
           </div>
         </div>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

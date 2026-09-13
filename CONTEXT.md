@@ -14,6 +14,14 @@
 
 ### Academic & Curriculum Domain
 
+**Personal Study Plan View (แผนของฉัน)**:
+มุมมองรายวิชาของนักศึกษาตามภาคการศึกษา ชื่อ รหัส และผลการเรียนที่บันทึกไว้ อาจแตกต่างจากแผนแนะนำของหลักสูตร
+_Avoid_: โครงสร้างหลักสูตรกลาง
+
+**Curriculum Reference View (โครงสร้างหลักสูตร)**:
+มุมมองลำดับรายวิชาและเงื่อนไขวิชาที่ต้องเรียนก่อนตามหลักสูตร ใช้เป็นข้อมูลอ้างอิงเมื่อเปรียบเทียบกับแผนของนักศึกษา
+_Avoid_: ประวัติการเรียนจริงของนักศึกษา
+
 - **Course**: An accredited academic subject containing course code (standard or custom), course name (Thai & English), credit weight, curriculum year, semester, prerequisites, and corequisites.
 - **CoursePresentationFormat**: The standardized presentation pattern for mentioning academic courses across chatbot answers: `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` (and optional credit weight), guaranteeing students never receive raw, ambiguous alphanumeric codes in isolation.
 - **StudyPlan**: A student's registered 4-year academic roadmap detailing course progression, pass/fail status, and grade history.

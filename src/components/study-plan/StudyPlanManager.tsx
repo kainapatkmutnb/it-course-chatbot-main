@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { courseDatabase } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
+import { serializeStudentCourse } from './studyPlanIdentity';
 import {
   BookOpen,
   Calendar,
@@ -626,15 +627,7 @@ const StudyPlanManager: React.FC = () => {
       const coursesForFirebase = (updates.courses || studyPlan.courses).map(course => {
         const internship = isInternshipCourse(course);
         const grade = internship ? (course.grade ? 'S' : '') : course.grade;
-        return {
-          ...course,
-          grade,
-          code: course.customCode || course.code,
-          customCode: course.customCode || '',
-          name: course.customName || course.originalName,
-          customName: course.customName || '',
-          prerequisites: course.prerequisites || []
-        };
+        return serializeStudentCourse({ ...course, grade } as any);
       });
 
       // Calculate GPA and credits using standard calculateGPA function
