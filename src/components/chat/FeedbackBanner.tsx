@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FeedbackType } from '@/types/chatLog';
 import { chatLogService } from '@/services/chatLogService';
+import { AlertTimeoutProgress } from '@/components/ui/alert-timeout-progress';
+import { useAlertCountdown } from '@/hooks/use-alert-countdown';
 
 interface FeedbackBannerProps {
   sessionId: string;
@@ -24,6 +26,13 @@ export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
   const [submittedFeedback, setSubmittedFeedback] = useState<FeedbackType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const feedbackRemaining = useAlertCountdown({
+    active: submittedFeedback !== null,
+    duration: 1500,
+    resetKey: submittedFeedback ?? '',
+    onExpire: onDismiss,
+  });
+
   const handleFeedback = async (type: FeedbackType) => {
     if (isSubmitting || submittedFeedback) return;
     setIsSubmitting(true);
@@ -38,9 +47,6 @@ export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
         messageCount,
       });
       setSubmittedFeedback(type);
-      setTimeout(() => {
-        onDismiss();
-      }, 1500);
     } catch (err) {
       console.error('Failed to submit feedback:', err);
       onDismiss();
@@ -52,8 +58,12 @@ export const FeedbackBanner: React.FC<FeedbackBannerProps> = ({
   return (
     <div className="chat-feedback-banner" role="region" aria-label="Chat feedback">
       {submittedFeedback ? (
-        <div className="chat-feedback-thankyou">
+        <div className="chat-feedback-thankyou relative overflow-hidden">
           <span className="text-emerald-600 font-medium">✨ ขอบคุณสำหรับข้อเสนอแนะเพื่อพัฒนาบริการครับ!</span>
+          <AlertTimeoutProgress
+            remaining={feedbackRemaining}
+            className="text-emerald-500 dark:text-emerald-400"
+          />
         </div>
       ) : (
         <div className="chat-feedback-content">

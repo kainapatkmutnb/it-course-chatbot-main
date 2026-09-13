@@ -328,6 +328,7 @@ sequenceDiagram
 - **การป้อนบริบทอัตโนมัติ (Context Injection)**: ส่งรหัสหลักสูตรที่นักศึกษาศึกษาอยู่ (`EnrolledCurriculum`) เข้าสู่ Prompt แชทบอท เพื่อให้ได้คำตอบที่ตรงกับหลักสูตรของตนเองเสมอ
 - **มาตรฐานชื่อวิชา (CoursePresentationFormat)**: คำตอบจากบอทจะประกอบด้วย `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` เสมอ ไม่ปล่อยรหัสวิชาลอยๆ ให้นักศึกษาสับสน
 - **ระบบสำรวจความพึงพอใจ 3 ระดับ (FeedbackScale)**: แสดงป้ายประเมินความพึงพอใจ (👎 ไม่ชอบ, 😐 ปานกลาง, 👍 ชอบ) ทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเข้าสู่ Realtime Database
+- **แถบเวลาการแจ้งเตือน (Alert Timeout Progress)**: Toast, inline error และข้อความขอบคุณหลังส่ง feedback ที่ปิดอัตโนมัติจะแสดงแถบบางที่ขอบล่างเพื่อบอกเวลาคงเหลือ โดยแถบและการปิดใช้ตัวจับเวลาเดียวกัน
 
 ### 📑 4. รายงานและการบริหารจัดการระดับองค์กร (Reporting & Admin Controls)
 > `PDF/Excel Exporters` · `Dual-Layer Persistence` · `Analytics Dashboard`
@@ -508,6 +509,7 @@ it-course-chatbot-main/
 - [Modern Academic Web Redesign QA Audit](docs/audits/modern-academic-web-redesign-qa.md) — รายงานการตรวจรับส่วนติดต่อผู้ใช้สไตล์วิชาการร่วมสมัย ครอบคลุม 13 มิติการทดสอบและผลการตรวจรับ Protected Files 100%
 - [Modern Academic Web Redesign Specification](docs/superpowers/specs/2026-09-13-modern-academic-web-redesign.md) — ข้อกำหนดรายละเอียดการออกแบบระบบวิชาการร่วมสมัย (Opt-in Architecture, Color Tokens, Typography, Accessibility)
 - [Modern Academic Web Redesign Implementation Plan](docs/superpowers/plans/2026-09-13-modern-academic-web-redesign.md) — แผนปฏิบัติการ 9 ระยะสำหรับการยกระดับ UI และการควบคุมความเสี่ยง
+- [Alert Timeout Progress QA](docs/audits/alert-timeout-progress-qa.md) — รายงานการตรวจสอบแถบเวลาคงเหลือสำหรับ toast, inline error และ feedback confirmation ที่ปิดอัตโนมัติ
 - [Firebase CRUD & Credit Validation Audit](docs/audits/firebase-crud-credit-audit.md) — ผลการตรวจสอบความถูกต้องของการบันทึกข้อมูลและคำนวณหน่วยกิต (อัตราผ่าน 100%, 8/8 การทดสอบ)
 - [Responsive Navigation & Student Flow QA](docs/audits/mobile-navigation-student-qa.md) — ผลการทดสอบการใช้งานบนอุปกรณ์พกพาและการนำทางของผู้ใช้นักศึกษา
 

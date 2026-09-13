@@ -1,4 +1,6 @@
 import { useToast } from "@/hooks/use-toast"
+import { useAlertCountdown } from "@/hooks/use-alert-countdown"
+import { AlertTimeoutProgress } from "@/components/ui/alert-timeout-progress"
 import {
   Toast,
   ToastClose,
@@ -102,36 +104,69 @@ function getToastMeta(variant?: string, title?: React.ReactNode, description?: R
   };
 }
 
-export function Toaster() {
-  const { toasts } = useToast()
+type ToastItem = ReturnType<typeof useToast>["toasts"][number]
+
+const progressColors = {
+  default: "text-blue-500 dark:text-blue-400",
+  info: "text-blue-500 dark:text-blue-400",
+  success: "text-emerald-500 dark:text-emerald-400",
+  destructive: "text-rose-500 dark:text-rose-400",
+  warning: "text-amber-500 dark:text-amber-400",
+}
+
+function TimedToast({
+  item,
+  dismiss,
+}: {
+  item: ToastItem
+  dismiss: (id: string) => void
+}) {
+  const { id, title, description, action, variant, duration, ...props } = item
+  const resolvedDuration =
+    typeof duration === "number" && !Number.isNaN(duration) ? duration : 5000
+  const remaining = useAlertCountdown({
+    active: item.open !== false,
+    duration: resolvedDuration,
+    resetKey: id,
+    onExpire: () => dismiss(id),
+  })
+  const { resolvedVariant, icon } = getToastMeta(variant as string, title, description)
 
   return (
-    <ToastProvider duration={5000}>
-      {toasts.map(function ({ id, title, description, action, variant, ...props }) {
-        const { resolvedVariant, icon } = getToastMeta(variant as string, title, description)
+    <Toast {...props} variant={resolvedVariant} duration={Infinity}>
+      <div className="flex items-start gap-3 w-full pr-3">
+        {icon}
+        <div className="flex-1 min-w-0 pt-0.5">
+          {title && (
+            <ToastTitle className="text-[14.5px] font-semibold leading-tight tracking-tight">
+              {title}
+            </ToastTitle>
+          )}
+          {description && (
+            <ToastDescription className="text-[13px] leading-relaxed mt-1 opacity-90">
+              {description}
+            </ToastDescription>
+          )}
+          {action && <div className="mt-2">{action}</div>}
+        </div>
+      </div>
+      <ToastClose />
+      <AlertTimeoutProgress
+        remaining={remaining}
+        className={progressColors[resolvedVariant]}
+      />
+    </Toast>
+  )
+}
 
-        return (
-          <Toast key={id} variant={resolvedVariant} duration={5000} {...props}>
-            <div className="flex items-start gap-3 w-full pr-3">
-              {icon}
-              <div className="flex-1 min-w-0 pt-0.5">
-                {title && (
-                  <ToastTitle className="text-[14.5px] font-semibold leading-tight tracking-tight">
-                    {title}
-                  </ToastTitle>
-                )}
-                {description && (
-                  <ToastDescription className="text-[13px] leading-relaxed mt-1 opacity-90">
-                    {description}
-                  </ToastDescription>
-                )}
-                {action && <div className="mt-2">{action}</div>}
-              </div>
-            </div>
-            <ToastClose />
-          </Toast>
-        )
-      })}
+export function Toaster() {
+  const { toasts, dismiss } = useToast()
+
+  return (
+    <ToastProvider duration={Infinity}>
+      {toasts.map((item) => (
+        <TimedToast key={item.id} item={item} dismiss={dismiss} />
+      ))}
       <ToastViewport />
     </ToastProvider>
   )

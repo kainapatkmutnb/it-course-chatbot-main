@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTimeoutProgress } from '@/components/ui/alert-timeout-progress';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAlertCountdown } from '@/hooks/use-alert-countdown';
 import { RegisterData } from '@/types/auth';
 import { 
   Bot, 
@@ -19,6 +21,9 @@ import {
   IdCard,
   Loader2
 } from 'lucide-react';
+
+const getErrorMessage = (err: unknown, fallback: string) =>
+  err instanceof Error ? err.message : fallback;
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -34,14 +39,12 @@ const Register: React.FC = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Auto-dismiss error alert after 5 seconds
-  useEffect(() => {
-    if (!error) return;
-    const timer = setTimeout(() => {
-      setError('');
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [error]);
+  const errorRemaining = useAlertCountdown({
+    active: Boolean(error),
+    duration: 5000,
+    resetKey: error,
+    onExpire: () => setError(''),
+  });
 
   const handleInputChange = (field: keyof RegisterData, value: string) => {
     if (error) setError('');
@@ -66,8 +69,8 @@ const Register: React.FC = () => {
     try {
       await register(formData);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'เกิดข้อผิดพลาดในการสมัครสมาชิก'));
     }
   };
 
@@ -77,8 +80,8 @@ const Register: React.FC = () => {
     try {
       await loginWithGoogle();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'เกิดข้อผิดพลาดในการสมัครสมาชิก'));
     }
   };
 
@@ -109,9 +112,13 @@ const Register: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="overflow-hidden">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
+                <AlertTimeoutProgress
+                  remaining={errorRemaining}
+                  className="!pl-0 text-rose-500 dark:text-rose-400"
+                />
               </Alert>
             )}
 
