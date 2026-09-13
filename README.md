@@ -309,11 +309,18 @@ sequenceDiagram
 ระบบถูกออกแบบโดยแยกฟังก์ชันการทำงานหลักออกเป็น 4 ขุมพลังสำคัญ เพื่อประสบการณ์การใช้งานที่ราบรื่น:
 
 ### 🧭 1. จัดทำแผนการเรียนและผังวิชาอัจฉริยะ (Curriculum & Study Plan Engine)
-> `Interactive Flowchart` · `Dual-View Progress` · `Prerequisites Path Tracing` · `GPAX Calculator` · `S/U Internship Evaluation`
+> `Interactive Flowchart` · `Dual-View Progress` · `Anti-Collision Multi-Lane Routing` · `Prerequisites Path Tracing` · `GPAX Calculator` · `S/U Internship Evaluation`
 
 - **Visual Course Flowchart**: แสดงผังรายวิชาพร้อมเส้นเชื่อมโยงวิชาบังคับก่อน (Prerequisites) และวิชาบังคับร่วม (Corequisites) ด้วยสีสันที่แยกแยะสถานะชัดเจน
 - **แผนการเรียน 4 ปี (Study Plan)**: จัดการรายวิชาตามชั้นปีและภาคการศึกษา พร้อมระบบจำลองเกรดเพื่อคำนวณ GPA รายภาคและ GPAX สะสม
 - **มุมมองความคืบหน้าสองรูปแบบ (Dual-View Student Progress & Personal Timeline)**: รองรับการสลับมุมมองระหว่าง "แผนของฉัน (Personal Plan Timeline)" ที่ประมวลผลตำแหน่ง ชื่อ รหัส เกรด และหน่วยกิตจากข้อมูลที่นักศึกษาบันทึกไว้จริงตามรายภาคเรียนโดยตรง ร่วมกับ "โครงสร้างหลักสูตร (Curriculum Flowchart)" พร้อมระบบคำนวณ KPI และความคืบหน้าหน่วยกิตที่แม่นยำตรงตามรายงานผลการเรียน
+- **ระบบผังเส้นทางวิชาต่อเนื่องแบบลดการทับซ้อน (Anti-Collision Multi-Lane Flowchart Routing & Smooth Rounded Corners)**:
+  - **Multi-Lane Track Allocator**: จัดสรรเลนย่อย (Offset $\pm 5\text{px}$ ถึง $\pm 6\text{px}$) สำหรับเส้นที่วิ่งขนานกันในร่องเดียวกันทั้งแนวนอนและแนวตั้ง ป้องกันเส้นทับซ้อนกันเป็นเส้นเดียวในหลักสูตรที่มีความซับซ้อนสูง (เช่น INE 62, INE 67, IT 62, INET 62)
+  - **Multi-Port Spreading**: สำหรับวิชาที่มีวิชาตัวต่อหลายตัว (เช่น `060233108` มีวิชาต่อ 5 ตัว) จุดส่งออกของลูกศรบนขอบขวาของการ์ดจะกระจายตัวในแนวตั้งตามจำนวนเส้น ไม่กระจุกตัวที่จุดกึ่งกลาง
+  - **Bottom Bus Channel (ทางด่วนข้ามเทอมระยะไกล $\ge 3$ เทอม)**: เส้นทางที่ข้ามภาคเรียนไกลๆ จะถูกนำทางอ้อมผ่านช่องทางรอบนอกด้านล่างตาราง ทำให้ไม่วิ่งผ่าตัดผ่านกลางแถววิชาของเทอมตรงกลาง ตารางวิชาจึงสะอาดและอ่านง่าย
+  - **Smooth Rounded Corners**: แปลงมุมเลี้ยวหักฉาก 90 องศาเป็นมุมโค้งมน (Quadratic Bezier Fillet Arc Radius 7px) ช่วยให้อ่านและติดตามสายวิชาได้อย่างลื่นไหล
+  - **Interactive Tracing & Focus Mode**: เลื่อนเมาส์ชี้ที่เส้น (Hover Tooltip) เพื่อดูคู่ความต่อเนื่อง คลิกเลือกวิชาเพื่อไฮไลต์สายวิชาบังคับก่อน (สีน้ำเงิน) และวิชาเรียนต่อได้ (สีม่วง) พร้อมปุ่มเปิด/ปิด "โหมดโฟกัส" (Focus Mode)
+  - **Master Catalog Fallback**: รองรับและผ่านการตรวจสอบความถูกต้อง 100% ครอบคลุมครบทั้ง 13 ฉบับหลักสูตร
 - **ระบบคงความถูกต้องของข้อมูลรายวิชา (Identity & Origin Preservation)**: ป้องกันการเขียนทับรหัสวิชาตั้งต้นด้วย `customCode` และป้องกันข้อมูลสูญหายเมื่อมีการแก้ไขชื่อหรือย้ายภาคเรียน ผ่าน `serializeStudentCourse`
 - **ระบบประเมินผลฝึกงาน/สหกิจศึกษา (S/U Evaluation System)**: รองรับการประเมินผลรายวิชาฝึกงานและสหกิจศึกษาด้วยเกรด `S` (Satisfactory - ผ่าน) และ `U` (Unsatisfactory - ไม่ผ่าน) โดยไม่นำมาถ่วงน้ำหนักแต้มระดับคะแนน (Non-graded credits) ตามข้อบังคับมหาวิทยาลัย
 - **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
@@ -452,9 +459,12 @@ npm run dev:emulator
 npm run migrate:curriculum
 ```
 
-### 7. การตรวจสอบโค้ดและสร้าง Production Build
+### 7. การตรวจสอบโค้ดและการทดสอบ (Testing & Production Build)
 
 ```bash
+# รันชุดทดสอบ Unit & Regression Tests (Study Plan View Model & Identity 11/11 ผ่าน 100%)
+npx tsx --test tests/study-plan/progress.test.ts
+
 # ตรวจสอบ Linting
 npm run lint
 
