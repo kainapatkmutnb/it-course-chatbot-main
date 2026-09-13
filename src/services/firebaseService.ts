@@ -90,6 +90,7 @@ export interface StudyPlanCourse {
   courseId?: string;
   code: string;
   originalName: string;
+  customCode?: string;
   customName?: string;
   name?: string;
   credits: number;
