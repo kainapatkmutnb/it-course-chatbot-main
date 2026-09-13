@@ -324,8 +324,10 @@ sequenceDiagram
 - **ภาคฤดูร้อนและภาคจบการศึกษา**: จำกัดการลงทะเบียนภาคฤดูร้อนไม่เกิน 6 หน่วยกิต และเปิดระบบยกเว้น (Graduation Term Exemption) ให้ลงต่ำกว่า 9 หน่วยกิตได้ในภาคเรียนสุดท้าย
 
 ### 🤖 3. แชทบอทให้คำปรึกษาหลักสูตร (Modern Academic Chat Surface)
-> `n8n Orchestration` · `Pinecone Vector RAG` · `Curriculum Duration Guard` · `Sentiment Feedback`
+> `n8n Orchestration` · `Pinecone Vector RAG` · `Curriculum Duration Guard` · `Sentiment Feedback` · `Native Caret Navigation`
 
+- **การนำทางเคอร์เซอร์ด้วยปุ่มลูกศร (Native Caret & Arrow Key Navigation)**: แก้ไขปัญหาช่องพิมพ์ของ `@n8n/chat` ดักจับคีย์บอร์ดที่ Container แม่แล้วเรียก `preventDefault()` อัตโนมัติ โดยทำการตัดการกระจายอีเวนต์ (Stop Propagation) ในระดับ Textarea ทำให้ผู้ใช้สามารถใช้งานปุ่มลูกศร (`ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`), `Home`, `End`, `PageUp`, `PageDown`, การเลื่อนเคอร์เซอร์ข้ามบรรทัด และการคลุมเลือกข้อความ (`Shift + Arrow` / `Ctrl + Arrow`) ในช่องพิมพ์ได้อย่างสมบูรณ์ 100%
+- **ฐานข้อมูลหลักสูตรแม่บท 13 ฉบับ (Authoritative 13 Curricula Master Catalog & Whitelist)**: รวบรวมข้อมูลหลักสูตรครบถ้วนทั้ง 13 ฉบับใน [MASTER_CURRICULUM_CATALOG.md](MASTER_CURRICULUM_CATALOG.md) และ [N8N_PREREQUISITES_GUIDE.md](N8N_PREREQUISITES_GUIDE.md) พร้อมรหัสวิชา 8 หลัก และชื่อวิชาภาษาไทยทางการ ควบคุมเงื่อนไขสหกิจศึกษาและฝึกงานภาคฤดูร้อนตามข้อเท็จจริง ป้องกัน AI แนะนำวิชาหรือเทอมที่ไม่มีอยู่จริง (เช่น ป้องกันการแนะนำ Co-op หรือ ซัมเมอร์ ใน ITT-67)
 - **การคงบริบทหลักสูตรต่อเนื่อง (Multi-Turn Curriculum Persistence)**: ระบบจดจำหลักสูตรที่กำลังสนทนา (`ActiveConversationCurriculum`) ข้ามเทิร์นคำถาม แม้ผู้ใช้จะไม่ได้พิมพ์ชื่อหลักสูตรซ้ำในข้อความถัดไป
 - **ระบบควบคุมระยะเวลาศึกษา (CurriculumDurationGuard)**: ป้องกันความผิดพลาดของ AI ในการสร้างข้อมูลปี 3 และปี 4 สำหรับหลักสูตรต่อเนื่อง/เทียบโอน 2 ปี (เช่น `ITT-67` มี 28 วิชา 84 หน่วยกิต เรียนเฉพาะปี 1 และปี 2)
 - **กฎการแนะนำลงทะเบียนกรณีติด F (RetakePrerequisiteBlock & PassedCourseExclusion)**: คัดแยกวิชาที่สอบผ่านแล้วออกจากแผนลงทะเบียนใหม่อัตโนมัติ พร้อมตรวจจับและบล็อกการลงวิชาต่อเนื่องที่ยังติดวิชาบังคับก่อน (Prerequisite) จนกว่าจะลงทะเบียนเรียนซ้ำวิชาที่ติด F
@@ -489,6 +491,7 @@ it-course-chatbot-main/
 │   └── utils/               # ฟังก์ชันคำนวณหน่วยกิตและโมดูล Export PDF/Excel
 ├── CONTEXT.md               # Ubiquitous Language & Domain Model ของระบบ
 ├── database.rules.json      # กฎความปลอดภัย Firebase Realtime Database Rules
+├── MASTER_CURRICULUM_CATALOG.md # คลังหลักสูตรฉบับสมบูรณ์ 13 ฉบับ (Single Source of Truth สำหรับ AI ChatBot)
 ├── N8N_PREREQUISITES_GUIDE.md # คู่มือการตั้งค่า n8n Webhook และ Vector Database
 └── package.json             # โปรเจกต์สคริปต์และรายการ Dependencies
 ```

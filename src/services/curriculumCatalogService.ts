@@ -139,17 +139,35 @@ export const getAllCurriculumsMap = (): Record<string, CurriculumDetailItem> => 
         Object.entries(semData).forEach(([semKey, semCourses]: [string, any]) => {
           if (Array.isArray(semCourses)) {
             const [y, s] = semKey.split('-').map(Number);
+            const cleanCode = (rawCode: string) => {
+              if (!rawCode) return '';
+              return rawCode
+                .replace(/^(ITT|ITI|INET|INE|IT)-/i, '')
+                .replace(/[\*\s]+$/g, '')
+                .trim();
+            };
+
+            const cleanPrereq = (rawPrereq: string) => {
+              if (!rawPrereq) return '';
+              return rawPrereq
+                .replace(/^(ITT|ITI|INET|INE|IT)-/i, '')
+                .replace(/\*/g, '')
+                .trim();
+            };
+
             semesters[semKey] = semCourses.map((c: any) => {
               totalCourses++;
               totalCredits += Number(c.credits) || 0;
               return {
-                code: c.code,
-                name: c.name,
+                code: cleanCode(c.code),
+                name: (c.name || '').trim(),
                 credits: Number(c.credits) || 0,
                 category: c.mainCategory || c.category || '',
                 year: y || 1,
                 semester: s || 1,
-                prerequisites: Array.isArray(c.prerequisites) ? c.prerequisites : []
+                prerequisites: Array.isArray(c.prerequisites) 
+                  ? c.prerequisites.map(cleanPrereq) 
+                  : []
               };
             });
           }

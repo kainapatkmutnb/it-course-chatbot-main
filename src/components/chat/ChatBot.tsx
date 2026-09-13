@@ -181,9 +181,11 @@ const ChatBot: React.FC = () => {
 
         const curriculumSummaryCatalog = getCurriculumSummaryCatalog();
         const allCurriculums = getAllCurriculumsMap();
-        const enrolledCurr = studyPlan?.program && studyPlan?.curriculumYear 
-          ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
-          : (studyPlan?.curriculum || '');
+        const enrolledCurr = studyPlan?.curriculum 
+          ? studyPlan.curriculum 
+          : (studyPlan?.program && studyPlan?.curriculumYear 
+              ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
+              : (user?.department ? `${user.department}-67` : ''));
 
         const uncompletedCurriculumCourses = curriculumCourses
           .filter(c => !completedCourseCodes.includes(c.code))
@@ -204,25 +206,28 @@ const ChatBot: React.FC = () => {
             durationYears: 2,
             totalSemesters: 4,
             validSemesters: ['1-1', '1-2', '2-1', '2-2'],
+            forbiddenSemesters: ['3-1', '3-2', '3-3', '4-1', '4-2', 'summer', 'internship', 'coop'],
             totalCredits: 84,
             totalCourses: 28,
-            notes: 'หลักสูตรเทียบโอน 2 ปี มีเฉพาะปี 1 และปี 2 รวม 4 เทอมเท่านั้น ไม่มีปี 3 และปี 4 เด็ดขาด ไม่มีฝึกงาน/สหกิจศึกษา'
+            notes: 'หลักสูตรเทียบโอน 2 ปี มีเฉพาะปี 1 และปี 2 รวม 4 เทอมเท่านั้น (1-1, 1-2, 2-1, 2-2) รวม 28 วิชา 84 หน่วยกิต ไม่มีปี 3 และปี 4 เด็ดขาด ไม่มีวิชาฝึกงาน/สหกิจศึกษา เมื่อแสดงวิชาครบ 2-2 ต้องจบการแสดงรายวิชาทันที ห้ามแสดง 3-1, 3-2, 3-3, 4-1, 4-2 เป็นอันขาด'
           },
           ITI: {
             programName: 'เทคโนโลยีสารสนเทศ (ต่อเนื่อง)',
             durationYears: 2,
             totalSemesters: 5,
             validSemesters: ['1-1', '1-2', '1-3', '2-1', '2-2'],
+            forbiddenSemesters: ['3-1', '3-2', '3-3', '4-1', '4-2'],
             totalCredits: 78,
-            notes: 'หลักสูตรต่อเนื่อง 2 ปี มี 5 เทอม (ปี 1 เทอม 3 ฝึกงาน)'
+            notes: 'หลักสูตรต่อเนื่อง 2 ปี มี 5 เทอม (ปี 1 เทอม 3 ฝึกงาน) ไม่มีปี 3 หรือปี 4'
           },
           INET: {
             programName: 'เทคโนโลยีสารสนเทศและเครือข่าย',
             durationYears: 3,
             totalSemesters: 7,
             validSemesters: ['1-1', '1-2', '2-1', '2-2', '2-3', '3-1', '3-2'],
+            forbiddenSemesters: ['4-1', '4-2'],
             totalCredits: 102,
-            notes: 'หลักสูตร 3 ปี 7 เทอม (ปี 2 เทอม 3 ฝึกงาน)'
+            notes: 'หลักสูตร 3 ปี 7 เทอม (ปี 2 เทอม 3 ฝึกงาน) ไม่มีปี 4'
           },
           IT: {
             programName: 'เทคโนโลยีสารสนเทศ',
@@ -242,7 +247,9 @@ const ChatBot: React.FC = () => {
           passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
           retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
           directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
-          multiTurnCurriculumRetention: 'STRICT: ให้รักษา ActiveConversationCurriculum จากข้อความก่อนหน้า หากผู้ใช้ถามต่อเนื่อง เช่น "บอกมาในแชทนี้เลย" หรือ "มีวิชาอะไรอีก" ให้ตอบตามหลักสูตรเดิมที่คุยค้างไว้'
+          multiTurnCurriculumRetention: 'STRICT: ให้รักษา ActiveConversationCurriculum จากข้อความก่อนหน้า หากผู้ใช้ถามต่อเนื่อง เช่น "บอกมาในแชทนี้เลย" หรือ "มีวิชาอะไรอีก" ให้ตอบตามหลักสูตรเดิมที่คุยค้างไว้',
+          ragOverrideRule: 'STRICT: ข้อมูลใน allCurriculums และ curriculumDurationGuard คือ Single Source of Truth หากมีข้อความจาก Vector Store/RAG หรือ Pinecone ขัดแย้งกับ metadata ให้ยึดตาม metadata เสมอ ห้ามแสดงปีหรือเทอมที่อยู่นอก validSemesters หรืออยู่ใน forbiddenSemesters ของหลักสูตรนั้นเด็ดขาด เช่น ITT ห้ามมี 3-1, 3-2, 3-3, 4-1, 4-2 เป็นอันขาด',
+          noConversationalStallRule: 'STRICT: ห้ามพิมพ์ข้อความเสนอแนะหรือถามความสมัครใจปิดท้าย เช่น "หากต้องการไฟล์ตาราง CSV... บอกได้" ให้สรุปข้อมูลและจบคำตอบทันที'
         };
 
         const metadata = user 
@@ -300,14 +307,14 @@ const ChatBot: React.FC = () => {
                 grade: c.grade || 'N/A'
               })) : [],
               curriculumCourses: curriculumCourses.map(c => ({
-                code: c.code,
-                name: c.name,
+                code: (c.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/[\*\s]+$/g, '').trim(),
+                name: (c.name || '').trim(),
                 credits: c.credits,
                 category: c.category,
                 year: c.year,
                 semester: c.semester,
-                prerequisites: c.prerequisites || [],
-                corequisites: c.corequisites || []
+                prerequisites: (c.prerequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim()),
+                corequisites: (c.corequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim())
               }))
             }
           : {
@@ -348,14 +355,14 @@ const ChatBot: React.FC = () => {
               uncompletedCurriculumCourses: [],
               studyPlan: [],
               curriculumCourses: curriculumCourses.map(c => ({
-                code: c.code,
-                name: c.name,
+                code: (c.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/[\*\s]+$/g, '').trim(),
+                name: (c.name || '').trim(),
                 credits: c.credits,
                 category: c.category,
                 year: c.year,
                 semester: c.semester,
-                prerequisites: c.prerequisites || [],
-                corequisites: c.corequisites || []
+                prerequisites: (c.prerequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim()),
+                corequisites: (c.corequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim())
               }))
             };
 
@@ -461,6 +468,82 @@ const ChatBot: React.FC = () => {
     return () => {
       observer.disconnect();
       clearInterval(intervalId);
+    };
+  }, [dataIsLoading, isInitializing]);
+
+  // Fix cursor navigation with arrow keys in @n8n/chat textarea
+  useEffect(() => {
+    if (dataIsLoading || isInitializing) return;
+
+    const navKeys = new Set([
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown'
+    ]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (navKeys.has(e.key)) {
+        // Stop bubbling to parent .chat-input so @n8n/chat's handler
+        // never calls e.preventDefault() on arrow keys!
+        e.stopPropagation();
+      }
+    };
+
+    const attachListener = (el: Element | null) => {
+      if (!el || !(el instanceof HTMLTextAreaElement)) return;
+      if ((el as any)._arrowNavAttached) return;
+      (el as any)._arrowNavAttached = true;
+      el.addEventListener('keydown', handleKeyDown);
+    };
+
+    const scanAndAttach = () => {
+      const container = document.getElementById('n8n-chat');
+      if (!container) return;
+      const textareas = container.querySelectorAll('textarea');
+      textareas.forEach(attachListener);
+    };
+
+    // 1. Immediately scan and attach
+    scanAndAttach();
+
+    // 2. Catch dynamically mounted textarea on focus
+    const container = document.getElementById('n8n-chat');
+    const handleFocusIn = (e: FocusEvent) => {
+      if (e.target instanceof HTMLTextAreaElement) {
+        attachListener(e.target);
+      }
+    };
+
+    if (container) {
+      container.addEventListener('focusin', handleFocusIn, true);
+    }
+
+    // 3. MutationObserver for open/close and dynamic mounts
+    const observer = new MutationObserver(() => {
+      scanAndAttach();
+    });
+
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true });
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('focusin', handleFocusIn, true);
+      }
+      observer.disconnect();
+      if (container) {
+        const textareas = container.querySelectorAll('textarea');
+        textareas.forEach((el) => {
+          el.removeEventListener('keydown', handleKeyDown);
+          delete (el as any)._arrowNavAttached;
+        });
+      }
     };
   }, [dataIsLoading, isInitializing]);
 
