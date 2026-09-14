@@ -267,8 +267,8 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
         semData.courses.forEach((c) => {
           // ตรวจสอบการจับคู่อย่างแม่นยำ - เฉพาะรหัสวิชาที่ตรงกันเท่านั้น
           if (validPrerequisites.some(prereq => {
-            const prereqCode = prereq.split(' ')[0]; // เอาเฉพาะรหัสวิชา
-            const courseCode = c.code.split('-')[1] || c.code; // เอาเฉพาะรหัสวิชา
+            const prereqCode = prereq.split(' ')[0].replace(/\*$/, '').trim(); // เอาเฉพาะรหัสวิชา
+            const courseCode = (c.code.split('-')[1] || c.code).replace(/\*$/, '').trim(); // เอาเฉพาะรหัสวิชา
             console.log(`Timeline Checking match: ${prereqCode} vs ${courseCode} (from ${c.code})`);
             const isMatch = prereqCode === courseCode;
             if (isMatch) {
