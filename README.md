@@ -92,12 +92,12 @@ flowchart LR
 
 <br />
 
-![Context Diagram](diagrams/context-diagram.drawio.png)
+![Context Diagram](diagrams/diagrams2/context-diagram.drawio.png)
 
 </details>
 
 <details>
-<summary>🔍 <strong>ดูรายละเอียด Data Flow Diagram (DFD Level-0)</strong></summary>
+<summary>🔍 <strong>ดูรายละเอียด Data Flow Diagram (DFD Level-0 / Level-1)</strong></summary>
 
 <br />
 
@@ -110,13 +110,13 @@ flowchart TD
     classDef store fill:#881337,stroke:#FB7185,stroke-width:2px,color:#FFF1F2;
     classDef external fill:#78350F,stroke:#FBBF24,stroke-width:2px,color:#FEF3C7;
 
-    User(["👤 ผู้ใช้งาน (User)"]):::entity
+    User(["👤 ผู้ใช้งาน (User)<br/>Student / Advisor / Staff / Admin"]):::entity
 
-    P1(["1.0 การยืนยันตัวตน<br/>(Authentication)"]):::process
-    P2(["2.0 การจัดการผู้ใช้<br/>(User Management)"]):::process
-    P3(["3.0 จัดการข้อมูลหลักสูตร<br/>(Curriculum Management)"]):::process
-    P4(["4.0 แสดงผลผังหลักสูตร<br/>(Visualization & Plan)"]):::process
-    P5(["5.0 การสนทนาแชทบอท<br/>(Chatbot Advising)"]):::process
+    P1(["1.0 การยืนยันตัวตน & จัดการสิทธิ์<br/>(Authentication & RBAC)"]):::process
+    P2(["2.0 การจัดการผู้ใช้ & โปรไฟล์<br/>(User & Profile Management)"]):::process
+    P3(["3.0 จัดการข้อมูลหลักสูตร & วิชา<br/>(Curriculum & Course Management)"]):::process
+    P4(["4.0 แผนการเรียน & ประมวลผลความคืบหน้า<br/>(Dual-View Plan & Progress Engine)"]):::process
+    P5(["5.0 การสนทนาแชทบอท & สถิติ<br/>(AI Advising Chatbot & Analytics)"]):::process
 
     D1[("D1 | ข้อมูลผู้ใช้<br/>users/")]:::store
     D2[("D2 | ข้อมูลรายวิชา<br/>courses/")]:::store
@@ -125,12 +125,12 @@ flowchart TD
     D5[("D5 | บันทึกสถิติ & Feedback<br/>chat_analytics/")]:::store
 
     ExtAuth(["🔥 Firebase Auth"]):::external
-    ExtDB(["💾 Firebase RTDB"]):::external
-    ExtN8N(["🤖 n8n Chatbot Service"]):::external
+    ExtDB(["💾 Firebase RTDB / Firestore"]):::external
+    ExtN8N(["🤖 n8n AI Chatbot (Pinecone + GPT-5 nano)"]):::external
 
     User -->|"กรอกข้อมูลเข้าสู่ระบบ"| P1
     P1 -->|"ตรวจสอบสิทธิ์"| ExtAuth
-    ExtAuth -->|"ผลยืนยันตัวตน"| P1
+    ExtAuth -->|"ผลยืนยันตัวตน & Token"| P1
     P1 -->|"บันทึกสถานะผู้ใช้"| D1
 
     User -->|"จัดการผู้ใช้และสิทธิ์"| P2
@@ -139,27 +139,27 @@ flowchart TD
 
     User -->|"จัดการรายวิชา/เงื่อนไข"| P3
     P3 <-->|"ปรับปรุงรายวิชา"| D2
-    P3 <-->|"โครงสร้างหลักสูตร"| D3
+    P3 <-->|"โครงสร้างหลักสูตร (Hybrid Sync)"| D3
     D2 <--> ExtDB
     D3 <--> ExtDB
 
     D2 -->|"อ่านรายวิชา"| P4
-    D3 -->|"อ่านโครงสร้าง"| P4
-    D4 <-->|"อ่าน/บันทึกแผนเรียน"| P4
-    P4 -->|"แสดงผลผังวิชา & คำนวณหน่วยกิต"| User
+    D3 -->|"อ่านโครงสร้าง 13 หลักสูตร"| P4
+    D4 <-->|"อ่าน/บันทึกแผนเรียน & เกรด (*)"| P4
+    P4 -->|"แสดงผลผัง 2 มุมมอง (แผนของฉัน + โครงสร้าง)"| User
     D4 <--> ExtDB
 
     User -->|"ส่งคำถามหลักสูตร"| P5
     D3 -.->|"บริบทหลักสูตรที่ศึกษา"| P5
     P5 <-->|"ส่ง Prompt / รับคำตอบ RAG"| ExtN8N
-    P5 -->|"บันทึกคะแนนความพึงพอใจ"| D5
-    P5 -->|"คำตอบหลักสูตรมาตรฐาน"| User
+    P5 -->|"บันทึกคะแนนความพึงพอใจ Feedback"| D5
+    P5 -->|"คำตอบหลักสูตรพร้อมหน้าอ้างอิง มคอ.2"| User
     D5 <--> ExtDB
 ```
 
 <br />
 
-![Data Flow Diagram](diagrams/data-flow-diagram.drawio.png)
+![Data Flow Diagram](diagrams/diagrams2/data-flow-diagram.drawio.png)
 
 </details>
 
@@ -191,18 +191,19 @@ flowchart TB
         subgraph FeatureSection ["Interactive Core Features"]
             Flowchart["CurriculumFlowchart.tsx<br/>CurriculumTimelineFlowchart.tsx"]:::client
             ChatBot["ChatBot.tsx + FeedbackBanner.tsx<br/>(#n8n-chat Modern Academic Surface)"]:::client
-            StudyPlan["StudyPlanProgress.tsx<br/>(Credit Limits Engine & PDF Export)"]:::client
+            StudyPlan["StudyPlanProgress.tsx (Dual-View Container)<br/>StudentPlanTimeline.tsx (Personal Plan)<br/>StudyPlanManager.tsx (Plan Builder & Cascade)"]:::client
         end
     end
 
     subgraph ServiceLayer ["⚙️ Service & Business Logic Layer"]
         FirebaseService["firebaseService.ts<br/>(Data Operations & RTDB Sync)"]:::service
-        CourseService["courseService.ts & completeCurriculumData.ts<br/>(Course Management Engine)"]:::service
-        DeptService["departmentService.ts<br/>(Department & 13 Curricula Catalog)"]:::service
+        CourseService["completeCurriculumData.ts & hybridCourseService.ts<br/>(13 Curricula Master & Data Sanitizer)"]:::service
+        DeptService["departmentService.ts<br/>(Department & Curricula Catalog)"]:::service
+        IdentityService["studyPlanIdentity.ts & studyPlanViewModel.ts<br/>(normalizeCodeForMatching & KPI Engine)"]:::service
     end
 
     subgraph ExternalLayer ["☁️ External Infrastructure"]
-        FirebaseBackend["Firebase Auth & Realtime Database"]:::ext
+        FirebaseBackend["Firebase Auth & Realtime Database / Firestore"]:::ext
         N8NBackend["n8n Webhook Service + Pinecone + GPT-5 nano"]:::ext
     end
 
@@ -218,6 +219,7 @@ flowchart TB
     CourseMgmt --> FirebaseService
     Flowchart --> DeptService
     StudyPlan --> FirebaseService
+    StudyPlan --> IdentityService
     ChatBot --> N8NBackend
 
     FirebaseService <--> FirebaseBackend
@@ -226,7 +228,7 @@ flowchart TB
 
 <br />
 
-![Component Diagram](diagrams/component-diagram.drawio.png)
+![Component Diagram](diagrams/diagrams2/component-diagram.drawio.png)
 
 </details>
 
@@ -235,7 +237,7 @@ flowchart TB
 
 <br />
 
-แผนภาพแสดงลำดับเวลาและปฏิสัมพันธ์ของระบบใน 4 สเต็ปหลัก ตั้งแต่ Login, โหลดหลักสูตร, แสดงผลเงื่อนไข และถาม-ตอบแชทบอท:
+แผนภาพแสดงลำดับเวลาและปฏิสัมพันธ์ของระบบใน 4 สเต็ปหลัก ตั้งแต่ Login, โหลดหลักสูตร 2 มุมมอง, บันทึกเกรด และถาม-ตอบแชทบอท:
 
 ```mermaid
 sequenceDiagram
@@ -243,48 +245,51 @@ sequenceDiagram
     actor User as 👤 ผู้ใช้ (User)
     participant UI as 💻 Frontend (React App)
     participant Auth as 🔐 Auth Service (AuthContext)
-    participant Svc as ⚙️ Firebase Service
-    participant FB as 🔥 Firebase Backend
-    participant N8N as 🤖 n8n Chatbot Service (GPT-5 nano)
+    participant Svc as ⚙️ Business Service (StudyPlan/Hybrid)
+    participant FB as 🔥 Firebase Cloud (Auth/Firestore)
+    participant N8N as 🤖 n8n AI Engine (Pinecone + GPT-5)
 
     %% Step 1: Login
-    Note over User,FB: 1. การยืนยันตัวตน (Authentication Flow)
-    User->>UI: 1.1 กรอกข้อมูลเข้าสู่ระบบ
-    UI->>Auth: 1.2 เรียกฟังก์ชัน login()
-    Auth->>FB: 1.3 signInWithEmailAndPassword()
-    FB-->>Auth: 1.4 ยืนยันตัวตนสำเร็จ ส่ง Token/Role
-    Auth->>Auth: 1.5 อัปเดต AuthContext State
-    Auth-->>UI: 1.6 นำทางไปยัง Dashboard ตามบทบาท
+    Note over User,FB: 1. การยืนยันตัวตน (Authentication & RBAC Session)
+    User->>UI: 1.1 กรอกข้อมูลเข้าสู่ระบบ (Email/Password)
+    UI->>Auth: 1.2 เรียก login(email, password)
+    Auth->>FB: 1.3 verifyCredentials() ส่งไปยัง Firebase Auth
+    FB-->>Auth: 1.4 ยืนยันตัวตนสำเร็จ ส่ง Token & User Profile
+    Auth->>Auth: 1.5 เซ็ต Session State และ Role สิทธิ์ผู้ใช้
+    Auth-->>UI: 1.6 Route Guard นำทางไปยัง Dashboard ตามสิทธิ์
 
-    %% Step 2: Curriculum Display
-    Note over User,FB: 2. การดึงข้อมูลหลักสูตร (Curriculum Data Sync)
-    User->>UI: 2.1 เลือกสาขาวิชาและปีหลักสูตร
-    UI->>Svc: 2.2 เรียก getCoursesByYear()
-    Svc->>FB: 2.3 ดึงข้อมูลรายวิชาจาก Realtime Database
-    FB-->>Svc: 2.4 ส่งคืน Curriculum Course Records
-    Svc-->>UI: 2.5 อัปเดตข้อมูลรายวิชาเข้า State
-    UI-->>User: 2.6 แสดงผลผังวิชาแบบ Interactive Flowchart
+    %% Step 2: Curriculum Display & Dual-View Flowchart
+    Note over User,FB: 2. โหลดข้อมูลหลักสูตรและเรนเดอร์ผัง 2 มุมมอง (Dual-View Flowchart)
+    User->>UI: 2.1 เปิดหน้า /dashboard/student
+    UI->>Svc: 2.2 getStudyPlanByStudentId(studentId)
+    Svc->>FB: 2.3 อ่านข้อมูล studyPlans/ (เช่น INE 62 หรือ 62 สหกิจ)
+    FB-->>Svc: 2.4 ส่งคืนข้อมูลแผนและผลการเรียนที่บันทึก
+    Svc->>UI: 2.5 Auto-detect แผนปกติ vs สหกิจ และดึง Hybrid Curriculum
+    UI-->>User: 2.6 แสดงแท็บ 📋 แผนของฉัน (Timeline) และ 🗺️ โครงสร้างหลักสูตร (14 ลูกศร Prereq)
 
-    %% Step 3: Prerequisites
-    Note over User,FB: 3. การตรวจสอบเงื่อนไขวิชา (Prerequisite Resolution)
-    User->>UI: 3.1 คลิกเลือกรายวิชาที่สนใจ
-    UI->>Svc: 3.2 เรียก getPrerequisites()
-    Svc->>FB: 3.3 ดึงข้อมูลวิชาบังคับก่อนและร่วม
-    FB-->>Svc: 3.4 ส่งรายการรหัสวิชาเงื่อนไข
-    Svc-->>UI: 3.5 คำนวณความสัมพันธ์ของแผนผัง
-    UI-->>User: 3.6 ไฮไลต์เส้นเชื่อมและวิชาบังคับก่อนบนหน้าจอ
+    %% Step 3: Grade Recording & Prerequisite Resolution
+    Note over User,FB: 3. การบันทึกเกรดและประมวลผลความคืบหน้า (Grade Recording & Cascade)
+    User->>UI: 3.1 กรอกเกรดรายวิชา หรือย้ายภาคการศึกษา
+    UI->>Svc: 3.2 serializeStudentCourse() รักษา Origin & ตรวจสอบเงื่อนไข Prereq
+    Svc->>FB: 3.3 updateStudyPlan() บันทึกลง Firestore studyPlans/
+    FB-->>Svc: 3.4 ยืนยันการบันทึกสำเร็จ (Sync Realtime)
+    Svc->>UI: 3.5 buildStudyPlanView() คำนวณ KPI หน่วยกิตที่ผ่านใหม่
+    UI-->>User: 3.6 อัปเดตแถบความคืบหน้าและไฮไลท์สถานะวิชาผ่านสีเขียว (✓ เกรด [X])
 
-    %% Step 4: Chatbot Interaction
-    Note over User,N8N: 4. การสนทนาแชทบอท (Chatbot RAG Advising)
-    User->>UI: 4.1 พิมพ์คำถามเกี่ยวกับหลักสูตร
-    UI->>N8N: 4.2 ส่งคำถาม + บริบทหลักสูตรที่ลงทะเบียน (Enrolled Curriculum)
-    N8N-->>UI: 4.3 ส่งคำตอบมาตรฐาน [รหัสวิชา] [ชื่อวิชา]
-    UI-->>User: 4.4 แสดงผลข้อความแนะนำในหน้าต่างแชท
+    %% Step 4: Chatbot Interaction & Feedback Loop
+    Note over User,N8N: 4. การสนทนาแชทบอทให้คำปรึกษาหลักสูตร (AI RAG Advising & Feedback)
+    User->>UI: 4.1 พิมพ์คำถามเกี่ยวกับหลักสูตรใน #n8n-chat
+    UI->>N8N: 4.2 POST Webhook ส่งคำถาม + บริบทหลักสูตรที่ศึกษา
+    N8N->>N8N: 4.3 Pinecone Vector Search (มคอ.2 62.pdf) + GPT-5 nano Reasoning
+    N8N-->>UI: 4.4 ส่งคำตอบที่แม่นยำ พร้อมระบุเอกสารอ้างอิงและเลขหน้า
+    UI-->>User: 4.5 แสดงผลข้อความแนะนำ และแสดง FeedbackBanner
+    User->>UI: 4.6 คลิกประเมินความพึงพอใจ (Like / Dislike / Rate)
+    UI->>FB: 4.7 chatLogService.logFeedback() บันทึกสถิติลง chat_analytics/
 ```
 
 <br />
 
-![Sequence Diagram](diagrams/sequence-diagram.drawio.png)
+![Sequence Diagram](diagrams/diagrams2/sequence-diagram.drawio.png)
 
 </details>
 

@@ -1,0 +1,96 @@
+<mxfile host="app.diagrams.net" modified="2026-09-15T00:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="ComponentDiagram" name="Modular Component Diagram">
+    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Header -->
+        <mxCell id="header" value="&lt;b style='font-size: 22px;'&gt;🏗️ IT Assistant — Modular Component Diagram&lt;/b&gt;&lt;br/&gt;&lt;span style='color: #475569; font-size: 13px;'&gt;โครงสร้างโมดูล การแยกหน้าที่ (Separation of Concerns) ระหว่าง Presentation Layer, Business Services, และ Cloud Integrations&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1480" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 1: Client Presentation -->
+        <mxCell id="l1_box" value="🖥️ Presentation &amp; UI Layer (React 18 + TypeScript + Vite + Tailwind CSS)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0F9FF;strokeColor=#0284C7;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#0369A1;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="110" width="1480" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c_app" value="&lt;b&gt;App.tsx&lt;/b&gt;&lt;br/&gt;Router, Layout &amp; Theme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="20" y="50" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_auth" value="&lt;b&gt;AuthContext.tsx&lt;/b&gt;&lt;br/&gt;Session &amp; RBAC Guards" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="210" y="50" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_dashboards" value="&lt;b&gt;Role Dashboards&lt;/b&gt;&lt;br/&gt;Student, Advisor, Staff, Admin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="400" y="50" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_courses_page" value="&lt;b&gt;Courses.tsx&lt;/b&gt;&lt;br/&gt;13-Curriculum Catalog Explorer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="620" y="50" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_chatbot_ui" value="&lt;b&gt;ChatBot.tsx + FeedbackBanner&lt;/b&gt;&lt;br/&gt;#n8n-chat Surface with Star/Like Rating" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="840" y="50" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_course_mgmt" value="&lt;b&gt;CourseManagement.tsx&lt;/b&gt;&lt;br/&gt;Admin/Staff CRUD &amp; Sync Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="1110" y="50" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Sub-components in Presentation -->
+        <mxCell id="sub_plan_box" value="🎓 Study Plan &amp; Flowchart Feature Components" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0369A1;strokeWidth=1.5;fontSize=12;fontColor=#0369A1;startSize=26;" vertex="1" parent="l1_box">
+          <mxGeometry x="20" y="130" width="1440" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c_sp_progress" value="&lt;b&gt;StudyPlanProgress.tsx&lt;/b&gt;&lt;br/&gt;Dual-View Tabs Container&lt;br/&gt;Auto-Track Switcher (Normal/Co-op)&lt;br/&gt;14-Arrow Orthogonal SVG Renderer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="20" y="40" width="300" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sp_timeline" value="&lt;b&gt;StudentPlanTimeline.tsx&lt;/b&gt;&lt;br/&gt;Personal Recorded Plan View&lt;br/&gt;Transcript Projection &amp; Grade Badges&lt;br/&gt;Passing/Failing Grade Styling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="340" y="40" width="270" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sp_manager" value="&lt;b&gt;StudyPlanManager.tsx&lt;/b&gt;&lt;br/&gt;Create/Edit/Reset Plan&lt;br/&gt;Prerequisite Cascade Clear&lt;br/&gt;Drag-and-Drop Term Rescheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="630" y="40" width="270" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_flowcharts" value="&lt;b&gt;CurriculumTimelineFlowchart.tsx&lt;/b&gt;&lt;br/&gt;&lt;b&gt;CurriculumFlowchart.tsx&lt;/b&gt;&lt;br/&gt;Public Flowchart Explorer on /courses&lt;br/&gt;Hybrid Data Sync with Blue Arrowheads" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="920" y="40" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sp_report" value="&lt;b&gt;StudyPlanReport.tsx&lt;/b&gt;&lt;br/&gt;PDF Export &amp; Grade Report&lt;br/&gt;Advisor Review Sheet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="1220" y="40" width="200" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 2: Business & Domain Services -->
+        <mxCell id="l2_box" value="⚙️ Service &amp; Domain Logic Layer (Pure Business Functions &amp; Data Access)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#B45309;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="480" width="1480" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s_identity" value="&lt;b&gt;studyPlanIdentity.ts&lt;/b&gt;&lt;br/&gt;• normalizeCodeForMatching()&lt;br/&gt;  (Strips prefix &amp; * asterisk)&lt;br/&gt;• serializeStudentCourse()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="20" y="50" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_vm" value="&lt;b&gt;studyPlanViewModel.ts&lt;/b&gt;&lt;br/&gt;• buildStudyPlanView()&lt;br/&gt;• resolveResult()&lt;br/&gt;• KPI Passed Credits Engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="260" y="50" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_hybrid" value="&lt;b&gt;hybridCourseService.ts&lt;/b&gt;&lt;br/&gt;• getHybridCurriculumData()&lt;br/&gt;• Data Sanitization &amp; Filter&lt;br/&gt;• Firebase Corrupt Cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="500" y="50" width="230" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_master" value="&lt;b&gt;completeCurriculumData.ts&lt;/b&gt;&lt;br/&gt;• courseDatabase (13 Curricula)&lt;br/&gt;• IT, INE (ปกติ/สหกิจ), INET, ITI, ITT&lt;br/&gt;• Official Prerequisite Map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="750" y="50" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_dept" value="&lt;b&gt;departmentService.ts&lt;/b&gt;&lt;br/&gt;• getCurriculumSummaryCatalog()&lt;br/&gt;• Total Credits Catalog (120-135)&lt;br/&gt;• Department Metadata" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="1010" y="50" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_firebase" value="&lt;b&gt;firebaseService.ts&lt;/b&gt;&lt;br/&gt;• Firestore CRUD Operations&lt;br/&gt;• getStudyPlanByStudentId()&lt;br/&gt;• chatLogService Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="1250" y="50" width="210" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 3: External Infrastructure -->
+        <mxCell id="l3_box" value="☁️ External Infrastructure &amp; AI Cloud Services" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7E22CE;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#6B21A8;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="740" width="1480" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_fb_all" value="&lt;b style='font-size:14px;'&gt;🔥 Firebase Cloud Platform&lt;/b&gt;&lt;br/&gt;Firebase Authentication · Cloud Firestore · Security Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=1.5;" vertex="1" parent="l3_box">
+          <mxGeometry x="100" y="45" width="550" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_n8n_all" value="&lt;b style='font-size:14px;'&gt;🤖 n8n AI Workflow &amp; Vector Search Engine&lt;/b&gt;&lt;br/&gt;Pinecone Vector Store (มคอ.2 Handbook Chunks) · OpenAI GPT-5 nano LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=1.5;" vertex="1" parent="l3_box">
+          <mxGeometry x="830" y="45" width="550" height="65" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
