@@ -88,16 +88,25 @@ const StudyPlanProgress: React.FC = () => {
     loadStudyPlan();
   }, [user?.id]);
 
+  // Derived student enrolled track (direct from study plan)
+  const isStudentPlanCoop = useMemo(() => {
+    return (
+      studyPlanData?.curriculumYear?.includes('สหกิจ') ||
+      studyPlanData?.program?.includes('COOP') ||
+      false
+    );
+  }, [studyPlanData]);
+
   // Track toggle for curriculum tab (e.g. 'normal' vs 'coop')
   const [activeTrack, setActiveTrack] = useState<'normal' | 'coop' | null>(null);
 
-  // Initialize active track when study plan data loads
+  // Sync active track automatically whenever student study plan data loads or updates
   useEffect(() => {
-    if (studyPlanData && activeTrack === null) {
+    if (studyPlanData) {
       const isCoop = studyPlanData.program.includes('COOP') || studyPlanData.curriculumYear.includes('สหกิจ');
       setActiveTrack(isCoop ? 'coop' : 'normal');
     }
-  }, [studyPlanData, activeTrack]);
+  }, [studyPlanData?.program, studyPlanData?.curriculumYear]);
 
   // Derived current program and curriculum year
   const currentProgramCode = useMemo(() => {
@@ -118,8 +127,8 @@ const StudyPlanProgress: React.FC = () => {
     if (activeTrack !== null) {
       return activeTrack === 'coop';
     }
-    return studyPlanData?.curriculumYear?.includes('สหกิจ') || studyPlanData?.program?.includes('COOP') || false;
-  }, [activeTrack, studyPlanData]);
+    return isStudentPlanCoop;
+  }, [activeTrack, isStudentPlanCoop]);
 
   const currentCurriculumYear = useMemo(() => {
     return isCurrentTrackCoop ? `${currentBaseYear} สหกิจ` : currentBaseYear;
@@ -621,30 +630,66 @@ const StudyPlanProgress: React.FC = () => {
 
         {/* Curriculum reference SVG tab — keeps existing flowchart */}
         <TabsContent value="curriculum">
-          {/* Track Switcher (Normal vs Co-op) */}
-          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-3 border-2 border-black mb-4">
-            <div className="font-bold text-sm">
-              เลือกแผนการศึกษา:
+          {/* Track Status Header */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 border-2 border-black mb-4">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm">โครงสร้างหลักสูตร:</span>
+              <Badge className="bg-black text-white text-xs px-2.5 py-1">
+                {isCurrentTrackCoop ? '💼 โครงการสหกิจศึกษา' : '📘 โครงการปกติ'} (หลักสูตร {currentProgramCode} {currentCurriculumYear})
+              </Badge>
+              {studyPlanData && (
+                <span className="text-xs text-muted-foreground hidden sm:inline">
+                  (แสดงผลอัตโนมัติตามแผนการเรียนของคุณ)
+                </span>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={!isCurrentTrackCoop ? "default" : "outline"}
-                onClick={() => setActiveTrack('normal')}
-                className={!isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
-              >
-                📘 แผนปกติ ({currentBaseYear})
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={isCurrentTrackCoop ? "default" : "outline"}
-                onClick={() => setActiveTrack('coop')}
-                className={isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
-              >
-                💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
-              </Button>
+
+            {/* Switcher: subtle comparison button for enrolled student, or preview buttons if no plan yet */}
+            <div className="flex items-center gap-2">
+              {studyPlanData ? (
+                activeTrack !== (isStudentPlanCoop ? 'coop' : 'normal') ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setActiveTrack(isStudentPlanCoop ? 'coop' : 'normal')}
+                    className="border-black text-black text-xs hover:bg-neutral-100"
+                  >
+                    ↩️ กลับสู่ผังหลักสูตรของคุณ ({isStudentPlanCoop ? 'สหกิจ' : 'ปกติ'})
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setActiveTrack(isStudentPlanCoop ? 'normal' : 'coop')}
+                    className="text-xs text-muted-foreground hover:text-black border border-dashed border-neutral-300 hover:border-black"
+                  >
+                    🔍 ดูผัง{isStudentPlanCoop ? 'แผนปกติ' : 'แผนสหกิจ'} (เพื่อเปรียบเทียบ)
+                  </Button>
+                )
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={!isCurrentTrackCoop ? "default" : "outline"}
+                    onClick={() => setActiveTrack('normal')}
+                    className={!isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
+                  >
+                    📘 แผนปกติ ({currentBaseYear})
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={isCurrentTrackCoop ? "default" : "outline"}
+                    onClick={() => setActiveTrack('coop')}
+                    className={isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
+                  >
+                    💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
