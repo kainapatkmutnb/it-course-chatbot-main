@@ -1,0 +1,4745 @@
+{
+  "name": "IT-Chatbot 4 copy",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        304
+      ],
+      "id": "d8bd66e8-61e8-4694-bea1-c4f67f1da4b3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        304
+      ],
+      "id": "4ab7b5a4-cdcd-4f56-a7a9-eb8b6ce8227c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        704,
+        400
+      ],
+      "id": "439b5af8-8051-4577-be10-98061c5bf6e3",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        176
+      ],
+      "id": "f2940760-1e37-4004-bac5-d0cfe323dd57",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        176
+      ],
+      "id": "179c7d10-a586-49d3-8987-ee1113134fb9",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "INE-62"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        176
+      ],
+      "id": "122bfd4e-ec1f-4416-b248-79a046e69b35",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        384
+      ],
+      "id": "fc32ee9a-5314-4f6e-bc51-8a62df1c2c89",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields').item.json.file_name }}"
+              },
+              {
+                "name": "curriculum",
+                "value": "INE-62"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        336
+      ],
+      "id": "bb6e3ae6-167e-4a41-be2a-58f7a7a4500b",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"INE-62\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        176
+      ],
+      "id": "efb1f098-9f32-46c5-8ad6-c46507e6267f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        -432
+      ],
+      "id": "7ab31be8-c30b-4125-bf48-7498ee1adce5",
+      "name": "When chat message received",
+      "webhookId": "dd7276e3-4e2c-48c0-a7b7-ca3647acf777"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are an authoritative academic advisor for the Department of Information Technology, Faculty of Applied Science, KMUTNB.\n\n--- Current Authenticated User Context ---\nStudent Name: {{ $json.metadata.userName }}\nStudent ID: {{ $json.metadata.studentId }}\nUser Role: {{ $json.metadata.role }}\nDepartment: {{ $json.metadata.department }}\nEnrolled Curriculum: {{ $json.metadata.enrolledCurriculum }}\nActive Curriculum Context: {{ $json.metadata.activeCurriculum }}\nAuthoritative Curriculum Rule (Duration, Internship, Co-op Guard):\n{{ JSON.stringify($json.metadata.activeCurriculumRule) }}\nCurriculum Duration Guard Matrix (All 13 Curricula):\n{{ JSON.stringify($json.metadata.curriculumDurationGuard) }}\nCurrent GPA: {{ $json.metadata.gpa }}\nAcademic Standing: {{ $json.metadata.academicStanding }} (isProbation: {{ $json.metadata.isProbation }})\nAllowed Credit Bounds: Min {{ $json.metadata.allowedMinCredits }} credits, Max {{ $json.metadata.allowedMaxCredits }} credits\nCompleted Credits: {{ $json.metadata.completedCredits }} / {{ $json.metadata.totalCredits }}\nCompleted Courses (Passed): {{ $json.metadata.completedCourseCodes.join(', ') }}\nFailed Courses (Grade F / Failed): {{ JSON.stringify($json.metadata.failedCourses) }}\n\nPersonal Study Plan:\n{{ JSON.stringify($json.metadata.studyPlan) }}\n\nUncompleted Curriculum Courses:\n{{ JSON.stringify($json.metadata.uncompletedCurriculumCourses) }}\n\n========================================================================================\n=== STRICT ANSWER POLICY: CONCISE, SCOPED & DIRECT (ตอบสั้น ตรงประเด็น ไม่เยิ่นเย้อ) ===\n========================================================================================\n1. ตอบสั้น กระชับ และตรงประเด็น (Default Answer Length):\n   - ตอบเฉพาะประเด็นที่ผู้ใช้ถามโดยตรง ความยาวไม่เกิน 2–4 ประโยคสั้น หรือไม่เกิน 3 ข้อความย่อย (bullets)\n   - ห้ามเกริ่นทักทายซ้ำซาก ห้ามสรุปข้อมูลที่ไม่ได้ถาม และห้ามพิมพ์ข้อความเสนอแนะหรือถามความสมัครใจปิดท้าย (เช่น \"ต้องการให้ช่วยอะไรเพิ่มไหมครับ\", \"หากต้องการดูตาราง CSV แจ้งได้\")\n2. ขอบเขตคำตอบตามคำถามเท่านั้น (Strict Question Scoping):\n   - หากถามวิชาเดียว (เช่น \"วิชานี้เรียนเกี่ยวกับอะไร\" หรือ \"มีตัวต่อไหม\") -> ตอบเฉพาะวิชานั้นเท่านั้น ห้ามแสดงรายวิชาทั้งเทอมหรือทั้งปี\n   - หากถามเทอมเดียว (เช่น \"ปี 1 เทอม 1 เรียนอะไร\") -> แสดงเฉพาะวิชาของเทอมนั้นเท่านั้น ห้ามนำเทอมอื่นมาแสดงเด็ดขาด\n   - แสดงรายวิชาทั้งหมดหรือตารางทั้งหลักสูตร 4 ปี เฉพาะเมื่อผู้ใช้ร้องขออย่างชัดเจนเท่านั้น (เช่น \"ขอรายชื่อวิชาทั้งหมด\", \"แสดงทุกเทอม\", \"ขอตารางเต็ม\")\n3. รูปแบบการระบุชื่อวิชา (Course Format):\n   - เมื่อกล่าวถึงรายวิชา ให้ระบุทั้งรหัส 8 หลักและชื่อวิชาภาษาไทยเสมอ: `[รหัสวิชา] [ชื่อวิชา] ([หน่วยกิต] หน่วยกิต)`\n   - ตัวอย่าง: `060233108 การสื่อสารข้อมูลและเครือข่ายคอมพิวเตอร์ (3 หน่วยกิต)`\n   - ห้ามตอบเฉพาะรหัสวิชาโดดๆ เช่น `060233108` เป็นอันขาด\n\n========================================================================================\n=== MASTER GUARDRAILS: DURATION, CO-OP & INTERNSHIP WHITELIST ===\n========================================================================================\n| Curriculum | Type & Track | Years | Semesters | Internship (ฝึกงาน) | Co-op (สหกิจศึกษา) | Max Semesters & Strict Stop |\n|:---|:---|:---:|:---:|:---|:---|:---|\n| **ITT-67** | เทียบโอน 2567 | 2 ปี | 4 เทอม (1-1..2-2) | **ไม่มีฝึกงาน** | **ไม่มีสหกิจศึกษา** | จบที่ 2-2 ห้ามมีปี 3-4 หรือซัมเมอร์ |\n| **ITI-66** | ต่อเนื่อง 2566 | 2 ปี | 5 เทอม | มีใน 1-3 ฤดูร้อน (`060223129` 2 นก.) | **ไม่มีสหกิจศึกษา** | จบที่ 2-2 ห้ามมีปี 3-4 |\n| **ITI-61** | ต่อเนื่อง 2561 | 2 ปี | 5 เทอม | มีใน 1-3 ฤดูร้อน (`060223129` 2 นก.) | **ไม่มีสหกิจศึกษา** | จบที่ 2-2 ห้ามมีปี 3-4 |\n| **INET-67** | ป.ตรี 3 ปี 2567 | 3 ปี | 7 เทอม | มีใน 2-3 ฤดูร้อน (`060233403` 1 นก.) | **ไม่มีสหกิจศึกษา** | จบที่ 3-2 ห้ามมีปี 4 |\n| **INET-62** | ป.ตรี 3 ปี 2562 | 3 ปี | 7 เทอม | มีใน 2-3 ฤดูร้อน (`060233403` 2 นก.) | **ไม่มีสหกิจศึกษา** | จบที่ 3-2 ห้ามมีปี 4 |\n| **IT-67** | 4 ปี ปกติ | 4 ปี | 9 เทอม | **มีใน 3-3 ฤดูร้อน (`060243204` 1 นก.)** | **ไม่มีสหกิจศึกษา** | จบที่ 4-2 (มี 9 เทอม รวม 3-3) |\n| **IT-67-COOP** | 4 ปี สหกิจ | 4 ปี | 8 เทอม | **ไม่มี 3-3 ฝึกงาน** | มีใน 4-1 (`060243301`) และ 4-2 (`060243302` 6 นก.) | จบที่ 4-2 |\n| **IT-62** | 4 ปี ปกติ | 4 ปี | 9 เทอม | **มีใน 3-3 ฤดูร้อน (`060243201` 2 นก.)** | **ไม่มีสหกิจศึกษา** | จบที่ 4-2 (มี 9 เทอม รวม 3-3) |\n| **IT-62-COOP** | 4 ปี สหกิจ | 4 ปี | 8 เทอม | **ไม่มี 3-3 ฝึกงาน** | มีใน 4-1 (`060243301`) และ 4-2 (`060243302` 6 นก.) | จบที่ 4-2 |\n| **INE-67** | 4 ปี ปกติ | 4 ปี | 9 เทอม | **มีใน 3-3 ฤดูร้อน (`060233403` 1 นก.)** | **ไม่มีสหกิจศึกษา** | จบที่ 4-2 (มี 9 เทอม รวม 3-3) |\n| **INE-67-COOP**| 4 ปี สหกิจ | 4 ปี | 8 เทอม | **ไม่มี 3-3 ฝึกงาน** | มีใน 4-1 (`060233501`) และ 4-2 (`060233502` 6 นก.) | จบที่ 4-2 |\n| **INE-62** | 4 ปี ปกติ | 4 ปี | 9 เทอม | **มีใน 3-3 ฤดูร้อน (`060233403` 2 นก.)** | **ไม่มีสหกิจศึกษา** | จบที่ 4-2 (มี 9 เทอม รวม 3-3) |\n| **INE-62-COOP**| 4 ปี สหกิจ | 4 ปี | 8 เทอม | **ไม่มี 3-3 ฝึกงาน** | มีใน 3-2 (`060233501`) และ 4-2 (`060233502` 6 นก.) | จบที่ 4-2 |\n\n### STRICT REFUSAL & INTERNSHIP/CO-OP RULES:\n1. INTERNSHIP RULES: หลักสูตร 4 ปี ปกติ (IT-67, IT-62, INE-67, INE-62) มีฝึกงานภาคฤดูร้อนในเทอม 3-3 เสมอ ห้ามตอบว่าไม่มีเด็ดขาด\n2. CO-OP WHITELIST: สหกิจศึกษามีเฉพาะ 4 หลักสูตรนี้เท่านั้น: [IT-67-COOP, IT-62-COOP, INE-67-COOP, INE-62-COOP] ห้ามมีในหลักสูตรปกติหรือเทียบโอน\n3. DURATION LIMITS:\n   - ITT-67: มีแค่ปี 1 และปี 2 (สิ้นสุดที่ 2-2) รวม 28 วิชา 84 นก.\n   - ITI-66 / ITI-61: มีแค่ปี 1 และปี 2 (สิ้นสุดที่ 2-2) รวม 5 เทอม (มี 1-3 ฝึกงาน)\n   - INET-67 / INET-62: มีแค่ปี 1 ถึงปี 3 (สิ้นสุดที่ 3-2) รวม 7 เทอม (มี 2-3 ฝึกงาน)\n   - ห้ามเอ่ยถึงชั้นปีที่เกินจากระยะเวลาของหลักสูตรนั้นเด็ดขาด\n4. SINGLE SOURCE OF TRUTH: ยึดข้อมูลใน Authoritative Curriculum Rule (จาก metadata.activeCurriculumRule) และตาราง Master Guardrails ด้านบนเป็นหลักเสมอ\n\n========================================================================================\n--- STRICT ADVISING DIRECTIVES & BEHAVIORAL PROTOCOLS ---\n========================================================================================\n1. TARGET CURRICULUM RESOLUTION & TOOL SELECTION:\n   - ระบุหลักสูตรที่ผู้ใช้ถาม (เช่น INE-62, IT-67) หากผู้ใช้ถามต่อเนื่องโดยไม่ระบุ ให้รักษาบริบทหลักสูตรเดิมไว้\n   - เรียกใช้ Retrieval Tool ที่ตรงกับหลักสูตรนั้นๆ เพื่อค้นหาข้อมูลจริงจากเล่ม มคอ.2 ห้ามเดาหรือแต่งข้อมูลขึ้นเอง\n2. REGISTRATION ADVISING:\n   - ห้ามแนะนำวิชาที่อยู่ใน completedCourseCodes เด็ดขาด\n   - หากติด F ในวิชาที่เป็น prerequisite ให้แจ้งว่าวิชาตัวต่อถูกบล็อก และแนะนำให้ลงเรียนซ้ำ (Retake)\n   - ตรวจสอบกรอบหน่วยกิต: ปกติ 9-22 หน่วยกิต, ติดโปร (isProbation: true) ไม่เกิน 16 หน่วยกิต",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -496
+      ],
+      "id": "f1ca3d5d-b28f-4460-847c-906486d726b3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-nano",
+          "mode": "list",
+          "cachedResultName": "gpt-5-nano"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        -224
+      ],
+      "id": "86612696-a9d4-4e3d-b3dc-f118b8a7a653",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        -64
+      ],
+      "id": "7cdebe4f-4aac-46cf-9b67-804ddea193d4",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        416,
+        -48
+      ],
+      "id": "1266c031-7f91-4f02-b07f-6a0c5d10f9dd",
+      "name": "Reranker Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for INE-62 (วิศวกรรมสารสนเทศและเครือข่าย พ.ศ. 2562).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "INE-62"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        -224
+      ],
+      "id": "294927b3-70cb-4517-a743-ed550532f2cc",
+      "name": "Pinecone Vector Store INE-62",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1HVkTTvmfZhureP8trxEL8gBIb37rElDc",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        304
+      ],
+      "id": "b397f91e-1366-48ff-a2f5-5c013157d3f2",
+      "name": "Google Drive Trigger File Created INE-62",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        752
+      ],
+      "id": "9fb7347f-6d90-4d24-803b-530152591b91",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        304,
+        752
+      ],
+      "id": "73503e5a-0499-4dad-8306-78c61a01b308",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        720,
+        848
+      ],
+      "id": "e0ec8cc9-bc14-4896-9054-26e2edcaa471",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields1').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        848,
+        624
+      ],
+      "id": "98ef4914-3561-4721-99ad-8ff225121565",
+      "name": "Download file1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        624
+      ],
+      "id": "b14182b1-6a31-4c9a-b6a8-f66e127c10d1",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        832
+      ],
+      "id": "054c3613-c990-4ec9-be43-a2b46aa2a14b",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields1').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        784
+      ],
+      "id": "872829af-040e-4884-9208-99f3ab83edde",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"INE-67\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields1').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        624
+      ],
+      "id": "c9ae31b1-6439-466f-ab1b-646ef37a520d",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1CtA1YS8PHkwMRL_wy-SJxxRDVRhJpcJ5",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        752
+      ],
+      "id": "e87b4d24-684d-4d05-b24e-0593d1ca9ad4",
+      "name": "Google Drive Trigger File Created INE-67",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        -48
+      ],
+      "id": "83e6c3c5-06b4-4a96-87be-b530432eb54f",
+      "name": "Embeddings OpenAI3",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -48
+      ],
+      "id": "be91f9f7-e205-4b91-8c4b-920a9494d7f7",
+      "name": "Reranker Cohere1",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for INE-67 (วิศวกรรมสารสนเทศและเครือข่าย พ.ศ. 2567).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "INE-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        -240
+      ],
+      "id": "855aee41-89ce-470e-abcd-a5b9e2e7fdd1",
+      "name": "Pinecone Vector Store INE-67",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        1152
+      ],
+      "id": "ae8e7cab-dc91-484e-b33b-5b7f972b3ea9",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        1152
+      ],
+      "id": "c26b24cd-79f9-4794-ab12-caec13a6e076",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        704,
+        1248
+      ],
+      "id": "9627059f-ab44-418a-b6a5-2663dae52c49",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields2').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        1024
+      ],
+      "id": "2809e84e-dfaa-41c6-8c45-b0726f9ee243",
+      "name": "Download file2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        1024
+      ],
+      "id": "00db7920-ba05-4e74-a5e7-feddca09480e",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        1232
+      ],
+      "id": "37c8f920-6dee-47b7-bfbe-20ac65adef0f",
+      "name": "Embeddings OpenAI4",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields2').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        1200
+      ],
+      "id": "a0abc39e-7d67-405d-ba7e-555a48cd8b9c",
+      "name": "Default Data Loader2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"INET-62\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields2').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        1024
+      ],
+      "id": "c87ce5ba-dbfb-46b1-8868-59d28a9ecc84",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1B-BzuExjfeKi4u-3F-cy3k_Sy2djVBDA",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        1152
+      ],
+      "id": "f41bd8c7-2bac-4eae-9a38-457e9f4ea00e",
+      "name": "Google Drive Trigger File Created INET-62",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "INE-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        624
+      ],
+      "id": "e84c460c-2e7a-4840-a2b2-4529bffc10de",
+      "name": "Pinecone Vector Store2",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "INET-62"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        1024
+      ],
+      "id": "322a3353-5e83-4ec0-87aa-6c7d729497cf",
+      "name": "Pinecone Vector Store3",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        -48
+      ],
+      "id": "ece24f00-b628-46ce-9e17-fd40b7cc69af",
+      "name": "Embeddings OpenAI5",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -48
+      ],
+      "id": "f746fe99-0f4d-461c-a703-115c5b40a048",
+      "name": "Reranker Cohere2",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for INET-62 (เทคโนโลยีสารสนเทศและเครือข่าย พ.ศ. 2562 หลักสูตร 3 ปี).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "INET-62"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        -240
+      ],
+      "id": "34594773-0b77-4976-a527-e511a4682f89",
+      "name": "Pinecone Vector Store INET-62",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        1568
+      ],
+      "id": "28d1f988-5118-45ee-b7af-9dfcaf7568e4",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        304,
+        1568
+      ],
+      "id": "35aed21d-a2fe-49dc-96fd-0f5b51820378",
+      "name": "Switch3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        720,
+        1664
+      ],
+      "id": "d90ea902-9d4e-44a9-ad69-63cd3e3d0838",
+      "name": "No Operation, do nothing3"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields3').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        848,
+        1440
+      ],
+      "id": "f643fff8-d348-4af9-8da5-16323bcfbd71",
+      "name": "Download file3",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        1440
+      ],
+      "id": "1f2bb926-b326-4393-a03b-ac86bbb30cea",
+      "name": "Extract from File3"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        1648
+      ],
+      "id": "8bc6f89d-e57a-4d1a-8c59-abb2cc25db89",
+      "name": "Embeddings OpenAI6",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields3').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        1584
+      ],
+      "id": "ebedf0ae-4dca-496a-a29c-e1ca4f875d25",
+      "name": "Default Data Loader3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"INET-67\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields3').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        1440
+      ],
+      "id": "361f65fe-34d5-4665-8655-5deb8eabcc82",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "INET-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        1440
+      ],
+      "id": "a13951dc-ea5e-4fe9-8d82-77efb6090ffb",
+      "name": "Pinecone Vector Store4",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1pFbOLeHrDQIHREd3rrjFyUrAGLda_1LD",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        1568
+      ],
+      "id": "b79338b6-0b39-4f7f-8d72-7c98e445d829",
+      "name": "Google Drive Trigger File Created INET-67",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1168,
+        -48
+      ],
+      "id": "48cb64a8-7026-4d69-b7a2-c56b5ed74307",
+      "name": "Embeddings OpenAI7",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        -48
+      ],
+      "id": "7d032ea9-9f68-44be-a761-44decb7f3bc1",
+      "name": "Reranker Cohere3",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for INET-67 (เทคโนโลยีสารสนเทศและเครือข่าย พ.ศ. 2567 หลักสูตร 3 ปี).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "INET-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        -240
+      ],
+      "id": "a6d58f17-4a6e-43f6-beb6-dd44cc2c7bb0",
+      "name": "Pinecone Vector Store INET-67",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        2000
+      ],
+      "id": "8395da69-c501-4888-a5ab-e058ba293733",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        304,
+        2000
+      ],
+      "id": "8e5ede4f-8dda-409d-94d0-1a8b069742c9",
+      "name": "Switch4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        720,
+        2096
+      ],
+      "id": "4a850fe7-04d3-4030-bf04-b45bd460c593",
+      "name": "No Operation, do nothing4"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields4').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        848,
+        1872
+      ],
+      "id": "5155750d-b66c-4e68-8433-c078d5f51cfe",
+      "name": "Download file4",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        1872
+      ],
+      "id": "8283f750-ea3d-440e-a307-c099fcdb515c",
+      "name": "Extract from File4"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        2080
+      ],
+      "id": "33d62a9a-3799-4aa2-ac2d-ccc8a3817c26",
+      "name": "Embeddings OpenAI8",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields4').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        2016
+      ],
+      "id": "2f0e58d7-e5db-4cac-88ca-e6dd4a438753",
+      "name": "Default Data Loader4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"IT-62\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields4').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        1872
+      ],
+      "id": "5253fa65-295a-4184-8fe4-855171529c32",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "IT-62"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        1872
+      ],
+      "id": "72c333bd-1a57-485b-a143-f130e1740046",
+      "name": "Pinecone Vector Store5",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1jNVkQY8fOqAbBHAFJGJMPaNtD-Ka3-QF",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        2000
+      ],
+      "id": "c383b3b3-cca2-49fd-a5fa-3c143c2d4812",
+      "name": "Google Drive Trigger File Created IT-62",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        -32
+      ],
+      "id": "ff77a2c1-f990-4abb-a28f-4f384b9ce4b3",
+      "name": "Embeddings OpenAI9",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        -16
+      ],
+      "id": "d6efb761-23a3-47b2-9079-af70a77b719c",
+      "name": "Reranker Cohere4",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for IT-62 (เทคโนโลยีสารสนเทศ พ.ศ. 2562).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "IT-62"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1536,
+        -224
+      ],
+      "id": "929c5d8f-dae9-4b37-80e9-3f96cd3561d1",
+      "name": "Pinecone Vector Store IT-62",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        2400
+      ],
+      "id": "e43e29ee-6c36-40d7-b4a5-23182fd47277",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        2400
+      ],
+      "id": "54985b39-e0dc-4c0c-8dea-f41eb83f95f8",
+      "name": "Switch5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        704,
+        2496
+      ],
+      "id": "862ce80b-0ec3-470d-8a9f-43714b7cfd54",
+      "name": "No Operation, do nothing5"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields5').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        2272
+      ],
+      "id": "3314d886-a4ab-4daa-b020-b0199d7d4f92",
+      "name": "Download file5",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        2272
+      ],
+      "id": "2da52ac0-1266-40ff-acae-78b86e1e18bf",
+      "name": "Extract from File5"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        2480
+      ],
+      "id": "38f2e2fb-211e-4090-a13c-68d7f757797f",
+      "name": "Embeddings OpenAI10",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields5').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1264,
+        2512
+      ],
+      "id": "d8326ddf-2ff6-47ef-9523-f27fc3599aee",
+      "name": "Default Data Loader5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"IT-67\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields5').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        2272
+      ],
+      "id": "60a96f5d-62cd-4dfb-861a-d1eeb0d2c8ef",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "IT-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        2272
+      ],
+      "id": "a32c12ea-ba93-4639-aaf3-5dbd666d1cc9",
+      "name": "Pinecone Vector Store6",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        -32
+      ],
+      "id": "ce58478c-51c2-4ab2-9b6a-34540ba2b24a",
+      "name": "Embeddings OpenAI11",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        -16
+      ],
+      "id": "4b37cfe1-9d76-4e9a-bd1e-f77868c4d7c1",
+      "name": "Reranker Cohere5",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for IT-67 (เทคโนโลยีสารสนเทศ พ.ศ. 2567).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "IT-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1824,
+        -224
+      ],
+      "id": "2958dcab-b81d-4e3d-a273-6965104e4a74",
+      "name": "Pinecone Vector Store IT-67",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1HqPHdj1pe_OzrVvGasV1dZ5O1_dTB3R_",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        2400
+      ],
+      "id": "d65dba91-3349-4979-952d-239d731c7d27",
+      "name": "Google Drive Trigger File Created IT-67",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        2832
+      ],
+      "id": "e9179bcd-6e34-4dc2-84e3-1fb084fc7b95",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        2832
+      ],
+      "id": "f3c7768c-aace-49d0-88ca-eb46eafa8b10",
+      "name": "Switch6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        688,
+        2928
+      ],
+      "id": "38a5b338-dbd5-4759-a347-4497e1d82922",
+      "name": "No Operation, do nothing6"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields6').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        816,
+        2704
+      ],
+      "id": "04f538f7-2d87-471f-ad3a-c52035c72c3e",
+      "name": "Download file6",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        2704
+      ],
+      "id": "1f7843fe-7913-4b22-864d-90764c794a61",
+      "name": "Extract from File6"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        2912
+      ],
+      "id": "f2e9ac44-285b-4bbb-8e27-dfffc8a09975",
+      "name": "Embeddings OpenAI12",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields6').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        2880
+      ],
+      "id": "f70401b0-da6b-45c7-bddc-3f326540124d",
+      "name": "Default Data Loader6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"ITI-61\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields6').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        592,
+        2704
+      ],
+      "id": "e24cbc81-3e17-4d5c-8e70-435f15acf76d",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "ITI-61"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1232,
+        2704
+      ],
+      "id": "5bc5d282-e352-4823-88df-f64c80be8ab1",
+      "name": "Pinecone Vector Store7",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/1-pPEZYWryQHC8DIfvzI24hdjp-lFDA6C",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        2832
+      ],
+      "id": "97598033-7ed6-4024-b5d4-012548cf788f",
+      "name": "Google Drive Trigger File Created ITI-61",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        -512
+      ],
+      "id": "36a0d193-5233-4f73-a00a-d7671aaef2e3",
+      "name": "Embeddings OpenAI13",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -496
+      ],
+      "id": "05859cf8-8d05-4bcf-85fd-af5258287697",
+      "name": "Reranker Cohere6",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for ITI-61 (เทคโนโลยีสารสนเทศ ต่อเนื่อง พ.ศ. 2561).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "ITI-61"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        768,
+        -704
+      ],
+      "id": "927b5262-0a57-4350-b8f8-bee3d95a6851",
+      "name": "Pinecone Vector Store ITI-61",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        -512
+      ],
+      "id": "ad07dfcc-0cda-4b1f-b446-823e146412cc",
+      "name": "Embeddings OpenAI14",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -480
+      ],
+      "id": "177c4c1a-042a-422e-ad56-4d817d4c0ef2",
+      "name": "Reranker Cohere7",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for ITI-66 (เทคโนโลยีสารสนเทศ ต่อเนื่อง พ.ศ. 2566).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "ITI-66"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        -704
+      ],
+      "id": "f1c2b3a7-f1e5-4e36-9462-5a6250bb4d7d",
+      "name": "Pinecone Vector Store ITI-66",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1296,
+        -512
+      ],
+      "id": "61558564-29bd-4fc3-86be-40ba1120f786",
+      "name": "Embeddings OpenAI15",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "topN": 4
+      },
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        -480
+      ],
+      "id": "3857fcaf-6c6b-4f25-9aee-6c99df44cb60",
+      "name": "Reranker Cohere8",
+      "credentials": {
+        "cohereApi": {
+          "id": "Q6VFDSa5tpTJRsh1",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search and retrieve curriculum handbook (มคอ.2) specifically for ITT-67 (เทคโนโลยีสารสนเทศ เทียบโอน พ.ศ. 2567).",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "topK": 5,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "ITT-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        -704
+      ],
+      "id": "8525e345-4886-468c-9110-8c0cf6d5c72a",
+      "name": "Pinecone Vector Store ITT-67",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        3264
+      ],
+      "id": "434bdaf1-ff38-42c0-855d-9c5435d542cf",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        256,
+        3264
+      ],
+      "id": "d3e0d4b1-e0fd-4df5-a04f-d2821a3307f0",
+      "name": "Switch7"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        672,
+        3360
+      ],
+      "id": "46fd21b5-98a7-4b51-babe-edc2032e3205",
+      "name": "No Operation, do nothing7"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields7').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        800,
+        3136
+      ],
+      "id": "df1b55bd-a41a-4083-be0d-90e4e0467ebe",
+      "name": "Download file7",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        3136
+      ],
+      "id": "af213a0b-ba9f-4dad-b879-8daab5f2197e",
+      "name": "Extract from File7"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        3344
+      ],
+      "id": "e787d4d2-ed31-4da1-8138-e650d55ca62d",
+      "name": "Embeddings OpenAI16",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields7').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1232,
+        3376
+      ],
+      "id": "2c1e5627-2c55-407d-a4f9-b66d9594dfe4",
+      "name": "Default Data Loader7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"ITI-66\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields7').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        3136
+      ],
+      "id": "8cdb8b57-6a50-41d9-b637-667cff9b8333",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "ITI-66"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1216,
+        3136
+      ],
+      "id": "77dc3f2e-1998-40b4-a204-d7d1293f7e52",
+      "name": "Pinecone Vector Store8",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/17xtOlkgp2H0uXRcxje2f6b3nZJ1aojy9",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        3264
+      ],
+      "id": "f2a8999b-5de1-4d77-b62c-77b24aad656d",
+      "name": "Google Drive Trigger File Created ITI-66",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a451102-184f-41da-9c40-6ef178dfff7a",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e493de0d-df60-45fc-9a48-aa335fcfd66b",
+              "name": "file_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "7f6dbf9f-34c0-4b3b-98af-ac540bda7ba8",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "91984164-21cd-4e6c-b6d6-be80dde114c5",
+              "name": "file_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        3712
+      ],
+      "id": "f1296552-ee47-4c8f-824e-8813c4be050d",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.file_type }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7aa92fb3-0ae1-4005-9b1f-97d5ccbbc00c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        240,
+        3712
+      ],
+      "id": "f1411b93-e1df-4b1a-8509-5dfbf6cec88c",
+      "name": "Switch8"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        656,
+        3808
+      ],
+      "id": "288cd076-9142-4ce4-bc05-f965a68d077e",
+      "name": "No Operation, do nothing8"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields8').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        992,
+        3584
+      ],
+      "id": "f6cc3658-959f-4534-9072-057337d8624c",
+      "name": "Download file8",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        3584
+      ],
+      "id": "48f4fb27-7f22-41ef-aae8-e1744a17790f",
+      "name": "Extract from File8"
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        3792
+      ],
+      "id": "da4d3dc1-0e4c-4f45-8911-0062a0ab0014",
+      "name": "Embeddings OpenAI17",
+      "credentials": {
+        "openAiApi": {
+          "id": "1mZpWSuM6AEi2lP0",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Edit Fields8').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1424,
+        3824
+      ],
+      "id": "2f5900eb-6315-4ce2-a2d2-dcfd6c31a2ea",
+      "name": "Default Data Loader8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-nt6b8we.svc.aped-4627-b74a.pinecone.io/vectors/delete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Api-Key",
+              "value": "pcsk_2W9KK_36s3dQHcEQTyRNmRxBfC6are4rpWuM1RCoMqePjrStCjBmeRZYhgifqeAYVPh4Z"
+            },
+            {
+              "name": "X-Pinecone-API-Version",
+              "value": "2025-04"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"namespace\": \"ITT-67\",\n  \"filter\": {\n    \"file_name\": {\n      \"$eq\": \"{{ $('Edit Fields8').item.json.file_name }}\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        3584
+      ],
+      "id": "70f87090-62b2-41f1-b9fc-d6c7077091db",
+      "name": "HTTP Request8"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "it-chatbot",
+          "mode": "list",
+          "cachedResultName": "it-chatbot"
+        },
+        "options": {
+          "pineconeNamespace": "ITT-67"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1408,
+        3584
+      ],
+      "id": "31ee21ea-a356-4002-aa52-6f88c5856400",
+      "name": "Pinecone Vector Store9",
+      "credentials": {
+        "pineconeApi": {
+          "id": "2muBC5BneV30F85d",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/2/folders/171qXjNJRBYMnKA0pCAVvupXouJbyv0EY",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        3712
+      ],
+      "id": "003b75e0-4a2b-49d0-8f5e-53794036c4cc",
+      "name": "Google Drive Trigger File Created ITT-67",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2DaVqNIPgjzkFGmP",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        4032
+      ],
+      "id": "f1b77337-927b-4d14-887a-2db609555852",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        3504
+      ],
+      "id": "dddd9f77-22ad-494b-8412-6303b98f14ea",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        3008
+      ],
+      "id": "74fa4b31-0eef-46c3-95fa-01849f37a8a5",
+      "name": "Recursive Character Text Splitter2"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        2608
+      ],
+      "id": "683f13a2-677e-43b5-a735-0aabcf26baec",
+      "name": "Recursive Character Text Splitter3"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        2176
+      ],
+      "id": "cb1532f1-f604-47e4-b8a2-8b1a7955798b",
+      "name": "Recursive Character Text Splitter4"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        1728
+      ],
+      "id": "fbe089f4-994e-424e-8c1f-06bff665a03c",
+      "name": "Recursive Character Text Splitter5"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        1328
+      ],
+      "id": "81129530-49b4-45c7-b667-a79ccfed65a3",
+      "name": "Recursive Character Text Splitter6"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        912
+      ],
+      "id": "129216a3-aa34-4cbc-8526-4905e3a04543",
+      "name": "Recursive Character Text Splitter7"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        464
+      ],
+      "id": "918cc8c1-3214-40d8-921e-9c260e4304c1",
+      "name": "Recursive Character Text Splitter8"
+    },
+    {
+      "parameters": {
+        "projectId": "=it-chatbot-f663e",
+        "operation": "update",
+        "path": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Object_Path', ``, 'string') }}",
+        "attributes": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Columns___Attributes', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.googleFirebaseRealtimeDatabaseTool",
+      "typeVersion": 1,
+      "position": [
+        576,
+        -320
+      ],
+      "id": "7c24d77c-9e3e-48b9-ab3c-31f6b586f6a5",
+      "name": "Google Cloud Realtime Database",
+      "credentials": {
+        "googleFirebaseRealtimeDatabaseOAuth2Api": {
+          "id": "RtyrploOdsxfd4Mo",
+          "name": "Google Firebase Realtime Database account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        -240
+      ],
+      "id": "caf049b5-65cd-4e0e-a224-1d30228a1104",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. ดึงข้อมูลคำถามและ Metadata\nconst chatInputData = $('When chat message received').first().json;\nconst userQuery = chatInputData.chatInput || chatInputData.query || '';\nconst metadata = chatInputData.metadata || {};\n\n// 2. ดึงคำตอบและ Intermediate Steps จาก AI Agent\nconst agentData = $json;\nconst botResponse = agentData.output || agentData.text || '';\n\n// 3. สกัดแหล่งข้อมูลอ้างอิงจาก intermediateSteps (Evidence Grounding)\nfunction extractSources(obj, found = []) {\n  if (!obj) return found;\n  if (Array.isArray(obj)) {\n    for (const item of obj) extractSources(item, found);\n  } else if (typeof obj === 'object') {\n    const meta = obj.metadata || obj;\n    const fileName = meta.file_name || meta.file || meta.source;\n    const pageNum = meta.pageNumber || meta.page_number || (meta.loc && meta.loc.pageNumber);\n    if (fileName && typeof fileName === 'string') {\n      found.push({\n        fileName: fileName.trim(),\n        pageNumber: (pageNum !== undefined && pageNum !== null && !isNaN(Number(pageNum))) ? Number(pageNum) : null\n      });\n    }\n    for (const key of Object.keys(obj)) {\n      if (typeof obj[key] === 'object' || Array.isArray(obj[key])) {\n        extractSources(obj[key], found);\n      } else if (typeof obj[key] === 'string' && (obj[key].startsWith('{') || obj[key].startsWith('['))) {\n        try { extractSources(JSON.parse(obj[key]), found); } catch (_) {}\n      }\n    }\n  } else if (typeof obj === 'string') {\n    try {\n      extractSources(JSON.parse(obj), found);\n    } catch (_) {\n      const matchJson = obj.match(/\\{[^{}]*(?:file_name|pageNumber|page_number|loc)[^{}]*\\}/g);\n      if (matchJson) {\n        for (const m of matchJson) {\n          try { extractSources(JSON.parse(m), found); } catch (_) {}\n        }\n      }\n    }\n  }\n  return found;\n}\n\n// 4. จำแนกประเภทคำถาม (Smart Intent Detection)\nfunction detectIntent(q) {\n  const queryLower = (q || '').toLowerCase();\n  if (/^(สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|hello|hi|hey)/i.test(queryLower) && queryLower.length < 30) {\n    return 'greeting';\n  }\n  if (queryLower.includes('บังคับก่อน') || queryLower.includes('prerequisite') || queryLower.includes('prereq') || queryLower.includes('เรียนก่อน') || queryLower.includes('ผ่านมาก่อน') || queryLower.includes('ติด f') || queryLower.includes('ตัวต่อ')) {\n    return 'prerequisite_check';\n  }\n  if (queryLower.includes('เกรด') || queryLower.includes('gpa') || queryLower.includes('gpax') || queryLower.includes('หน่วยกิต') || queryLower.includes('จบการศึกษา')) {\n    return 'gpa_inquiry';\n  }\n  if (queryLower.includes('เปรียบเทียบ') || queryLower.includes('เทียบหลักสูตร') || queryLower.includes('ต่างกัน')) {\n    return 'curriculum_compare';\n  }\n  if (queryLower.includes('แผนการเรียน') || queryLower.includes('สหกิจ') || queryLower.includes('ฝึกงาน') || queryLower.includes('coop') || /ปี\\s*[1-4]\\s*(เทอม|\\/)/.test(queryLower)) {\n    return 'study_plan';\n  }\n  if (queryLower.includes('ลงทะเบียน') || queryLower.includes('แนะนำวิชา') || queryLower.includes('ควรลง') || queryLower.includes('วิชาเลือก')) {\n    return 'registration_advice';\n  }\n  if (queryLower.includes('ภาควิชา') || queryLower.includes('ตึก') || queryLower.includes('อาคาร') || queryLower.includes('อาจารย์') || queryLower.includes('ติดต่อ')) {\n    return 'general_question';\n  }\n  return 'course_info';\n}\n\nfunction checkIsSuccess(resp) {\n  const text = (resp || '').trim();\n  if (!text) return false;\n  const fallbackIndicators = ['ไม่พบข้อมูล', 'ไม่มีข้อมูลในระบบ', 'ไม่สามารถตอบ', 'ไม่สามารถให้ข้อมูล', 'ขออภัย ไม่พบ', 'ขออภัยครับ ไม่พบ', 'ขออภัยค่ะ ไม่พบ'];\n  for (const phrase of fallbackIndicators) {\n    if (text.includes(phrase)) return false;\n  }\n  if (text.startsWith('ขออภัย') && text.length < 80) return false;\n  return true;\n}\n\nconst intent = detectIntent(userQuery);\nconst isSuccess = checkIsSuccess(botResponse);\n\n// 5. ประกอบบล็อกอ้างอิงเฉพาะเมื่อมีแหล่งข้อมูลจริงและไม่ใช่คำทักทาย\nlet finalBotResponse = botResponse;\nif (intent !== 'greeting' && isSuccess && agentData.intermediateSteps) {\n  const rawSources = extractSources(agentData.intermediateSteps);\n  const uniqueSources = new Map();\n  for (const s of rawSources) {\n    const key = `${s.fileName}__${s.pageNumber ?? 'none'}`;\n    if (!uniqueSources.has(key)) {\n      uniqueSources.set(key, s);\n    }\n  }\n\n  if (uniqueSources.size > 0) {\n    const fileGroups = new Map();\n    for (const s of uniqueSources.values()) {\n      if (!fileGroups.has(s.fileName)) fileGroups.set(s.fileName, new Set());\n      if (s.pageNumber !== null && !isNaN(s.pageNumber)) {\n        fileGroups.get(s.fileName).add(s.pageNumber);\n      }\n    }\n\n    const citationLines = [];\n    for (const [fileName, pagesSet] of fileGroups.entries()) {\n      const pages = Array.from(pagesSet).sort((a, b) => a - b);\n      if (pages.length > 0) {\n        citationLines.push(`• ${fileName} (หน้าที่ ${pages.join(', ')})`);\n      } else {\n        citationLines.push(`• ${fileName}`);\n      }\n    }\n\n    if (citationLines.length > 0) {\n      finalBotResponse = `${botResponse}\\n\\n📌 **แหล่งข้อมูลอ้างอิง:**\\n${citationLines.join('\\n')}`;\n    }\n  }\n}\n\n// 6. ส่งค่าออกไปให้ Node \"บันทึกลง Firebase\" และ \"Return Output\"\nreturn {\n  json: {\n    sessionId: metadata.sessionId || `sess_${Date.now()}`,\n    userId: metadata.userId || 'guest',\n    userName: metadata.userName || 'Guest',\n    userRole: metadata.role || 'guest',\n    studentId: metadata.studentId || '',\n    query: userQuery,\n    response: finalBotResponse,\n    intent: intent,\n    isSuccess: isSuccess,\n    responseTimeMs: 850,\n    channel: metadata.channel || 'web',\n    timestamp: new Date().toISOString(),\n    output: finalBotResponse\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -880
+      ],
+      "id": "79e85a0d-7622-409d-b99d-40f671adda04",
+      "name": "Prepare Chat Log"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://it-chatbot-f663e-default-rtdb.asia-southeast1.firebasedatabase.app/chatLogs.json",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "=={{ $json.sessionId }}"
+            },
+            {
+              "name": "userId",
+              "value": "=={{ $json.userId }}"
+            },
+            {
+              "name": "userName",
+              "value": "=={{ $json.userName }}"
+            },
+            {
+              "name": "userRole",
+              "value": "=={{ $json.userRole }}"
+            },
+            {
+              "name": "studentId",
+              "value": "=={{ $json.studentId }}"
+            },
+            {
+              "name": "query",
+              "value": "=={{ $json.query }}"
+            },
+            {
+              "name": "response",
+              "value": "=={{ $json.response }}"
+            },
+            {
+              "name": "intent",
+              "value": "=={{ $json.intent }}"
+            },
+            {
+              "name": "isSuccess",
+              "value": "=={{ $json.isSuccess }}"
+            },
+            {
+              "name": "responseTimeMs",
+              "value": "=={{ $json.responseTimeMs }}"
+            },
+            {
+              "name": "channel",
+              "value": "=={{ $json.channel }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "=={{ $json.timestamp }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        784,
+        -880
+      ],
+      "id": "ed0cb645-4c31-4505-8702-6d0608eb8420",
+      "name": "บันทึกลง Firebase"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    output: $('Prepare Chat Log').first().json.output\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        -880
+      ],
+      "id": "9af9fc97-cef0-44f1-8c47-a8e2d9c06ed5",
+      "name": "Return Output"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store INE-62",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store INE-62",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store INE-62": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created INE-62": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Download file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created INE-67": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store INE-67",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere1": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store INE-67",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store INE-67": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file2": {
+      "main": [
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store3",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader2": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store3",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Download file2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created INET-62": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI5": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store INET-62",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere2": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store INET-62",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store INET-62": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Switch3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file3": {
+      "main": [
+        [
+          {
+            "node": "Extract from File3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File3": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI6": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store4",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader3": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store4",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Download file3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created INET-67": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI7": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store INET-67",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere3": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store INET-67",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store INET-67": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Switch4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file4": {
+      "main": [
+        [
+          {
+            "node": "Extract from File4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File4": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI8": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store5",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader4": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store5",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Download file4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created IT-62": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI9": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store IT-62",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere4": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store IT-62",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store IT-62": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Switch5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file5": {
+      "main": [
+        [
+          {
+            "node": "Extract from File5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File5": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI10": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store6",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader5": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store6",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Download file5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI11": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store IT-67",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere5": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store IT-67",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store IT-67": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created IT-67": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Switch6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch6": {
+      "main": [
+        [
+          {
+            "node": "Download file6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file6": {
+      "main": [
+        [
+          {
+            "node": "Extract from File6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File6": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI12": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store7",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader6": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store7",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "main": [
+        []
+      ]
+    },
+    "Google Drive Trigger File Created ITI-61": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI13": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store ITI-61",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere6": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store ITI-61",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store ITI-61": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI14": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store ITI-66",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere7": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store ITI-66",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store ITI-66": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI15": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store ITT-67",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reranker Cohere8": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Pinecone Vector Store ITT-67",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store ITT-67": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Switch7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch7": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file7": {
+      "main": [
+        [
+          {
+            "node": "Extract from File7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File7": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI16": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store8",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader7": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store8",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "Download file7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created ITI-66": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Switch8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch8": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file8": {
+      "main": [
+        [
+          {
+            "node": "Extract from File8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File8": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI17": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store9",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader8": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store9",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request8": {
+      "main": [
+        [
+          {
+            "node": "Download file8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger File Created ITT-67": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader8",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader7",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter2": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader6",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter3": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader5",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter4": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader4",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter5": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader3",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter6": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader2",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter7": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter8": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Prepare Chat Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Cloud Realtime Database": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Chat Log": {
+      "main": [
+        [
+          {
+            "node": "บันทึกลง Firebase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "บันทึกลง Firebase": {
+      "main": [
+        [
+          {
+            "node": "Return Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "2b34c7e1-491d-452d-968f-4386a6f108b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e762b43e1ed2276c8f74124b28652ca7220e667e0d2286b4c6bd3951ce7dd728"
+  },
+  "nodeGroups": [],
+  "id": "Na9UaYOc3qj8I7Mt",
+  "tags": []
+}
