@@ -123,16 +123,23 @@ const StudyPlanProgress: React.FC = () => {
     return '62';
   }, [studyPlanData?.curriculumYear]);
 
+  // Check if this program has a separate co-op track (only INE has normal vs coop tracks)
+  const hasCoopTrack = useMemo(() => {
+    return currentProgramCode === 'INE';
+  }, [currentProgramCode]);
+
   const isCurrentTrackCoop = useMemo(() => {
+    if (!hasCoopTrack) return false;
     if (activeTrack !== null) {
       return activeTrack === 'coop';
     }
     return isStudentPlanCoop;
-  }, [activeTrack, isStudentPlanCoop]);
+  }, [hasCoopTrack, activeTrack, isStudentPlanCoop]);
 
   const currentCurriculumYear = useMemo(() => {
+    if (!hasCoopTrack) return currentBaseYear;
     return isCurrentTrackCoop ? `${currentBaseYear} สหกิจ` : currentBaseYear;
-  }, [isCurrentTrackCoop, currentBaseYear]);
+  }, [hasCoopTrack, isCurrentTrackCoop, currentBaseYear]);
 
   const selectedCurriculum = `${currentProgramCode} ${currentCurriculumYear}`;
 
@@ -635,7 +642,9 @@ const StudyPlanProgress: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm">โครงสร้างหลักสูตร:</span>
               <Badge className="bg-black text-white text-xs px-2.5 py-1">
-                {isCurrentTrackCoop ? '💼 โครงการสหกิจศึกษา' : '📘 โครงการปกติ'} (หลักสูตร {currentProgramCode} {currentCurriculumYear})
+                {hasCoopTrack
+                  ? (isCurrentTrackCoop ? '💼 โครงการสหกิจศึกษา' : '📘 โครงการปกติ') + ` (หลักสูตร ${currentProgramCode} ${currentCurriculumYear})`
+                  : `หลักสูตร ${currentProgramCode} ${currentCurriculumYear}`}
               </Badge>
               {studyPlanData && (
                 <span className="text-xs text-muted-foreground hidden sm:inline">
@@ -644,53 +653,55 @@ const StudyPlanProgress: React.FC = () => {
               )}
             </div>
 
-            {/* Switcher: subtle comparison button for enrolled student, or preview buttons if no plan yet */}
-            <div className="flex items-center gap-2">
-              {studyPlanData ? (
-                activeTrack !== (isStudentPlanCoop ? 'coop' : 'normal') ? (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setActiveTrack(isStudentPlanCoop ? 'coop' : 'normal')}
-                    className="border-black text-black text-xs hover:bg-neutral-100"
-                  >
-                    ↩️ กลับสู่ผังหลักสูตรของคุณ ({isStudentPlanCoop ? 'สหกิจ' : 'ปกติ'})
-                  </Button>
+            {/* Switcher: only shown if the curriculum actually offers a separate co-op track */}
+            {hasCoopTrack && (
+              <div className="flex items-center gap-2">
+                {studyPlanData ? (
+                  activeTrack !== (isStudentPlanCoop ? 'coop' : 'normal') ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setActiveTrack(isStudentPlanCoop ? 'coop' : 'normal')}
+                      className="border-black text-black text-xs hover:bg-neutral-100"
+                    >
+                      ↩️ กลับสู่ผังหลักสูตรของคุณ ({isStudentPlanCoop ? 'สหกิจ' : 'ปกติ'})
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setActiveTrack(isStudentPlanCoop ? 'normal' : 'coop')}
+                      className="text-xs text-muted-foreground hover:text-black border border-dashed border-neutral-300 hover:border-black"
+                    >
+                      🔍 ดูผัง{isStudentPlanCoop ? 'แผนปกติ' : 'แผนสหกิจ'} (เพื่อเปรียบเทียบ)
+                    </Button>
+                  )
                 ) : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setActiveTrack(isStudentPlanCoop ? 'normal' : 'coop')}
-                    className="text-xs text-muted-foreground hover:text-black border border-dashed border-neutral-300 hover:border-black"
-                  >
-                    🔍 ดูผัง{isStudentPlanCoop ? 'แผนปกติ' : 'แผนสหกิจ'} (เพื่อเปรียบเทียบ)
-                  </Button>
-                )
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={!isCurrentTrackCoop ? "default" : "outline"}
-                    onClick={() => setActiveTrack('normal')}
-                    className={!isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
-                  >
-                    📘 แผนปกติ ({currentBaseYear})
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={isCurrentTrackCoop ? "default" : "outline"}
-                    onClick={() => setActiveTrack('coop')}
-                    className={isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
-                  >
-                    💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
-                  </Button>
-                </div>
-              )}
-            </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={!isCurrentTrackCoop ? "default" : "outline"}
+                      onClick={() => setActiveTrack('normal')}
+                      className={!isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
+                    >
+                      📘 แผนปกติ ({currentBaseYear})
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={isCurrentTrackCoop ? "default" : "outline"}
+                      onClick={() => setActiveTrack('coop')}
+                      className={isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
+                    >
+                      💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Legend */}
@@ -732,7 +743,9 @@ const StudyPlanProgress: React.FC = () => {
               <div className="text-center bg-white p-4 border-b-2 border-black">
                 <h1 className="text-lg font-bold">
                   แผนภูมิแสดงความต่อเนื่องหลักสูตร {currentProgramCode}
-                  {isCurrentTrackCoop ? ' (โครงการสหกิจศึกษา)' : ` (โครงการปกติ ปี ${currentBaseYear})`}
+                  {hasCoopTrack
+                    ? (isCurrentTrackCoop ? ' (โครงการสหกิจศึกษา)' : ` (โครงการปกติ ปี ${currentBaseYear})`)
+                    : ` (ปี ${currentCurriculumYear})`}
                 </h1>
               </div>
 
