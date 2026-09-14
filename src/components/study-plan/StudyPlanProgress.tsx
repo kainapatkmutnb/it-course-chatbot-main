@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useStudyPlan } from '@/hooks/useFirebaseData';
 import { buildStudyPlanView } from './studyPlanViewModel';
 import { StudentPlanTimeline } from './StudentPlanTimeline';
+import { Button } from '@/components/ui/button';
+import { normalizeCodeForMatching } from './studyPlanIdentity';
 import { getCurriculumTotalCredits } from '@/services/departmentService';
 import { 
   CheckCircle2, 
@@ -86,31 +88,51 @@ const StudyPlanProgress: React.FC = () => {
     loadStudyPlan();
   }, [user?.id]);
 
+  // Track toggle for curriculum tab (e.g. 'normal' vs 'coop')
+  const [activeTrack, setActiveTrack] = useState<'normal' | 'coop' | null>(null);
+
+  // Initialize active track when study plan data loads
+  useEffect(() => {
+    if (studyPlanData && activeTrack === null) {
+      const isCoop = studyPlanData.program.includes('COOP') || studyPlanData.curriculumYear.includes('สหกิจ');
+      setActiveTrack(isCoop ? 'coop' : 'normal');
+    }
+  }, [studyPlanData, activeTrack]);
+
+  // Derived current program and curriculum year
+  const currentProgramCode = useMemo(() => {
+    if (studyPlanData?.program) {
+      return studyPlanData.program.replace(/[-_]COOP/i, '');
+    }
+    return user?.department || 'INE';
+  }, [studyPlanData?.program, user?.department]);
+
+  const currentBaseYear = useMemo(() => {
+    if (studyPlanData?.curriculumYear) {
+      return studyPlanData.curriculumYear.replace(' สหกิจ', '').trim();
+    }
+    return '62';
+  }, [studyPlanData?.curriculumYear]);
+
+  const isCurrentTrackCoop = useMemo(() => {
+    if (activeTrack !== null) {
+      return activeTrack === 'coop';
+    }
+    return studyPlanData?.curriculumYear?.includes('สหกิจ') || studyPlanData?.program?.includes('COOP') || false;
+  }, [activeTrack, studyPlanData]);
+
+  const currentCurriculumYear = useMemo(() => {
+    return isCurrentTrackCoop ? `${currentBaseYear} สหกิจ` : currentBaseYear;
+  }, [isCurrentTrackCoop, currentBaseYear]);
+
+  const selectedCurriculum = `${currentProgramCode} ${currentCurriculumYear}`;
+
   // Load curriculum data using same method as CurriculumTimelineFlowchart
   useEffect(() => {
     const loadCourses = async () => {
-      if (!studyPlanData) return;
-
       setIsLoadingCourses(true);
-      const selectedCurriculum = `${studyPlanData.program} ${studyPlanData.curriculumYear}`;
-
-      let programCode: string, curriculumYear: string;
-
-      if (selectedCurriculum === 'IT 62 สหกิจ') {
-        programCode = 'IT'; curriculumYear = '62 สหกิจ';
-      } else if (selectedCurriculum === 'IT 67 สหกิจ') {
-        programCode = 'IT'; curriculumYear = '67 สหกิจ';
-      } else if (selectedCurriculum === 'INE 62 สหกิจ') {
-        programCode = 'INE'; curriculumYear = '62 สหกิจ';
-      } else if (selectedCurriculum === 'INE 67 สหกิจ') {
-        programCode = 'INE'; curriculumYear = '67 สหกิจ';
-      } else {
-        programCode = studyPlanData.program;
-        curriculumYear = studyPlanData.curriculumYear;
-      }
-
       try {
-        const hybridData = await getHybridCurriculumData(programCode, curriculumYear);
+        const hybridData = await getHybridCurriculumData(currentProgramCode, currentCurriculumYear);
         setTimelineData(hybridData);
       } catch (error) {
         console.error('Error loading curriculum data:', error);
@@ -121,7 +143,7 @@ const StudyPlanProgress: React.FC = () => {
     };
 
     loadCourses();
-  }, [studyPlanData]);
+  }, [currentProgramCode, currentCurriculumYear]);
 
   // Safety filter (same as CurriculumTimelineFlowchart)
   const sanitizeCourses = (courses: HybridCourse[]): HybridCourse[] => {
@@ -148,11 +170,9 @@ const StudyPlanProgress: React.FC = () => {
   };
 
   // Build semester layout FIRST (needed for matching)
-  const selectedCurriculum = studyPlanData ? `${studyPlanData.program} ${studyPlanData.curriculumYear}` : '';
-
   const semesterLayout = useMemo(() => {
     if (isLoadingCourses || !timelineData || Object.keys(timelineData).length === 0) return [];
-    const isCoopCurriculum = selectedCurriculum.includes('COOP') || selectedCurriculum.includes('สหกิจ');
+    const isCoopCurriculum = isCurrentTrackCoop;
     const layout: Array<{
       year: number; semester: number; courses: HybridCourse[]; label: string; isInternship: boolean;
     }> = [];
@@ -175,7 +195,7 @@ const StudyPlanProgress: React.FC = () => {
           });
       });
     return layout;
-  }, [selectedCurriculum, timelineData, isLoadingCourses]);
+  }, [isCurrentTrackCoop, timelineData, isLoadingCourses]);
 
   // ============================================================
   // PRE-COMPUTED MATCHING ENGINE
@@ -197,12 +217,12 @@ const StudyPlanProgress: React.FC = () => {
 
     // Group student courses by (year-semester) → array
     const studentByPosition = new Map<string, StudentCourseData[]>();
-    // Global index by trimmed code → array (preserving order)
+    // Global index by normalized code → array (preserving order)
     const studentByCode = new Map<string, StudentCourseData[]>();
 
     for (const sc of studyPlanData.courses) {
       const trimmed = (sc.code || '').trim();
-      const stripped = trimmed.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '');
+      const norm = normalizeCodeForMatching(sc.code || '');
 
       // By position
       if (sc.year && sc.semester) {
@@ -211,14 +231,14 @@ const StudyPlanProgress: React.FC = () => {
         studentByPosition.get(key)!.push(sc);
       }
 
-      // By trimmed code
+      // By trimmed and normalized code
       if (trimmed) {
         if (!studentByCode.has(trimmed)) studentByCode.set(trimmed, []);
         studentByCode.get(trimmed)!.push(sc);
       }
-      if (stripped && stripped !== trimmed) {
-        if (!studentByCode.has(stripped)) studentByCode.set(stripped, []);
-        studentByCode.get(stripped)!.push(sc);
+      if (norm && norm !== trimmed) {
+        if (!studentByCode.has(norm)) studentByCode.set(norm, []);
+        studentByCode.get(norm)!.push(sc);
       }
     }
 
@@ -230,25 +250,25 @@ const StudyPlanProgress: React.FC = () => {
       return studyPlanData.courses.indexOf(sc);
     };
 
-    // PASS 1: Match by position (year+semester) + trimmed code
+    // PASS 1: Match by position (year+semester) + normalized code
     for (const sem of semesterLayout) {
       const posKey = `${sem.year}-${sem.semester}`;
       const posStudents = studentByPosition.get(posKey) || [];
 
       for (const flowchartCourse of sem.courses) {
         const fcTrimmed = (flowchartCourse.code || '').trim();
-        const fcStripped = fcTrimmed.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '');
+        const fcNorm = normalizeCodeForMatching(flowchartCourse.code || '');
 
         // Find the first unconsumed student course in this position
-        // that matches by trimmed code
+        // that matches by trimmed or normalized code
         for (const sc of posStudents) {
           const idx = indexOf(sc);
           if (consumed.has(idx)) continue;
 
           const scTrimmed = (sc.code || '').trim();
-          const scStripped = scTrimmed.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '');
+          const scNorm = normalizeCodeForMatching(sc.code || '');
 
-          if (scTrimmed === fcTrimmed || scStripped === fcStripped) {
+          if (scTrimmed === fcTrimmed || (scNorm && fcNorm && scNorm === fcNorm)) {
             result.set(flowchartCourse.id, sc);
             consumed.add(idx);
             break;
@@ -263,9 +283,9 @@ const StudyPlanProgress: React.FC = () => {
         if (result.has(flowchartCourse.id)) continue; // already matched
 
         const fcTrimmed = (flowchartCourse.code || '').trim();
-        const fcStripped = fcTrimmed.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '');
+        const fcNorm = normalizeCodeForMatching(flowchartCourse.code || '');
 
-        const candidates = studentByCode.get(fcTrimmed) || studentByCode.get(fcStripped) || [];
+        const candidates = studentByCode.get(fcTrimmed) || (fcNorm ? studentByCode.get(fcNorm) : []) || [];
         for (const sc of candidates) {
           const idx = indexOf(sc);
           if (consumed.has(idx)) continue;
@@ -340,8 +360,8 @@ const StudyPlanProgress: React.FC = () => {
       semesterLayout.forEach((semData) => {
         semData.courses.forEach((c) => {
           if (validPrerequisites.some(prereq => {
-            const prereqCode = prereq.split(' ')[0];
-            const courseCode = c.code.split('-')[1] || c.code;
+            const prereqCode = normalizeCodeForMatching(prereq.split(' ')[0]);
+            const courseCode = normalizeCodeForMatching(c.code);
             return prereqCode === courseCode;
           })) {
             prereqIds.push(c.id);
@@ -418,8 +438,8 @@ const StudyPlanProgress: React.FC = () => {
   };
 
   const isSpecialBlueConnection = (prereqCourse: Course, targetCourse: Course) => {
-    const prereqCode = prereqCourse.code.split('-')[1] || prereqCourse.code;
-    const targetCode = targetCourse.code.split('-')[1] || targetCourse.code;
+    const prereqCode = normalizeCodeForMatching(prereqCourse.code);
+    const targetCode = normalizeCodeForMatching(targetCourse.code);
     return prereqCode === '060233112' && targetCode === '060233501';
   };
 
@@ -477,17 +497,15 @@ const StudyPlanProgress: React.FC = () => {
   }, [semesterLayout, getGradeStatus]);
 
   const officialCurriculum = useMemo(() => {
-    if (!studyPlanData?.program || !studyPlanData?.curriculumYear) return null;
     const catalog = getCurriculumSummaryCatalog();
-    const isCoop = studyPlanData.curriculumYear.includes('สหกิจ');
     return catalog.find(c => {
-      if (isCoop) {
-        if (c.id === `${studyPlanData.program}-${studyPlanData.curriculumYear.replace(' สหกิจ', '')}-COOP`) return true;
+      if (isCurrentTrackCoop) {
+        if (c.id === `${currentProgramCode}-${currentBaseYear}-COOP`) return true;
       }
-      return (c.program === studyPlanData.program && c.curriculumYear === studyPlanData.curriculumYear) ||
-             c.id === `${studyPlanData.program}-${studyPlanData.curriculumYear}`;
+      return (c.program === currentProgramCode && c.curriculumYear === currentCurriculumYear) ||
+             c.id === `${currentProgramCode}-${currentCurriculumYear}`;
     });
-  }, [studyPlanData]);
+  }, [currentProgramCode, currentCurriculumYear, currentBaseYear, isCurrentTrackCoop]);
 
   // Get box colors based on grade
   const getCourseBoxColors = (course: Course) => {
@@ -524,24 +542,6 @@ const StudyPlanProgress: React.FC = () => {
     );
   }
 
-  // No study plan
-  if (!studyPlanData) {
-    return (
-      <Card className="academic-panel shadow-medium">
-        <CardContent className="p-12 text-center">
-          <div className="space-y-4">
-            <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto" />
-            <h3 className="text-xl font-semibold">ยังไม่มีแผนการเรียน</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              กรุณาไปที่แท็บ "จัดการแผนการเรียน" เพื่อสร้างแผนการเรียนและกรอกเกรดก่อน 
-              จากนั้นจึงกลับมาดูภาพรวมความคืบหน้าได้ที่หน้านี้
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -550,7 +550,7 @@ const StudyPlanProgress: React.FC = () => {
           ภาพรวมความคืบหน้าการเรียน
         </h2>
         <p className="academic-copy text-lg text-muted-foreground">
-          หลักสูตร {studyPlanData.program} {studyPlanData.curriculumYear}
+          หลักสูตร {currentProgramCode} {currentCurriculumYear}
         </p>
       </div>
 
@@ -595,9 +595,22 @@ const StudyPlanProgress: React.FC = () => {
           {personalView ? (
             <StudentPlanTimeline
               view={personalView}
-              program={studyPlanData?.program}
-              curriculumYear={studyPlanData?.curriculumYear}
+              program={studyPlanData?.program || currentProgramCode}
+              curriculumYear={studyPlanData?.curriculumYear || currentCurriculumYear}
             />
+          ) : !studyPlanData ? (
+            <Card className="academic-panel shadow-medium my-4">
+              <CardContent className="p-12 text-center">
+                <div className="space-y-4">
+                  <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto" />
+                  <h3 className="text-xl font-semibold">ยังไม่มีแผนการเรียน</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    กรุณาไปที่แท็บ "จัดการแผนการเรียน" เพื่อสร้างแผนการเรียนและกรอกเกรดก่อน 
+                    จากนั้นจึงกลับมาดูภาพรวมความคืบหน้าได้ที่หน้านี้
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
@@ -608,6 +621,33 @@ const StudyPlanProgress: React.FC = () => {
 
         {/* Curriculum reference SVG tab — keeps existing flowchart */}
         <TabsContent value="curriculum">
+          {/* Track Switcher (Normal vs Co-op) */}
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-3 border-2 border-black mb-4">
+            <div className="font-bold text-sm">
+              เลือกแผนการศึกษา:
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={!isCurrentTrackCoop ? "default" : "outline"}
+                onClick={() => setActiveTrack('normal')}
+                className={!isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
+              >
+                📘 แผนปกติ ({currentBaseYear})
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={isCurrentTrackCoop ? "default" : "outline"}
+                onClick={() => setActiveTrack('coop')}
+                className={isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
+              >
+                💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
+              </Button>
+            </div>
+          </div>
+
           {/* Legend */}
           <Card className="academic-panel shadow-soft mb-4">
             <CardContent className="p-4">
@@ -644,12 +684,12 @@ const StudyPlanProgress: React.FC = () => {
           {!isLoadingCourses && semesterLayout.length > 0 && (
             <div className="space-y-4">
               {/* Flowchart Title */}
-          <div className="text-center bg-white p-4 border-b-2 border-black">
-            <h1 className="text-lg font-bold">
-              แผนภูมิแสดงความต่อเนื่องหลักสูตร {studyPlanData.program}
-              {selectedCurriculum.includes('สหกิจ') ? ' (สหกิจศึกษา)' : ` (ปี ${studyPlanData.curriculumYear})`}
-            </h1>
-          </div>
+              <div className="text-center bg-white p-4 border-b-2 border-black">
+                <h1 className="text-lg font-bold">
+                  แผนภูมิแสดงความต่อเนื่องหลักสูตร {currentProgramCode}
+                  {isCurrentTrackCoop ? ' (โครงการสหกิจศึกษา)' : ` (โครงการปกติ ปี ${currentBaseYear})`}
+                </h1>
+              </div>
 
           {/* Flowchart Content */}
           <div className="academic-scroll-region bg-white overflow-x-auto">
@@ -724,7 +764,7 @@ const StudyPlanProgress: React.FC = () => {
                         stroke={strokeColor}
                         strokeWidth="2"
                         fill="none"
-                        markerEnd="url(#progress-arrowhead)"
+                        markerEnd={arrow.isSpecial ? "url(#progress-blueArrowhead)" : "url(#progress-arrowhead)"}
                       />
                     );
                   })}

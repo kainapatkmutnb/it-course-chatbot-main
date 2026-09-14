@@ -711,7 +711,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
                     stroke={strokeColor}
                     strokeWidth="2"
                     fill="none"
-                    markerEnd="url(#arrowhead)"
+                    markerEnd={arrow.isSpecial ? "url(#blueArrowhead)" : "url(#arrowhead)"}
                   />
                 );
               })}
