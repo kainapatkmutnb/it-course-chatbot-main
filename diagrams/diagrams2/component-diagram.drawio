@@ -1,108 +1,34 @@
-<mxfile host="app.diagrams.net" modified="2026-09-15T00:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
-  <diagram id="ComponentDiagram" name="Modular Component Diagram">
-    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" background="#FFFFFF">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        
-        <mxCell id="header" value="&lt;b style='font-size: 22px;'&gt;🏗️ IT Assistant — Modular Component Architecture&lt;/b&gt;&lt;br/&gt;&lt;span style='color: #475569; font-size: 13px;'&gt;โครงสร้างโมดูล การแยกหน้าที่ (Separation of Concerns) ระหว่าง Presentation Layer, Business Services, และ Cloud Integrations&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1;" vertex="1" parent="1">
-          <mxGeometry x="60" y="20" width="1480" height="60" as="geometry" />
-        </mxCell>
-
-        <!-- Layer 1: Client Presentation -->
-        <mxCell id="l1_box" value="🖥️ Presentation &amp; UI Layer (React 18 + TypeScript + Vite + Tailwind CSS)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0F9FF;strokeColor=#0284C7;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#0369A1;startSize=32;" vertex="1" parent="1">
-          <mxGeometry x="60" y="100" width="1480" height="340" as="geometry" />
-        </mxCell>
-
-        <mxCell id="c_app" value="&lt;b&gt;App.tsx&lt;/b&gt;&lt;br/&gt;Router, Layout &amp; Theme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
-          <mxGeometry x="20" y="50" width="170" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="c_auth" value="&lt;b&gt;AuthContext.tsx&lt;/b&gt;&lt;br/&gt;Session &amp; RBAC Guards" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
-          <mxGeometry x="210" y="50" width="170" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="c_dashboards" value="&lt;b&gt;Role Dashboards&lt;/b&gt;&lt;br/&gt;Student, Advisor, Staff, Admin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
-          <mxGeometry x="400" y="50" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="c_courses_page" value="&lt;b&gt;Courses.tsx&lt;/b&gt;&lt;br/&gt;13-Curriculum Catalog Explorer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
-          <mxGeometry x="620" y="50" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="c_chatbot_ui" value="&lt;b&gt;ChatBot.tsx + FeedbackBanner&lt;/b&gt;&lt;br/&gt;#n8n-chat Surface with Rating" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
-          <mxGeometry x="840" y="50" width="250" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="c_course_mgmt" value="&lt;b&gt;CourseManagement.tsx&lt;/b&gt;&lt;br/&gt;Admin/Staff CRUD &amp; Sync Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
-          <mxGeometry x="1110" y="50" width="230" height="60" as="geometry" />
-        </mxCell>
-
-        <!-- Sub-components in Presentation -->
-        <mxCell id="sub_plan_box" value="🎓 Study Plan &amp; Flowchart Feature Components" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0369A1;strokeWidth=1.5;fontSize=12;fontColor=#0369A1;startSize=26;" vertex="1" parent="l1_box">
-          <mxGeometry x="20" y="130" width="1440" height="190" as="geometry" />
-        </mxCell>
-
-        <mxCell id="c_sp_progress" value="&lt;b&gt;StudyPlanProgress.tsx&lt;/b&gt;&lt;br/&gt;Dual-View Tabs Container&lt;br/&gt;Auto-Track Switcher (Normal/Co-op)&lt;br/&gt;14-Arrow Orthogonal SVG Renderer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
-          <mxGeometry x="20" y="40" width="300" height="130" as="geometry" />
-        </mxCell>
-        <mxCell id="c_sp_timeline" value="&lt;b&gt;StudentPlanTimeline.tsx&lt;/b&gt;&lt;br/&gt;Personal Recorded Plan View&lt;br/&gt;Transcript Projection &amp; Grade Badges&lt;br/&gt;Passing/Failing Grade Styling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
-          <mxGeometry x="340" y="40" width="270" height="130" as="geometry" />
-        </mxCell>
-        <mxCell id="c_sp_manager" value="&lt;b&gt;StudyPlanManager.tsx&lt;/b&gt;&lt;br/&gt;Create/Edit/Reset Plan&lt;br/&gt;Prerequisite Cascade Clear&lt;br/&gt;Drag-and-Drop Term Rescheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
-          <mxGeometry x="630" y="40" width="270" height="130" as="geometry" />
-        </mxCell>
-        <mxCell id="c_flowcharts" value="&lt;b&gt;CurriculumTimelineFlowchart.tsx&lt;/b&gt;&lt;br/&gt;&lt;b&gt;CurriculumFlowchart.tsx&lt;/b&gt;&lt;br/&gt;Public Flowchart Explorer on /courses&lt;br/&gt;Hybrid Data Sync with Blue Arrows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
-          <mxGeometry x="920" y="40" width="280" height="130" as="geometry" />
-        </mxCell>
-        <mxCell id="c_sp_report" value="&lt;b&gt;StudyPlanReport.tsx&lt;/b&gt;&lt;br/&gt;PDF Export &amp; Grade Report&lt;br/&gt;Advisor Review Sheet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
-          <mxGeometry x="1220" y="40" width="200" height="130" as="geometry" />
-        </mxCell>
-
-        <!-- Layer 2: Business & Domain Services -->
-        <mxCell id="l2_box" value="⚙️ Service &amp; Domain Logic Layer (Pure Business Functions &amp; Data Access)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#B45309;startSize=32;" vertex="1" parent="1">
-          <mxGeometry x="60" y="500" width="1480" height="230" as="geometry" />
-        </mxCell>
-
-        <mxCell id="s_identity" value="&lt;b&gt;studyPlanIdentity.ts&lt;/b&gt;&lt;br/&gt;• normalizeCodeForMatching()&lt;br/&gt;• serializeStudentCourse()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
-          <mxGeometry x="20" y="50" width="220" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="s_vm" value="&lt;b&gt;studyPlanViewModel.ts&lt;/b&gt;&lt;br/&gt;• buildStudyPlanView()&lt;br/&gt;• resolveResult()&lt;br/&gt;• KPI Passed Credits Engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
-          <mxGeometry x="260" y="50" width="220" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="s_hybrid" value="&lt;b&gt;hybridCourseService.ts&lt;/b&gt;&lt;br/&gt;• getHybridCurriculumData()&lt;br/&gt;• Data Sanitization Filter&lt;br/&gt;• Firebase Corrupt Cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
-          <mxGeometry x="500" y="50" width="230" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="s_master" value="&lt;b&gt;completeCurriculumData.ts&lt;/b&gt;&lt;br/&gt;• courseDatabase (13 ฉบับ)&lt;br/&gt;• IT, INE, INET, ITI, ITT&lt;br/&gt;• Prerequisite Map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
-          <mxGeometry x="750" y="50" width="240" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="s_dept" value="&lt;b&gt;departmentService.ts&lt;/b&gt;&lt;br/&gt;• Summary Catalog (13 ฉบับ)&lt;br/&gt;• Total Credits (120-135)&lt;br/&gt;• Department Metadata" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
-          <mxGeometry x="1010" y="50" width="220" height="150" as="geometry" />
-        </mxCell>
-        <mxCell id="s_firebase" value="&lt;b&gt;firebaseService.ts&lt;/b&gt;&lt;br/&gt;• Firestore CRUD Operations&lt;br/&gt;• getStudyPlanByStudentId()&lt;br/&gt;• chatLogService Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
-          <mxGeometry x="1250" y="50" width="210" height="150" as="geometry" />
-        </mxCell>
-
-        <!-- Layer 3: External Infrastructure -->
-        <mxCell id="l3_box" value="☁️ External Infrastructure &amp; AI Cloud Services" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7E22CE;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#6B21A8;startSize=32;" vertex="1" parent="1">
-          <mxGeometry x="60" y="770" width="1480" height="130" as="geometry" />
-        </mxCell>
-        <mxCell id="ext_fb_all" value="&lt;b style='font-size:14px;'&gt;🔥 Firebase Cloud Platform&lt;/b&gt;&lt;br/&gt;Firebase Authentication · Cloud Firestore · Security Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=1.5;" vertex="1" parent="l3_box">
-          <mxGeometry x="100" y="45" width="550" height="65" as="geometry" />
-        </mxCell>
-        <mxCell id="ext_n8n_all" value="&lt;b style='font-size:14px;'&gt;🤖 n8n AI Workflow &amp; Vector Search Engine&lt;/b&gt;&lt;br/&gt;Pinecone Vector Store (มคอ.2 Handbook Chunks) · OpenAI GPT-5 nano LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=1.5;" vertex="1" parent="l3_box">
-          <mxGeometry x="830" y="45" width="550" height="65" as="geometry" />
-        </mxCell>
-
-        <!-- Explicit Inter-Layer Connecting Arrows -->
-        <mxCell id="ea1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="c_app" target="c_auth" />
-        <mxCell id="ea2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="c_auth" target="c_dashboards" />
-        <mxCell id="ea3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="c_dashboards" target="c_sp_progress" />
-        
-        <mxCell id="ea4" value="Resolve Code &amp; Origin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_sp_progress" target="s_identity" />
-        <mxCell id="ea5" value="Compute View &amp; KPI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_sp_timeline" target="s_vm" />
-        <mxCell id="ea6" value="Fetch Hybrid Curricula" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_flowcharts" target="s_hybrid" />
-        <mxCell id="ea7" value="Master Catalog (13)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_courses_page" target="s_master" />
-        <mxCell id="ea8" value="Manage &amp; Sync" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_course_mgmt" target="s_firebase" />
-        <mxCell id="ea9" value="AI Query Prompt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7E22CE;strokeWidth=2.5;fontSize=10;" edge="1" parent="1" source="c_chatbot_ui" target="ext_n8n_all" />
-        <mxCell id="ea10" value="Sync Realtime" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D97706;strokeWidth=2.5;fontSize=10;" edge="1" parent="1" source="s_firebase" target="ext_fb_all" />
-
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="26.0.16"><diagram id="current-system" name="ส่วนประกอบระบบ · Component diagram"><mxGraphModel dx="1800" dy="1410" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1410" background="#FFFFFF" math="0" shadow="0"><root>
+<mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="title" value="ส่วนประกอบระบบ · Component diagram" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=36;fontColor=#182B49;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="40" y="20" width="1720" height="58" as="geometry"/></mxCell>
+<mxCell id="subtitle" value="สี่ชั้นของระบบ · กลุ่มโมดูลแสดงขอบเขตความรับผิดชอบและทิศทางการเรียกใช้" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=21;fontColor=#64748B;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="40" y="80" width="1720" height="44" as="geometry"/></mxCell>
+<mxCell id="shell" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E8EEF6;strokeColor=#17365D;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="40" y="150" width="1720" height="170" as="geometry"/></mxCell>
+<mxCell id="shellTitle" value="01  ทางเข้าระบบและการเลือกหน้าตามบทบาท" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=25;fontColor=#182B49;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="65" y="160" width="1000" height="40" as="geometry"/></mxCell>
+<mxCell id="app" value="&lt;b&gt;App · Router · Layout&lt;/b&gt;&lt;br&gt;หน้าสาธารณะและกรอบแอป" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="70" y="215" width="460" height="80" as="geometry"/></mxCell>
+<mxCell id="authCtx" value="&lt;b&gt;AuthContext&lt;/b&gt;&lt;br&gt;สถานะผู้ใช้ · โปรไฟล์ · Email / Google" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="570" y="215" width="620" height="80" as="geometry"/></mxCell>
+<mxCell id="roles" value="&lt;b&gt;Role routing&lt;/b&gt;&lt;br&gt;Guest / Student / Instructor / Staff / Admin" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E8EEF6;strokeColor=#17365D;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="1230" y="215" width="500" height="80" as="geometry"/></mxCell>
+<mxCell id="shellFeatures" value="เปิดฟีเจอร์ตามบทบาท" style="edgeStyle=none;orthogonal=1;rounded=0;html=1;strokeColor=#087F9B;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;startFill=1;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=19;fontColor=#334155;labelBackgroundColor=#FFFFFF;spacing=6;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="900" y="320" as="sourcePoint"/><mxPoint x="900" y="395" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="features" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="40" y="395" width="1720" height="210" as="geometry"/></mxCell>
+<mxCell id="featuresTitle" value="02  ฟีเจอร์ที่ผู้ใช้โต้ตอบ" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=25;fontColor=#182B49;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="65" y="410" width="1000" height="40" as="geometry"/></mxCell>
+<mxCell id="coursesUI" value="&lt;b&gt;รายวิชาและหลักสูตร&lt;/b&gt;&lt;br&gt;Catalog · Curriculum&lt;br&gt;เพิ่ม / แก้ไข / ลบรายวิชา" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="70" y="465" width="390" height="110" as="geometry"/></mxCell>
+<mxCell id="plansUI" value="&lt;b&gt;แผนการเรียน&lt;/b&gt;&lt;br&gt;Study plan · เกรด&lt;br&gt;Prerequisites · ความก้าวหน้า" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="490" y="465" width="390" height="110" as="geometry"/></mxCell>
+<mxCell id="dashUI" value="&lt;b&gt;Dashboard ตามบทบาท&lt;/b&gt;&lt;br&gt;ผู้ใช้ · Audit · Analytics&lt;br&gt;จัดการ Feedback" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="910" y="465" width="390" height="110" as="geometry"/></mxCell>
+<mxCell id="chatUI" value="&lt;b&gt;ChatBot&lt;/b&gt;&lt;br&gt;คำถาม + บริบทการศึกษา&lt;br&gt;คำตอบและแบบประเมิน" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F5FB;strokeColor=#087F9B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="1330" y="465" width="400" height="110" as="geometry"/></mxCell>
+<mxCell id="featuresDomain" value="เรียกใช้บริการและตรรกะร่วม" style="edgeStyle=none;orthogonal=1;rounded=0;html=1;strokeColor=#147D68;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;startFill=1;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=19;fontColor=#334155;labelBackgroundColor=#FFFFFF;spacing=6;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="900" y="605" as="sourcePoint"/><mxPoint x="900" y="680" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="domain" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="40" y="680" width="1720" height="420" as="geometry"/></mxCell>
+<mxCell id="domainTitle" value="03  บริการข้อมูลและตรรกะในเบราว์เซอร์" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=25;fontColor=#182B49;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="65" y="692" width="1100" height="40" as="geometry"/></mxCell>
+<mxCell id="firebaseService" value="&lt;b&gt;firebaseService&lt;/b&gt;&lt;br&gt;ผู้ใช้ · CRUD รายวิชา&lt;br&gt;studyPlans · auditLogs&lt;br&gt;สรุปข้อมูล Dashboard" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="70" y="750" width="390" height="135" as="geometry"/></mxCell>
+<mxCell id="courseService" value="&lt;b&gt;courseService&lt;/b&gt;&lt;br&gt;&lt;b&gt;hybridCourseService&lt;/b&gt;&lt;br&gt;อ่านรายวิชาและรวมข้อมูล&lt;br&gt;ตามรหัสวิชา" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="490" y="750" width="390" height="135" as="geometry"/></mxCell>
+<mxCell id="studyDomain" value="&lt;b&gt;studyPlanIdentity / ViewModel&lt;/b&gt;&lt;br&gt;จับคู่แผน · ฉายความก้าวหน้า&lt;br&gt;Grade / prerequisite cascade&lt;br&gt;GPA · credits · export utilities" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="910" y="750" width="390" height="135" as="geometry"/></mxCell>
+<mxCell id="chatService" value="&lt;b&gt;chatLogService&lt;/b&gt;&lt;br&gt;อ่าน / จัดการ chatLogs&lt;br&gt;เขียน / จัดการ chatFeedback&lt;br&gt;ChatBot ส่ง metadata ให้ n8n" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="1330" y="750" width="400" height="135" as="geometry"/></mxCell>
+<mxCell id="catalog" value="&lt;b&gt;Static master / rule catalogs&lt;/b&gt;&lt;br&gt;completeCurriculumData&lt;br&gt;curriculumCatalogService + กฎการศึกษา&lt;br&gt;กฎหลักสูตร 13 รูปแบบ" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="70" y="915" width="590" height="145" as="geometry"/></mxCell>
+<mxCell id="precedence" value="&lt;b&gt;ลำดับความสำคัญของข้อมูล Hybrid&lt;/b&gt;&lt;br&gt;RTDB หลักสูตรเฉพาะ &amp;gt; RTDB courses ทั่วไป &amp;gt; Static master&lt;br&gt;เพิ่มวิชาใหม่จาก curriculum เฉพาะเท่านั้น&lt;br&gt;หากอ่าน RTDB ล้มเหลว ใช้ Static master fallback" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#E1F4EF;strokeColor=#147D68;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="700" y="915" width="1030" height="145" as="geometry"/></mxCell>
+<mxCell id="domainRuntime" value="Firebase SDK / HTTP webhook" style="edgeStyle=none;orthogonal=1;rounded=0;html=1;strokeColor=#B77912;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;startFill=1;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=19;fontColor=#334155;labelBackgroundColor=#FFFFFF;spacing=6;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="900" y="1100" as="sourcePoint"/><mxPoint x="900" y="1175" as="targetPoint"/></mxGeometry></mxCell>
+<mxCell id="runtime" value="" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F5F7FA;strokeColor=#64748B;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="40" y="1175" width="1720" height="150" as="geometry"/></mxCell>
+<mxCell id="runtimeTitle" value="04  Runtime ภายนอก" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=25;fontColor=#182B49;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="65" y="1185" width="420" height="40" as="geometry"/></mxCell>
+<mxCell id="authExternal" value="&lt;b&gt;Firebase Authentication&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFF2D9;strokeColor=#B77912;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="70" y="1235" width="500" height="65" as="geometry"/></mxCell>
+<mxCell id="rtdbExternal" value="&lt;b&gt;Firebase Realtime Database&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFF2D9;strokeColor=#B77912;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="610" y="1235" width="620" height="65" as="geometry"/></mxCell>
+<mxCell id="n8nExternal" value="&lt;b&gt;n8n · AI / RAG workflow&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F0EAFA;strokeColor=#7950AA;strokeWidth=2;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=22;fontColor=#182B49;spacing=16;" vertex="1" parent="1"><mxGeometry x="1270" y="1235" width="460" height="65" as="geometry"/></mxCell>
+<mxCell id="legend" value="สี: กรมท่า ผู้ใช้/ทางเข้า · ฟ้า UI · เขียว ตรรกะ · เหลือง Firebase · ม่วง AI · ชมพู ข้อมูล   |   → เรียกใช้/ส่งข้อมูล   ⇄ อ่าน–เขียน" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;fontFamily=Sukhumvit Set, Tahoma, sans-serif;fontSize=18;fontColor=#64748B;align=left;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="40" y="1345" width="1720" height="50" as="geometry"/></mxCell>
+</root></mxGraphModel></diagram></mxfile>
