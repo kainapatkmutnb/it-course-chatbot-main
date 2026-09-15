@@ -56,6 +56,9 @@ _Avoid_: ประวัติการเรียนจริงของน�
 
 - **Firebase Authentication Account**: The Firebase-managed identity that can sign in with an email and password. It is distinct from, and must not be confused with, the application's user profile.
 - **User Profile**: The application record at `users/<uid>` in Realtime Database that stores a user's role and profile fields. Removing it alone does not remove the corresponding Firebase Authentication Account.
+- **NonStudentRoleIsolation**: The architectural separation ensuring users with roles other than `student` (`admin`, `instructor`, `staff`, `guest`) are strictly excluded from student academic attributes (enrolled degree curriculum, current study year/semester, course enrollment status, GPA).
+- **DeterministicUserIdentityRouting**: The sub-system route in the advising router that intercepts questions regarding user identity, system role, or enrolled curriculum, returning authoritative, deterministic profile responses directly from authenticated metadata without invoking downstream LLM generation or vector retrieval.
+- **ExtendedStudentYear (นักศึกษาขยายเวลาเรียน / ตกค้าง)**: Student cohort status representing students enrolled beyond the curriculum's standard duration (e.g., Year 5+ for 4-year programs), tracking real academic standing and enrolled in-progress courses without truncating to the official 4-year curriculum layout.
 - **Curriculum Course Record**: The course data stored for one program, curriculum year, academic year, and semester under the `curriculum/` branch. It is the course record shown in that selected curriculum slot.
 - **Course Index Record**: The copy of a Curriculum Course Record stored under `courses/<courseId>` for cross-screen lookup. It must remain consistent with the Curriculum Course Record without overwriting records for another curriculum slot.
 

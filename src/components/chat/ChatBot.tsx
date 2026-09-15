@@ -196,65 +196,91 @@ const ChatBot: React.FC = () => {
 
         const curriculumSummaryCatalog = getCurriculumSummaryCatalog();
         const allCurriculums = getAllCurriculumsMap();
-        const enrolledCurr = studyPlan?.curriculum 
-          ? studyPlan.curriculum 
-          : (studyPlan?.program && studyPlan?.curriculumYear 
-              ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
-              : (user?.department ? `${user.department}-67` : ''));
+        const isStudent = user?.role === 'student';
+        const enrolledCurr = isStudent
+          ? (studyPlan?.curriculum 
+              ? studyPlan.curriculum 
+              : (studyPlan?.program && studyPlan?.curriculumYear 
+                  ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
+                  : (user?.department ? `${user.department}-67` : '')))
+          : '';
 
-        const uncompletedCurriculumCourses = curriculumCourses
-          .filter(c => !completedCourseCodes.includes(c.code))
-          .map(c => ({
-            code: c.code,
-            name: c.name,
-            credits: c.credits,
-            category: c.category,
-            year: c.year,
-            semester: c.semester,
-            prerequisites: c.prerequisites || [],
-            isFailed: failedCourseCodes.includes(c.code)
-          }));
-
+        const uncompletedCurriculumCourses = isStudent
+          ? curriculumCourses
+              .filter(c => !completedCourseCodes.includes(c.code))
+              .map(c => ({
+                code: c.code,
+                name: c.name,
+                credits: c.credits,
+                category: c.category,
+                year: c.year,
+                semester: c.semester,
+                prerequisites: c.prerequisites || [],
+                isFailed: failedCourseCodes.includes(c.code)
+              }))
+          : [];
 
         // Authoritative 13-curriculum guard — sourced from CURRICULUM_RULES_CATALOG in curriculumCatalogService
         const curriculumDurationGuard = getCurriculumDurationGuard();
         // Direct lookup for the student's own curriculum (O(1) access for n8n LLM)
-        const activeCurriculumRule = getActiveCurriculumRule(enrolledCurr);
+        const activeCurriculumRule = isStudent && enrolledCurr ? getActiveCurriculumRule(enrolledCurr) : null;
 
         // คำนวณชั้นปีและภาคเรียนปัจจุบันของนักศึกษาอย่างแม่นยำ (ครอบคลุมทุกปี: ปี 1 ถึงปี 8+ รวมถึงนักศึกษาตกค้าง / ขยายเวลาเรียน)
-        let currentStudentYear = 1;
-        let currentStudentSemester = 1;
+        let currentStudentYear: number | null = null;
+        let currentStudentSemester: number | null = null;
+        let isExtendedYears = false;
+        let standardDuration = 4;
+        let currentStudentAcademicTerm = '';
 
-        if (inProgressCourses.length > 0) {
-          // Tier 1: ดูจากรายวิชาที่กำลังลงทะเบียนเรียนอยู่จริง (in_progress)
-          currentStudentYear = Math.max(...inProgressCourses.map(c => Number(c.year) || 1));
-          currentStudentSemester = Math.max(...inProgressCourses.filter(c => Number(c.year) === currentStudentYear).map(c => Number(c.semester) || 1));
-        } else if (passedCourses.length > 0) {
-          // Tier 2: ถัดจากเทอมสูงสุดที่สอบผ่านแล้ว
-          const maxPassedYear = Math.max(...passedCourses.map(c => Number(c.year) || 1));
-          const maxPassedSem = Math.max(...passedCourses.filter(c => Number(c.year) === maxPassedYear).map(c => Number(c.semester) || 1));
-          if (maxPassedSem >= 2) {
-            currentStudentYear = maxPassedYear + 1;
-            currentStudentSemester = 1;
-          } else {
-            currentStudentYear = maxPassedYear;
-            currentStudentSemester = 2;
-          }
-        } else if (user?.studentId && /^\d{2}/.test(user.studentId.trim())) {
-          // Tier 3: คำนวณจากรหัสนักศึกษา 2 ตัวแรก (ปีการศึกษาที่เข้าศึกษา พ.ศ.) เทียบกับปีการศึกษาปัจจุบัน (2569)
-          const admissionYearBE = parseInt(user.studentId.trim().substring(0, 2), 10);
-          const currentAcademicYearBE = 69; // พ.ศ. 2569
-          const diffYears = (currentAcademicYearBE - admissionYearBE) + 1;
-          currentStudentYear = Math.max(1, diffYears);
+        if (isStudent) {
+          currentStudentYear = 1;
           currentStudentSemester = 1;
+
+          if (inProgressCourses.length > 0) {
+            // Tier 1: ดูจากรายวิชาที่กำลังลงทะเบียนเรียนอยู่จริง (in_progress)
+            currentStudentYear = Math.max(...inProgressCourses.map(c => Number(c.year) || 1));
+            currentStudentSemester = Math.max(...inProgressCourses.filter(c => Number(c.year) === currentStudentYear).map(c => Number(c.semester) || 1));
+          } else if (passedCourses.length > 0) {
+            // Tier 2: ถัดจากเทอมสูงสุดที่สอบผ่านแล้ว
+            const maxPassedYear = Math.max(...passedCourses.map(c => Number(c.year) || 1));
+            const maxPassedSem = Math.max(...passedCourses.filter(c => Number(c.year) === maxPassedYear).map(c => Number(c.semester) || 1));
+            if (maxPassedSem >= 2) {
+              currentStudentYear = maxPassedYear + 1;
+              currentStudentSemester = 1;
+            } else {
+              currentStudentYear = maxPassedYear;
+              currentStudentSemester = 2;
+            }
+          } else if (user?.studentId && /^\d{2}/.test(user.studentId.trim())) {
+            // Tier 3: คำนวณจากรหัสนักศึกษา 2 ตัวแรก (ปีการศึกษาที่เข้าศึกษา พ.ศ.) เทียบกับปีการศึกษาปัจจุบัน (2569)
+            const admissionYearBE = parseInt(user.studentId.trim().substring(0, 2), 10);
+            const currentAcademicYearBE = 69; // พ.ศ. 2569
+            const diffYears = (currentAcademicYearBE - admissionYearBE) + 1;
+            currentStudentYear = Math.max(1, diffYears);
+            currentStudentSemester = 1;
+          }
+
+          standardDuration = activeCurriculumRule?.durationYears || 4;
+          isExtendedYears = currentStudentYear > standardDuration;
+          currentStudentAcademicTerm = enrolledCurr
+            ? `ปี ${currentStudentYear} เทอม ${currentStudentSemester}`
+            : 'ยังไม่ได้เลือกหลักสูตร/สาขาวิชา';
+        } else {
+          currentStudentAcademicTerm = user?.role === 'admin'
+            ? 'ผู้ดูแลระบบ (System Administrator)'
+            : user?.role === 'instructor'
+              ? 'อาจารย์ผู้สอน (Instructor)'
+              : 'เจ้าหน้าที่ (Staff)';
         }
 
-        const standardDuration = activeCurriculumRule?.durationYears || 4;
-        const isExtendedYears = currentStudentYear > standardDuration;
-        const currentStudentAcademicTerm = `ปี ${currentStudentYear} เทอม ${currentStudentSemester}`;
+        const studentStatusDirective = isStudent
+          ? (enrolledCurr
+              ? `STRICT: ข้อมูลสถานะและชั้นปีปัจจุบันของนักศึกษาคือ "${currentStudentAcademicTerm}" (กำลังศึกษาอยู่ชั้นปีที่ ${currentStudentYear} ภาคการศึกษาที่ ${currentStudentSemester}${isExtendedYears ? ` ซึ่งเป็นนักศึกษาเกินระยะเวลาตามแผนการเรียนปกติ / ตกค้าง เกินหลักสูตร ${standardDuration} ปี` : ''}) โดยมีวิชาที่กำลังศึกษาในเทอมปัจจุบัน (in_progress) จำนวน ${inProgressCourses.length} วิชา ได้แก่ [${inProgressCourseCodes.join(', ')}] ห้ามตอบผิดว่าเป็นปี 4 หรือเทอม 4-2 หรือชั้นปีอื่นโดยเด็ดขาด ให้ยึดถือข้อมูลสถานะนี้เป็นจริงเสมอ`
+              : `STRICT: นักศึกษาชื่อ "${user?.name}" ยังไม่ได้เลือกสาขาวิชาหรือสร้างแผนการเรียนในระบบ หากถามว่าเรียนหลักสูตรอะไร ให้แจ้งว่ายังไม่ได้เลือกหลักสูตร/สาขาวิชา และแนะนำให้ไปเลือกที่เมนูจัดการแผนการเรียนหรือโปรไฟล์`)
+          : `STRICT: ผู้ใช้งานปัจจุบันชื่อ "${user?.name}" มีบทบาทในระบบเป็น "${user?.role}" (${currentStudentAcademicTerm}) ไม่ใช่นักศึกษา จึงไม่มีข้อมูลการศึกษา ชั้นปี หรือหลักสูตรที่กำลังศึกษาในระบบเด็ดขาด หากผู้ใช้ถามว่า "ผมชื่ออะไรตอนนี้ผมเรียนหลักสูตรอะไร" หรือถามเกี่ยวกับสถานะการเรียนของตนเอง ให้ตอบว่าผู้ใช้งานชื่อ "${user?.name}" มีบทบาทเป็น ${currentStudentAcademicTerm} และไม่ได้เป็นนักศึกษา จึงไม่มีข้อมูลหลักสูตรที่กำลังศึกษาหรือสถานะการเรียน ห้ามตอบว่ากำลังศึกษา IT-67 หรือหลักสูตรใด ๆ โดยเด็ดขาด`;
 
         const advisingDirectives = {
-          currentStudentStatusRule: `STRICT: ข้อมูลสถานะและชั้นปีปัจจุบันของนักศึกษาคือ "${currentStudentAcademicTerm}" (กำลังศึกษาอยู่ชั้นปีที่ ${currentStudentYear} ภาคการศึกษาที่ ${currentStudentSemester}${isExtendedYears ? ` ซึ่งเป็นนักศึกษาเกินระยะเวลาตามแผนการเรียนปกติ / ตกค้าง เกินหลักสูตร ${standardDuration} ปี` : ''}) โดยมีวิชาที่กำลังศึกษาในเทอมปัจจุบัน (in_progress) จำนวน ${inProgressCourses.length} วิชา ได้แก่ [${inProgressCourseCodes.join(', ')}] ห้ามตอบผิดว่าเป็นปี 4 หรือเทอม 4-2 หรือชั้นปีอื่นโดยเด็ดขาด ให้ยึดถือข้อมูลสถานะนี้เป็นจริงเสมอ`,
+          currentStudentStatusRule: studentStatusDirective,
           passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
           retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
           directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
@@ -270,14 +296,14 @@ const ChatBot: React.FC = () => {
               userId: user.id || '',
               userName: user.name || '',
               userEmail: user.email || '',
-              studentId: user.studentId || '',
+              studentId: isStudent ? (user.studentId || '') : '',
               role: user.role || '',
-              department: studyPlan?.program || user.department || '',
-              program: studyPlan?.program || '',
-              curriculumYear: studyPlan?.curriculumYear || '',
+              department: isStudent ? (studyPlan?.program || user.department || '') : '',
+              program: isStudent ? (studyPlan?.program || '') : '',
+              curriculumYear: isStudent ? (studyPlan?.curriculumYear || '') : '',
               curriculum: enrolledCurr,
               enrolledCurriculum: enrolledCurr,
-              activeCurriculum: enrolledCurr || 'IT-67',
+              activeCurriculum: enrolledCurr || '',
               curriculumSummaryCatalog,
               allCurriculums,
               curriculumDurationGuard,
@@ -293,15 +319,15 @@ const ChatBot: React.FC = () => {
               currentStudentAcademicTerm,
               isExtendedYears,
               standardDurationYears: standardDuration,
-              inProgressCourses,
-              inProgressCourseCodes,
+              inProgressCourses: isStudent ? inProgressCourses : [],
+              inProgressCourseCodes: isStudent ? inProgressCourseCodes : [],
 
-              gpa: userGpa,
-              isProbation,
-              academicStanding,
-              allowedMaxCredits: isProbation ? 16 : 22,
-              allowedMinCredits: 9,
-              registrationRules: {
+              gpa: isStudent ? userGpa : 0,
+              isProbation: isStudent ? isProbation : false,
+              academicStanding: isStudent ? academicStanding : 'not_applicable',
+              allowedMaxCredits: isStudent ? (isProbation ? 16 : 22) : 22,
+              allowedMinCredits: isStudent ? 9 : 0,
+              registrationRules: isStudent ? {
                 ...registrationRules,
                 studentStanding: {
                   gpa: userGpa,
@@ -313,16 +339,16 @@ const ChatBot: React.FC = () => {
                     ? `สถานะวิทยาทัณฑ์ (ติดโปร - GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้สูงสุดไม่เกิน 16 หน่วยกิต หากจำเป็นต้องลงเกินต้องยื่นคำร้องพิเศษ`
                     : `สถานะปกติ (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้ 9-22 หน่วยกิต (ยกเว้นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา)`
                 }
-              },
-              completedCredits: gpaData?.completedCredits ?? studyPlan?.completedCredits ?? 0,
-              totalCredits: studyPlan?.totalCredits || gpaData?.totalCredits || 0,
+              } : null,
+              completedCredits: isStudent ? (gpaData?.completedCredits ?? studyPlan?.completedCredits ?? 0) : 0,
+              totalCredits: isStudent ? (studyPlan?.totalCredits || gpaData?.totalCredits || 0) : 0,
               gradePassingThreshold: 'D',  // D and above counts as passing
-              completedCourseCodes: completedCourseCodes,  // List of passed course codes
-              passedCourses,
-              failedCourses,
-              failedCourseCodes,
-              uncompletedCurriculumCourses,
-              studyPlan: studyPlan?.courses ? studyPlan.courses.map(c => ({
+              completedCourseCodes: isStudent ? completedCourseCodes : [],  // List of passed course codes
+              passedCourses: isStudent ? passedCourses : [],
+              failedCourses: isStudent ? failedCourses : [],
+              failedCourseCodes: isStudent ? failedCourseCodes : [],
+              uncompletedCurriculumCourses: isStudent ? uncompletedCurriculumCourses : [],
+              studyPlan: isStudent && studyPlan?.courses ? studyPlan.courses.map(c => ({
                 code: c.code,
                 name: c.name,
                 credits: c.credits,
