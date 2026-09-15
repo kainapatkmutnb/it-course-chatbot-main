@@ -106,11 +106,13 @@ const StudyPlanManager: React.FC = () => {
   const [selectedProgram, setSelectedProgram] = useState<string>('');
   const [selectedCurriculumYear, setSelectedCurriculumYear] = useState<string>('');
   const [curriculumCourses, setCurriculumCourses] = useState<CurriculumCourse[]>([]);
+  const [curriculumSearchTerm, setCurriculumSearchTerm] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      const programs = Object.keys(courseDatabase);
+      const validDepartments = ['IT', 'INE', 'INET', 'ITI', 'ITT'];
+      const programs = Object.keys(courseDatabase).filter(p => validDepartments.includes(p) && p !== 'INE-COOP');
       setAvailablePrograms(programs);
     } catch (err) {
       console.error('Error loading programs:', err);
@@ -140,18 +142,24 @@ const StudyPlanManager: React.FC = () => {
         const programData = courseDatabase[selectedProgram]?.[selectedCurriculumYear];
 
         if (programData) {
-          Object.entries(programData).forEach(([semesterKey, semesterCourses]: [string, any]) => {
-            if (Array.isArray(semesterCourses)) {
-              const [year, semester] = semesterKey.split('-').map(Number);
-              semesterCourses.forEach((course: any) => {
-                courses.push({
-                  ...course,
-                  year,
-                  semester
+          Object.entries(programData)
+            .sort(([a], [b]) => {
+              const [yA, sA] = a.split('-').map(Number);
+              const [yB, sB] = b.split('-').map(Number);
+              return yA !== yB ? yA - yB : sA - sB;
+            })
+            .forEach(([semesterKey, semesterCourses]: [string, any]) => {
+              if (Array.isArray(semesterCourses)) {
+                const [year, semester] = semesterKey.split('-').map(Number);
+                semesterCourses.forEach((course: any) => {
+                  courses.push({
+                    ...course,
+                    year,
+                    semester
+                  });
                 });
-              });
-            }
-          });
+              }
+            });
         }
 
         setCurriculumCourses(courses);
@@ -650,6 +658,20 @@ const StudyPlanManager: React.FC = () => {
         studentId: studyPlan.studentId
       });
 
+      // คำนวณชั้นปีปัจจุบันจากรายวิชาจริง (รองรับปี 1 - ปี 8+)
+      const inProgressList = coursesForFirebase.filter(c => c.status === 'in_progress');
+      let calculatedCurrentYear = 1;
+      if (inProgressList.length > 0) {
+        calculatedCurrentYear = Math.max(...inProgressList.map(c => Number(c.year) || 1));
+      } else {
+        const completedList = coursesForFirebase.filter(c => c.status === 'completed' && c.grade && c.grade !== 'F');
+        if (completedList.length > 0) {
+          const maxY = Math.max(...completedList.map(c => Number(c.year) || 1));
+          const maxS = Math.max(...completedList.filter(c => Number(c.year) === maxY).map(c => Number(c.semester) || 1));
+          calculatedCurrentYear = maxS >= 2 ? maxY + 1 : maxY;
+        }
+      }
+
       // Update study plan in Firebase
       const planId = studyPlan.id && !studyPlan.id.startsWith('plan-') ? studyPlan.id : null;
       if (planId) {
@@ -661,15 +683,21 @@ const StudyPlanManager: React.FC = () => {
           courses: coursesForFirebase,
           completedCredits,
           totalCredits,
-          gpa: calculatedGPA
+          gpa: calculatedGPA,
+          studentYear: calculatedCurrentYear,
+          currentYear: calculatedCurrentYear
         });
-        // Sync GPA and credits to Firebase
-        const syncResult = await firebaseService.updateStudentGPAAndCredits(
+        // Sync GPA, credits, and studentYear to Firebase
+        await firebaseService.updateStudentGPAAndCredits(
           studyPlan.studentId,
           calculatedGPA,
           completedCredits
         );
-        console.log('✅ [GPA/Credits Synced]', { calculatedGPA, completedCredits, syncResult });
+        await firebaseService.updateStudentYearAndAcademicProgress(
+          studyPlan.studentId,
+          calculatedCurrentYear
+        );
+        console.log('✅ [GPA/Credits/StudentYear Synced]', { calculatedGPA, completedCredits, calculatedCurrentYear });
         return;
       }
 
@@ -686,15 +714,21 @@ const StudyPlanManager: React.FC = () => {
         courses: coursesForFirebase,
         completedCredits,
         totalCredits,
-        gpa: calculatedGPA
+        gpa: calculatedGPA,
+        studentYear: calculatedCurrentYear,
+        currentYear: calculatedCurrentYear
       });
-      // Update GPA and credits
-      const syncResult2 = await firebaseService.updateStudentGPAAndCredits(
+      // Update GPA, credits, and studentYear
+      await firebaseService.updateStudentGPAAndCredits(
         existingPlan.studentId,
         calculatedGPA,
         completedCredits
       );
-      console.log('✅ [GPA/Credits Synced (alternative)]', { calculatedGPA, completedCredits, syncResult2 });
+      await firebaseService.updateStudentYearAndAcademicProgress(
+        existingPlan.studentId,
+        calculatedCurrentYear
+      );
+      console.log('✅ [GPA/Credits/StudentYear Synced (alternative)]', { calculatedGPA, completedCredits, calculatedCurrentYear });
     } catch (err) {
       console.error('Error saving to Firebase:', err);
     }
@@ -989,22 +1023,143 @@ const StudyPlanManager: React.FC = () => {
           </CardContent>
         </Card>
 
-        {curriculumCourses.length > 0 && (
-          <Card className="academic-panel">
-            <CardHeader>
-              <CardTitle>ตัวอย่างรายวิชา ({curriculumCourses.length} วิชา)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {curriculumCourses.slice(0, 10).map(course => (
-                  <div key={course.code} className="p-2 bg-muted rounded text-sm">
-                    {course.code} - {course.name} ({course.credits} หน่วยกิต)
+        {curriculumCourses.length > 0 && (() => {
+          const totalCredits = curriculumCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+          const isCoopCurriculum = selectedCurriculumYear.includes('สหกิจ');
+          
+          // Filter courses by search term
+          const filteredCourses = curriculumCourses.filter(c => {
+            if (!curriculumSearchTerm.trim()) return true;
+            const term = curriculumSearchTerm.trim().toLowerCase();
+            return (
+              (c.code || '').toLowerCase().includes(term) ||
+              (c.name || '').toLowerCase().includes(term) ||
+              (c.mainCategory || '').toLowerCase().includes(term)
+            );
+          });
+
+          // Group by semester
+          const groupedBySemester = filteredCourses.reduce((acc, c) => {
+            const key = `${c.year}-${c.semester}`;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(c);
+            return acc;
+          }, {} as Record<string, CurriculumCourse[]>);
+
+          const sortedSemKeys = Object.keys(groupedBySemester).sort((a, b) => {
+            const [yA, sA] = a.split('-').map(Number);
+            const [yB, sB] = b.split('-').map(Number);
+            return yA !== yB ? yA - yB : sA - sB;
+          });
+
+          return (
+            <Card className="academic-panel shadow-medium border-2">
+              <CardHeader className="pb-3 border-b bg-card">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-xl font-bold flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                      รายชื่อวิชาทั้งหมดในหลักสูตร {selectedProgram} {selectedCurriculumYear}
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      โครงสร้างรายวิชาทั้งหมดตามหลักสูตรอย่างเป็นทางการ สามารถตรวจสอบรายวิชาในแต่ละภาคการศึกษาก่อนยืนยันสร้างแผน
+                    </CardDescription>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-primary/10 text-primary border-primary/30 text-xs px-2.5 py-1">
+                      ครบ {curriculumCourses.length} วิชา
+                    </Badge>
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs px-2.5 py-1">
+                      รวม {totalCredits} หน่วยกิต
+                    </Badge>
+                    <Badge className={isCoopCurriculum ? 'bg-purple-100 text-purple-800 border-purple-300 text-xs px-2.5 py-1' : 'bg-blue-100 text-blue-800 border-blue-300 text-xs px-2.5 py-1'}>
+                      {isCoopCurriculum ? '💼 โครงการสหกิจศึกษา (8 เทอม)' : '📘 โครงการปกติ'}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mt-3 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ค้นหารหัสวิชา หรือชื่อวิชาในหลักสูตรนี้..."
+                    value={curriculumSearchTerm}
+                    onChange={e => setCurriculumSearchTerm(e.target.value)}
+                    className="pl-9 text-sm bg-background"
+                  />
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-4 space-y-6 max-h-[600px] overflow-y-auto">
+                {sortedSemKeys.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    ไม่พบรายวิชาที่ตรงกับ "{curriculumSearchTerm}"
+                  </div>
+                ) : (
+                  sortedSemKeys.map(semKey => {
+                    const [y, s] = semKey.split('-').map(Number);
+                    const semCourses = groupedBySemester[semKey];
+                    const semCredits = semCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+                    const semLabel = s === 3
+                      ? 'ภาคฤดูร้อน (ฝึกงาน)'
+                      : (isCoopCurriculum && y === 4 && s === 2)
+                        ? 'เทอมที่ 2 (สหกิจศึกษา)'
+                        : `เทอมที่ ${s}`;
+
+                    return (
+                      <div key={semKey} className="space-y-2.5 border-b pb-5 last:border-b-0">
+                        <div className="flex items-center justify-between font-semibold text-sm bg-muted/70 px-3.5 py-2 rounded-md border border-border/50">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            ชั้นปีที่ {y} {semLabel}
+                          </span>
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {semCourses.length} วิชา · {semCredits} หน่วยกิต
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+                          {semCourses.map((course, idx) => {
+                            const cleanCode = (course.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').trim() || course.code;
+                            return (
+                              <div
+                                key={`${course.code}-${y}-${s}-${idx}`}
+                                className="p-3 bg-card border rounded-lg text-xs sm:text-sm flex flex-col justify-between space-y-1.5 hover:border-primary/60 transition-colors shadow-sm"
+                              >
+                                <div className="flex items-start justify-between gap-1.5">
+                                  <span className="font-semibold text-primary font-mono text-xs">
+                                    {cleanCode}
+                                  </span>
+                                  <Badge variant="secondary" className="text-[10px] shrink-0 font-normal">
+                                    {course.credits} หน่วยกิต
+                                  </Badge>
+                                </div>
+                                <div className="font-medium text-foreground leading-snug">
+                                  {course.name}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap pt-0.5">
+                                  {course.mainCategory && (
+                                    <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                                      {course.mainCategory}
+                                    </span>
+                                  )}
+                                  {course.prerequisites && course.prerequisites.length > 0 && (
+                                    <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px]">
+                                      บังคับก่อน: {course.prerequisites.join(', ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
       </div>
     );
   }

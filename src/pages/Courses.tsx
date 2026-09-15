@@ -82,22 +82,21 @@ const Courses: React.FC = () => {
       if (selectedDepartment !== 'all' && selectedCurriculum !== 'all') {
         setIsLoading(true);
         try {
-          // Parse curriculum selection
+          // Parse curriculum selection (รองรับทั้งรูปแบบ -COOP และ สหกิจ)
           let programCode, curriculumYear;
           
-          // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
-          if (selectedCurriculum === 'IT 62 สหกิจ') {
-            programCode = 'IT';
-            curriculumYear = '62 สหกิจ';
-          } else if (selectedCurriculum === 'IT 67 สหกิจ') {
-            programCode = 'IT';
-            curriculumYear = '67 สหกิจ';
-          } else if (selectedCurriculum === 'INE 62 สหกิจ') {
-            programCode = 'INE';
-            curriculumYear = '62 สหกิจ';
-          } else if (selectedCurriculum === 'INE 67 สหกิจ') {
-            programCode = 'INE';
-            curriculumYear = '67 สหกิจ';
+          if (selectedCurriculum.includes('-COOP')) {
+            const parts = selectedCurriculum.replace('-COOP', '').split(/[- ]/);
+            programCode = parts[0];
+            curriculumYear = `${parts[1]} สหกิจ`;
+          } else if (selectedCurriculum.includes('สหกิจ')) {
+            const parts = selectedCurriculum.replace(' สหกิจ', '').split(/[- ]/);
+            programCode = parts[0];
+            curriculumYear = `${parts[1]} สหกิจ`;
+          } else if (selectedCurriculum.includes('-')) {
+            const parts = selectedCurriculum.split('-');
+            programCode = parts[0];
+            curriculumYear = parts[1];
           } else {
             [programCode, curriculumYear] = selectedCurriculum.split(' ');
           }

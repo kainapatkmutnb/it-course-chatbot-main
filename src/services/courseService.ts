@@ -223,7 +223,8 @@ export const filterCourses = (courses: CourseWithProgram[], filter: CourseFilter
  * Get unique programs available
  */
 export const getAvailablePrograms = (): string[] => {
-  return Object.keys(courseDatabase);
+  const valid = ['IT', 'INE', 'INET', 'ITI', 'ITT'];
+  return Object.keys(courseDatabase).filter(p => valid.includes(p) && p !== 'INE-COOP');
 };
 
 /**

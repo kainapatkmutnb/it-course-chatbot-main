@@ -123,9 +123,9 @@ const StudyPlanProgress: React.FC = () => {
     return '62';
   }, [studyPlanData?.curriculumYear]);
 
-  // Check if this program has a separate co-op track (only INE has normal vs coop tracks)
+  // Check if this program has a separate co-op track (both IT and INE have normal vs coop tracks)
   const hasCoopTrack = useMemo(() => {
-    return currentProgramCode === 'INE';
+    return currentProgramCode === 'INE' || currentProgramCode === 'IT';
   }, [currentProgramCode]);
 
   const isCurrentTrackCoop = useMemo(() => {
@@ -202,8 +202,8 @@ const StudyPlanProgress: React.FC = () => {
             let label = `เทอมที่ ${semester}`;
             let isInternship = false;
             if (isCoopCurriculum && Number(year) === 4) {
-              if (semester === '1') { label = 'เทอมที่ 1'; isInternship = true; }
-              else if (semester === '2') { label = 'เทอมที่ 2'; isInternship = true; }
+              if (semester === '1') { label = 'เทอมที่ 1'; isInternship = false; }
+              else if (semester === '2') { label = 'เทอมที่ 2 (สหกิจศึกษา)'; isInternship = true; }
             } else if (!isCoopCurriculum && semester === '3') {
               label = 'ฝึกงาน'; isInternship = true;
             }

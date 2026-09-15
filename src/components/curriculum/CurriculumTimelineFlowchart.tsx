@@ -60,19 +60,31 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
       try {
         let programCode, curriculumYear;
         
-        // กรณีพิเศษสำหรับหลักสูตรสหกิจทั้งหมด ให้ใช้ข้อมูลจากโครงสร้างของตัวเองโดยตรง
-        if (selectedCurriculum === 'IT 62 สหกิจ') {
+        // ตรวจสอบและแยก programCode และ curriculumYear รองรับทั้งรูปแบบ -COOP และ สหกิจ
+        if (selectedCurriculum.includes('-COOP')) {
+          const parts = selectedCurriculum.replace('-COOP', '').split(/[- ]/);
+          programCode = parts[0];
+          curriculumYear = `${parts[1]} สหกิจ`;
+        } else if (selectedCurriculum === 'IT 62 สหกิจ' || selectedCurriculum === 'IT-62 สหกิจ') {
           programCode = 'IT';
           curriculumYear = '62 สหกิจ';
-        } else if (selectedCurriculum === 'IT 67 สหกิจ') {
+        } else if (selectedCurriculum === 'IT 67 สหกิจ' || selectedCurriculum === 'IT-67 สหกิจ') {
           programCode = 'IT';
           curriculumYear = '67 สหกิจ';
-        } else if (selectedCurriculum === 'INE 62 สหกิจ') {
+        } else if (selectedCurriculum === 'INE 62 สหกิจ' || selectedCurriculum === 'INE-62 สหกิจ') {
           programCode = 'INE';
           curriculumYear = '62 สหกิจ';
-        } else if (selectedCurriculum === 'INE 67 สหกิจ') {
+        } else if (selectedCurriculum === 'INE 67 สหกิจ' || selectedCurriculum === 'INE-67 สหกิจ') {
           programCode = 'INE';
           curriculumYear = '67 สหกิจ';
+        } else if (selectedCurriculum.includes(' สหกิจ')) {
+          const parts = selectedCurriculum.replace(' สหกิจ', '').split(/[- ]/);
+          programCode = parts[0];
+          curriculumYear = `${parts[1]} สหกิจ`;
+        } else if (selectedCurriculum.includes('-')) {
+          const parts = selectedCurriculum.split('-');
+          programCode = parts[0];
+          curriculumYear = parts[1];
         } else {
           [programCode, curriculumYear] = selectedCurriculum.split(' ');
         }
@@ -96,7 +108,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
     if (!selectedCurriculum) return null;
     const catalog = getCurriculumSummaryCatalog();
     return catalog.find(c => {
-      if (selectedCurriculum.includes('สหกิจ')) {
+      if (selectedCurriculum.includes('สหกิจ') || selectedCurriculum.includes('COOP')) {
         const is62 = selectedCurriculum.includes('62');
         const is67 = selectedCurriculum.includes('67');
         const isIT = selectedCurriculum.startsWith('IT');
@@ -106,7 +118,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
         if (isINE && is62) return c.id === 'INE-62-COOP';
         if (isINE && is67) return c.id === 'INE-67-COOP';
       }
-      const parts = selectedCurriculum.split(' ');
+      const parts = selectedCurriculum.split(/[- ]/);
       const prog = parts[0];
       const yr = parts[1];
       return (c.program === prog && c.curriculumYear === yr) || c.id === `${prog}-${yr}`;
@@ -138,8 +150,7 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
     return code.replace(/^(INE-|INET-|IT-|ITI-|ITT-)/i, '');
   };
 
-  // Safety filter: Remove invalid/corrupted courses at render layer
-  // This is the LAST LINE OF DEFENSE to prevent phantom "div" or dummy courses
+  // Pre-render filter: blacklist corrupt items (HTML tags, dummy courses)
   const sanitizeCourses = (courses: HybridCourse[]): HybridCourse[] => {
     const htmlTagBlacklist = new Set([
       'div', 'span', 'p', 'a', 'ul', 'li', 'ol', 'table', 'tr', 'td', 'th',
@@ -156,7 +167,6 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
 
       const trimmedName = course.name.trim();
       const trimmedCode = course.code.trim();
-
       if (trimmedName.length === 0) return false;
       if (trimmedCode.length === 0) return false;
 
@@ -202,9 +212,9 @@ export const CurriculumTimelineFlowchart: React.FC<CurriculumTimelineFlowchartPr
             if (isCoopCurriculum && Number(year) === 4) {
               if (semester === '1') {
                 label = 'เทอมที่ 1';
-                isInternship = true;
+                isInternship = false;
               } else if (semester === '2') {
-                label = 'เทอมที่ 2';
+                label = 'เทอมที่ 2 (สหกิจศึกษา)';
                 isInternship = true;
               }
             } else if (!isCoopCurriculum && semester === '3') {

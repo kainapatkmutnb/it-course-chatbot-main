@@ -14,6 +14,8 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
+  studentYear?: number;
+  year?: number;
 }
 
 export interface AuthContextType {

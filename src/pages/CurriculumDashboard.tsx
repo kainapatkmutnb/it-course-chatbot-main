@@ -89,14 +89,23 @@ const CurriculumDashboard: React.FC = () => {
         const year = parseInt(yearStr);
         const semester = parseInt(semesterStr);
         
-        // Extract program and curriculum year from curriculum ID
+        // Extract program and curriculum year from curriculum ID (support -COOP)
         const curriculumId = selectedCurriculumData.curriculum.id;
-        const [program, curriculumYear] = curriculumId.split('-');
+        let program: string;
+        let curriculumYear: string;
+        if (curriculumId.includes('-COOP')) {
+          const parts = curriculumId.replace('-COOP', '').split('-');
+          program = parts[0];
+          curriculumYear = `${parts[1]} สหกิจ`;
+        } else {
+          const parts = curriculumId.split('-');
+          program = parts[0];
+          curriculumYear = parts.slice(1).join('-');
+        }
         
         const hybridData = await getHybridCurriculumData(program, curriculumYear);
-        const semesterKey = `${year}-${semester}`;
-        
-        setSelectedSemesterCourses(hybridData[semesterKey] || []);
+        const semesterCourses = hybridData[year]?.[semester] || (hybridData as any)[`${year}-${semester}`] || [];
+        setSelectedSemesterCourses(semesterCourses);
       } catch (error) {
         console.error('Error loading curriculum data:', error);
         setSelectedSemesterCourses([]);
@@ -121,12 +130,21 @@ const CurriculumDashboard: React.FC = () => {
             const semester = parseInt(semesterStr);
             
             const curriculumId = selectedCurriculumData.curriculum.id;
-            const [program, curriculumYear] = curriculumId.split('-');
+            let program: string;
+            let curriculumYear: string;
+            if (curriculumId.includes('-COOP')) {
+              const parts = curriculumId.replace('-COOP', '').split('-');
+              program = parts[0];
+              curriculumYear = `${parts[1]} สหกิจ`;
+            } else {
+              const parts = curriculumId.split('-');
+              program = parts[0];
+              curriculumYear = parts.slice(1).join('-');
+            }
             
             const hybridData = await getHybridCurriculumData(program, curriculumYear);
-            const semesterKey = `${year}-${semester}`;
-            
-            setSelectedSemesterCourses(hybridData[semesterKey] || []);
+            const semesterCourses = hybridData[year]?.[semester] || (hybridData as any)[`${year}-${semester}`] || [];
+            setSelectedSemesterCourses(semesterCourses);
           } catch (error) {
             console.error('Error reloading curriculum data:', error);
           } finally {

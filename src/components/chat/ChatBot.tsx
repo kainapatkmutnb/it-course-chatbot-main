@@ -145,6 +145,20 @@ const ChatBot: React.FC = () => {
             status: 'completed'
           })) || [];
 
+        // Extract in-progress courses (currently enrolled / กำลังศึกษา)
+        const inProgressCourses = studyPlan?.courses
+          ?.filter(c => c.status === 'in_progress')
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            year: c.year,
+            semester: c.semester,
+            grade: c.grade || 'IP',
+            status: 'in_progress'
+          })) || [];
+        const inProgressCourseCodes = inProgressCourses.map(c => c.code);
+
         // Extract failed courses (Grade F or status failed)
         const failedCourses = studyPlan?.courses
           ?.filter(c => c.status === 'failed' || (c.grade && c.grade.trim().toUpperCase() === 'F'))
@@ -207,9 +221,40 @@ const ChatBot: React.FC = () => {
         // Direct lookup for the student's own curriculum (O(1) access for n8n LLM)
         const activeCurriculumRule = getActiveCurriculumRule(enrolledCurr);
 
+        // คำนวณชั้นปีและภาคเรียนปัจจุบันของนักศึกษาอย่างแม่นยำ (ครอบคลุมทุกปี: ปี 1 ถึงปี 8+ รวมถึงนักศึกษาตกค้าง / ขยายเวลาเรียน)
+        let currentStudentYear = 1;
+        let currentStudentSemester = 1;
 
+        if (inProgressCourses.length > 0) {
+          // Tier 1: ดูจากรายวิชาที่กำลังลงทะเบียนเรียนอยู่จริง (in_progress)
+          currentStudentYear = Math.max(...inProgressCourses.map(c => Number(c.year) || 1));
+          currentStudentSemester = Math.max(...inProgressCourses.filter(c => Number(c.year) === currentStudentYear).map(c => Number(c.semester) || 1));
+        } else if (passedCourses.length > 0) {
+          // Tier 2: ถัดจากเทอมสูงสุดที่สอบผ่านแล้ว
+          const maxPassedYear = Math.max(...passedCourses.map(c => Number(c.year) || 1));
+          const maxPassedSem = Math.max(...passedCourses.filter(c => Number(c.year) === maxPassedYear).map(c => Number(c.semester) || 1));
+          if (maxPassedSem >= 2) {
+            currentStudentYear = maxPassedYear + 1;
+            currentStudentSemester = 1;
+          } else {
+            currentStudentYear = maxPassedYear;
+            currentStudentSemester = 2;
+          }
+        } else if (user?.studentId && /^\d{2}/.test(user.studentId.trim())) {
+          // Tier 3: คำนวณจากรหัสนักศึกษา 2 ตัวแรก (ปีการศึกษาที่เข้าศึกษา พ.ศ.) เทียบกับปีการศึกษาปัจจุบัน (2569)
+          const admissionYearBE = parseInt(user.studentId.trim().substring(0, 2), 10);
+          const currentAcademicYearBE = 69; // พ.ศ. 2569
+          const diffYears = (currentAcademicYearBE - admissionYearBE) + 1;
+          currentStudentYear = Math.max(1, diffYears);
+          currentStudentSemester = 1;
+        }
+
+        const standardDuration = activeCurriculumRule?.durationYears || 4;
+        const isExtendedYears = currentStudentYear > standardDuration;
+        const currentStudentAcademicTerm = `ปี ${currentStudentYear} เทอม ${currentStudentSemester}`;
 
         const advisingDirectives = {
+          currentStudentStatusRule: `STRICT: ข้อมูลสถานะและชั้นปีปัจจุบันของนักศึกษาคือ "${currentStudentAcademicTerm}" (กำลังศึกษาอยู่ชั้นปีที่ ${currentStudentYear} ภาคการศึกษาที่ ${currentStudentSemester}${isExtendedYears ? ` ซึ่งเป็นนักศึกษาเกินระยะเวลาตามแผนการเรียนปกติ / ตกค้าง เกินหลักสูตร ${standardDuration} ปี` : ''}) โดยมีวิชาที่กำลังศึกษาในเทอมปัจจุบัน (in_progress) จำนวน ${inProgressCourses.length} วิชา ได้แก่ [${inProgressCourseCodes.join(', ')}] ห้ามตอบผิดว่าเป็นปี 4 หรือเทอม 4-2 หรือชั้นปีอื่นโดยเด็ดขาด ให้ยึดถือข้อมูลสถานะนี้เป็นจริงเสมอ`,
           passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
           retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
           directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
@@ -238,6 +283,18 @@ const ChatBot: React.FC = () => {
               curriculumDurationGuard,
               activeCurriculumRule,
               advisingDirectives,
+
+              // ข้อมูลสถานะและชั้นปีปัจจุบัน (Universal Year Engine)
+              studentYear: currentStudentYear,
+              year: currentStudentYear,
+              academicYear: currentStudentYear,
+              currentStudentYear,
+              currentStudentSemester,
+              currentStudentAcademicTerm,
+              isExtendedYears,
+              standardDurationYears: standardDuration,
+              inProgressCourses,
+              inProgressCourseCodes,
 
               gpa: userGpa,
               isProbation,
@@ -300,6 +357,15 @@ const ChatBot: React.FC = () => {
               curriculumDurationGuard,
               activeCurriculumRule: null,
               advisingDirectives,
+
+              // สถานะผู้เยี่ยมชม (Guest)
+              currentStudentYear: 1,
+              currentStudentSemester: 1,
+              currentStudentAcademicTerm: 'ทั่วไป / Guest',
+              isExtendedYears: false,
+              standardDurationYears: 4,
+              inProgressCourses: [],
+              inProgressCourseCodes: [],
 
               gpa: 0,
               isProbation: false,

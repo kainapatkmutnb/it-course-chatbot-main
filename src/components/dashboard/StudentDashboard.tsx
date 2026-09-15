@@ -127,6 +127,25 @@ const StudentDashboard: React.FC = () => {
   const currentGPA = gpaData?.gpa ?? gpaCalcResult.gpa;
   const progressPercentage = totalCredits > 0 ? (completedCredits / totalCredits) * 100 : 0;
 
+  // Auto-sync student year in user profile if it does not match the current calculated year
+  React.useEffect(() => {
+    if (!user || user.role !== 'student' || !studyPlan?.courses) return;
+    let calculatedYear = 1;
+    if (inProgressCourses.length > 0) {
+      calculatedYear = Math.max(...inProgressCourses.map(c => Number(c.year) || 1));
+    } else if (completedCourses.length > 0) {
+      const maxPassedYear = Math.max(...completedCourses.map(c => Number(c.year) || 1));
+      const maxPassedSem = Math.max(...completedCourses.filter(c => Number(c.year) === maxPassedYear).map(c => Number(c.semester) || 1));
+      calculatedYear = maxPassedSem >= 2 ? maxPassedYear + 1 : maxPassedYear;
+    }
+    if (calculatedYear > 0 && (user.studentYear !== calculatedYear || user.year !== calculatedYear)) {
+      if (updateProfile) {
+        updateProfile({ studentYear: calculatedYear, year: calculatedYear });
+      }
+    }
+  }, [user?.id, user?.studentYear, user?.year, studyPlan?.courses?.length, inProgressCourses.length, completedCourses.length, updateProfile]);
+
+
   // Update loading/error conditions to include GPA data
   if (studyPlanLoading || gpaLoading) {
     return (

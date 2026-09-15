@@ -759,6 +759,43 @@ class FirebaseService {
     }
   }
 
+  // Method to update student's year in both studyPlan and user profile in Firebase
+  async updateStudentYearAndAcademicProgress(studentId: string, studentYear: number): Promise<boolean> {
+    try {
+      if (!studentId || !studentYear) return false;
+
+      // 1. Update user profile in users/
+      const userRef = ref(database, `users/${studentId}`);
+      await update(userRef, {
+        studentYear: studentYear,
+        year: studentYear,
+        updatedAt: new Date().toISOString()
+      }).catch(err => console.warn('Could not update user node directly:', err));
+
+      // 2. Update studyPlan node
+      const studyPlansRef = ref(database, 'studyPlans');
+      const snapshot = await get(studyPlansRef);
+      if (snapshot.exists()) {
+        const studyPlansData = snapshot.val();
+        const studyPlanKey = Object.keys(studyPlansData).find(
+          key => studyPlansData[key].studentId === studentId
+        );
+        if (studyPlanKey) {
+          const studyPlanRef = ref(database, `studyPlans/${studyPlanKey}`);
+          await update(studyPlanRef, {
+            studentYear: studentYear,
+            currentYear: studentYear,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error('Error updating student year in Firebase:', error);
+      return false;
+    }
+  }
+
   // Departments and Curricula
   async getDepartments(): Promise<Department[]> {
     try {

@@ -347,7 +347,7 @@ export const CURRICULUM_RULES_CATALOG: Record<string, CurriculumRuleItem> = {
     validSemesters: ['1-1', '1-2', '2-1', '2-2', '3-1', '3-2', '4-1', '4-2'],
     forbiddenSemesters: ['1-3', '2-3', '3-3'],
     totalCredits: 127,
-    totalCourses: 44,
+    totalCourses: 43,
     internship: { hasInternship: false },
     coop: {
       hasCoop: true,
@@ -360,7 +360,7 @@ export const CURRICULUM_RULES_CATALOG: Record<string, CurriculumRuleItem> = {
       coopCourseName: 'สหกิจศึกษา',
       coopCredits: 6
     },
-    notes: 'หลักสูตร 4 ปีสหกิจศึกษา 8 เทอม รวม 44 วิชา 127 หน่วยกิต ไม่มีเทอม 3-3 ไม่มีวิชาฝึกงานภาคฤดูร้อน มีสหกิจศึกษา: 060243301 เตรียมสหกิจศึกษา (2 หน่วยกิต) ในเทอม 4-1 และ 060243302 สหกิจศึกษา (6 หน่วยกิต) ในเทอม 4-2'
+    notes: 'หลักสูตร 4 ปีสหกิจศึกษา 8 เทอม รวม 43 วิชา 127 หน่วยกิต ไม่มีเทอม 3-3 ไม่มีวิชาฝึกงานภาคฤดูร้อน มีสหกิจศึกษา: 060243301 เตรียมสหกิจศึกษา (2 หน่วยกิต) ในเทอม 4-1 และ 060243302 สหกิจศึกษา (6 หน่วยกิต) ในเทอม 4-2'
   },
 
   // -----------------------------------------------------------------------
