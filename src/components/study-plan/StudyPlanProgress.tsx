@@ -8,120 +8,67 @@ import { getCurriculumSummaryCatalog } from '@/services/curriculumCatalogService
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useStudyPlan } from '@/hooks/useFirebaseData';
-import { buildStudyPlanView } from './studyPlanViewModel';
+import { buildStudyPlanView, computeProgressKPI } from './studyPlanViewModel';
 import { StudentPlanTimeline } from './StudentPlanTimeline';
 import { Button } from '@/components/ui/button';
 import { normalizeCodeForMatching } from './studyPlanIdentity';
 import { getCurriculumTotalCredits } from '@/services/departmentService';
 import { 
   CheckCircle2, 
-  XCircle, 
-  Clock, 
   BarChart3,
   Loader2,
   AlertTriangle,
-  BookOpen
+  BookOpen,
+  Info,
+  GraduationCap,
+  Clock
 } from 'lucide-react';
-
-interface StudentCourseData {
-  code: string;
-  grade?: string;
-  status: string;
-  year?: number;
-  semester?: number;
-  originalName?: string;
-  customName?: string;
-}
-
-interface StudyPlanData {
-  program: string;
-  curriculumYear: string;
-  courses: StudentCourseData[];
-}
-
-type GradeStatus = 'passed' | 'failed' | 'incomplete' | 'none';
 
 const StudyPlanProgress: React.FC = () => {
   const { user } = useAuth();
-  const [studyPlanData, setStudyPlanData] = useState<StudyPlanData | null>(null);
+  const { studyPlan: firebaseStudyPlan, loading: isLoadingPlan } = useStudyPlan(user?.id || '');
   const [timelineData, setTimelineData] = useState<{ [year: number]: { [semester: number]: HybridCourse[] } }>({});
-  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
-
-  // Load student's study plan from Firebase
-  useEffect(() => {
-    const loadStudyPlan = async () => {
-      if (!user?.id) {
-        setIsLoadingPlan(false);
-        return;
-      }
-
-      try {
-        setIsLoadingPlan(true);
-        const existingPlan = await firebaseService.getStudyPlanByStudentId(user.id);
-
-        if (existingPlan && existingPlan.program && existingPlan.curriculumYear) {
-          setStudyPlanData({
-            program: existingPlan.program,
-            curriculumYear: existingPlan.curriculumYear,
-            courses: (existingPlan.courses || []).map((c: any) => ({
-              code: c.customCode || c.code || '',
-              customCode: c.customCode || '',
-              grade: c.grade,
-              status: c.status || 'planned',
-              year: c.year,
-              semester: c.semester,
-              originalName: c.originalName || c.name || '',
-              customName: c.customName || ''
-            }))
-          });
-        } else {
-          setStudyPlanData(null);
-        }
-      } catch (err) {
-        console.error('Error loading study plan:', err);
-      } finally {
-        setIsLoadingPlan(false);
-      }
-    };
-
-    loadStudyPlan();
-  }, [user?.id]);
 
   // Derived student enrolled track (direct from study plan)
   const isStudentPlanCoop = useMemo(() => {
+    if (!firebaseStudyPlan) return false;
+    const year = firebaseStudyPlan.curriculumYear || '';
+    const prog = firebaseStudyPlan.program || '';
+    const curr = (firebaseStudyPlan as any).curriculum || '';
     return (
-      studyPlanData?.curriculumYear?.includes('สหกิจ') ||
-      studyPlanData?.program?.includes('COOP') ||
-      false
+      year.includes('สหกิจ') || year.includes('COOP') ||
+      prog.includes('สหกิจ') || prog.includes('COOP') ||
+      curr.includes('สหกิจ') || curr.includes('COOP')
     );
-  }, [studyPlanData]);
+  }, [firebaseStudyPlan]);
 
-  // Track toggle for curriculum tab (e.g. 'normal' vs 'coop')
-  const [activeTrack, setActiveTrack] = useState<'normal' | 'coop' | null>(null);
+  // Track toggle for curriculum tab: defaults to student's enrolled track
+  const [selectedTrack, setSelectedTrack] = useState<'normal' | 'coop' | null>(null);
 
-  // Sync active track automatically whenever student study plan data loads or updates
+  // Sync selected track when student study plan loads or updates
   useEffect(() => {
-    if (studyPlanData) {
-      const isCoop = studyPlanData.program.includes('COOP') || studyPlanData.curriculumYear.includes('สหกิจ');
-      setActiveTrack(isCoop ? 'coop' : 'normal');
+    if (firebaseStudyPlan) {
+      setSelectedTrack(isStudentPlanCoop ? 'coop' : 'normal');
     }
-  }, [studyPlanData?.program, studyPlanData?.curriculumYear]);
+  }, [firebaseStudyPlan, isStudentPlanCoop]);
 
   // Derived current program and curriculum year
   const currentProgramCode = useMemo(() => {
-    if (studyPlanData?.program) {
-      return studyPlanData.program.replace(/[-_]COOP/i, '');
+    if (firebaseStudyPlan?.program) {
+      return firebaseStudyPlan.program.replace(/[-_]COOP/i, '').replace(/\s*สหกิจ/i, '').trim();
     }
     return user?.department || 'INE';
-  }, [studyPlanData?.program, user?.department]);
+  }, [firebaseStudyPlan?.program, user?.department]);
 
   const currentBaseYear = useMemo(() => {
-    if (studyPlanData?.curriculumYear) {
-      return studyPlanData.curriculumYear.replace(' สหกิจ', '').trim();
+    if (firebaseStudyPlan?.curriculumYear) {
+      return firebaseStudyPlan.curriculumYear.replace(/\s*สหกิจ/i, '').replace(/[-_]COOP/i, '').trim();
     }
+    if (currentProgramCode === 'ITI') return '66';
+    if (currentProgramCode === 'ITT') return '67';
     return '62';
-  }, [studyPlanData?.curriculumYear]);
+  }, [firebaseStudyPlan?.curriculumYear, currentProgramCode]);
 
   // Check if this program has a separate co-op track (both IT and INE have normal vs coop tracks)
   const hasCoopTrack = useMemo(() => {
@@ -130,11 +77,11 @@ const StudyPlanProgress: React.FC = () => {
 
   const isCurrentTrackCoop = useMemo(() => {
     if (!hasCoopTrack) return false;
-    if (activeTrack !== null) {
-      return activeTrack === 'coop';
+    if (selectedTrack !== null) {
+      return selectedTrack === 'coop';
     }
     return isStudentPlanCoop;
-  }, [hasCoopTrack, activeTrack, isStudentPlanCoop]);
+  }, [hasCoopTrack, selectedTrack, isStudentPlanCoop]);
 
   const currentCurriculumYear = useMemo(() => {
     if (!hasCoopTrack) return currentBaseYear;
@@ -143,8 +90,22 @@ const StudyPlanProgress: React.FC = () => {
 
   const selectedCurriculum = `${currentProgramCode} ${currentCurriculumYear}`;
 
+  // Personal plan view derived directly from student recorded data
+  const requiredCredits = useMemo(() => {
+    if (!firebaseStudyPlan?.program) return null;
+    const c = getCurriculumTotalCredits(firebaseStudyPlan.program, firebaseStudyPlan.curriculumYear);
+    return c > 0 ? c : null;
+  }, [firebaseStudyPlan]);
+
+  const personalView = useMemo(() => {
+    if (!firebaseStudyPlan?.courses) return null;
+    return buildStudyPlanView(firebaseStudyPlan.courses as any, requiredCredits);
+  }, [firebaseStudyPlan, requiredCredits]);
+
   // Load curriculum data using same method as CurriculumTimelineFlowchart
   useEffect(() => {
+    if (isLoadingPlan) return;
+
     const loadCourses = async () => {
       setIsLoadingCourses(true);
       try {
@@ -159,7 +120,7 @@ const StudyPlanProgress: React.FC = () => {
     };
 
     loadCourses();
-  }, [currentProgramCode, currentCurriculumYear]);
+  }, [isLoadingPlan, currentProgramCode, currentCurriculumYear]);
 
   // Safety filter (same as CurriculumTimelineFlowchart)
   const sanitizeCourses = (courses: HybridCourse[]): HybridCourse[] => {
@@ -212,125 +173,6 @@ const StudyPlanProgress: React.FC = () => {
       });
     return layout;
   }, [isCurrentTrackCoop, timelineData, isLoadingCourses]);
-
-  // ============================================================
-  // PRE-COMPUTED MATCHING ENGINE
-  //
-  // Runs ONCE after semesterLayout is built. Produces a stable Map
-  // from flowchart course ID → StudentCourseData. This avoids the
-  // bug where getGradeStatus and getDisplayGrade each call
-  // findStudentCourse and mutate shared state.
-  //
-  // Matching strategy per flowchart course:
-  //  1. Find student courses in the same (year, semester) with
-  //     matching trimmed code → consume in order
-  //  2. Fallback: match by trimmed code globally (unique only)
-  //  3. Fallback: match by code without program prefix
-  // ============================================================
-  const courseGradeMap = useMemo(() => {
-    const result = new Map<string, StudentCourseData>();
-    if (!studyPlanData || semesterLayout.length === 0) return result;
-
-    // Group student courses by (year-semester) → array
-    const studentByPosition = new Map<string, StudentCourseData[]>();
-    // Global index by normalized code → array (preserving order)
-    const studentByCode = new Map<string, StudentCourseData[]>();
-
-    for (const sc of studyPlanData.courses) {
-      const trimmed = (sc.code || '').trim();
-      const norm = normalizeCodeForMatching(sc.code || '');
-
-      // By position
-      if (sc.year && sc.semester) {
-        const key = `${sc.year}-${sc.semester}`;
-        if (!studentByPosition.has(key)) studentByPosition.set(key, []);
-        studentByPosition.get(key)!.push(sc);
-      }
-
-      // By trimmed and normalized code
-      if (trimmed) {
-        if (!studentByCode.has(trimmed)) studentByCode.set(trimmed, []);
-        studentByCode.get(trimmed)!.push(sc);
-      }
-      if (norm && norm !== trimmed) {
-        if (!studentByCode.has(norm)) studentByCode.set(norm, []);
-        studentByCode.get(norm)!.push(sc);
-      }
-    }
-
-    // Track consumed student courses (by their index in studyPlanData.courses)
-    const consumed = new Set<number>();
-
-    // Helper: find index of a student course in the original array
-    const indexOf = (sc: StudentCourseData): number => {
-      return studyPlanData.courses.indexOf(sc);
-    };
-
-    // PASS 1: Match by position (year+semester) + normalized code
-    for (const sem of semesterLayout) {
-      const posKey = `${sem.year}-${sem.semester}`;
-      const posStudents = studentByPosition.get(posKey) || [];
-
-      for (const flowchartCourse of sem.courses) {
-        const fcTrimmed = (flowchartCourse.code || '').trim();
-        const fcNorm = normalizeCodeForMatching(flowchartCourse.code || '');
-
-        // Find the first unconsumed student course in this position
-        // that matches by trimmed or normalized code
-        for (const sc of posStudents) {
-          const idx = indexOf(sc);
-          if (consumed.has(idx)) continue;
-
-          const scTrimmed = (sc.code || '').trim();
-          const scNorm = normalizeCodeForMatching(sc.code || '');
-
-          if (scTrimmed === fcTrimmed || (scNorm && fcNorm && scNorm === fcNorm)) {
-            result.set(flowchartCourse.id, sc);
-            consumed.add(idx);
-            break;
-          }
-        }
-      }
-    }
-
-    // PASS 2: Fallback for unmatched flowchart courses — match by code globally
-    for (const sem of semesterLayout) {
-      for (const flowchartCourse of sem.courses) {
-        if (result.has(flowchartCourse.id)) continue; // already matched
-
-        const fcTrimmed = (flowchartCourse.code || '').trim();
-        const fcNorm = normalizeCodeForMatching(flowchartCourse.code || '');
-
-        const candidates = studentByCode.get(fcTrimmed) || (fcNorm ? studentByCode.get(fcNorm) : []) || [];
-        for (const sc of candidates) {
-          const idx = indexOf(sc);
-          if (consumed.has(idx)) continue;
-          result.set(flowchartCourse.id, sc);
-          consumed.add(idx);
-          break;
-        }
-      }
-    }
-
-    return result;
-  }, [studyPlanData, semesterLayout]);
-
-  // Simple lookups using pre-computed map
-  const getGradeStatus = useCallback((course: Course): GradeStatus => {
-    const sc = courseGradeMap.get(course.id);
-    if (!sc || !sc.grade) return 'none';
-    const grade = sc.grade.trim().toUpperCase();
-    if (grade === 'F' || grade === 'U') return 'failed';
-    if (grade === 'I') return 'incomplete';
-    if (grade === 'W') return 'none';
-    if (grade === 'S' || ['A', 'B+', 'B', 'C+', 'C', 'D+', 'D'].includes(grade)) return 'passed';
-    return 'none';
-  }, [courseGradeMap]);
-
-  const getDisplayGrade = useCallback((course: Course): string | null => {
-    const sc = courseGradeMap.get(course.id);
-    return sc?.grade || null;
-  }, [courseGradeMap]);
 
   // === DIAGRAM ENGINE (copied from CurriculumTimelineFlowchart) ===
   const hasSemester3 = semesterLayout.some(sem => sem.semester === 3);
@@ -496,22 +338,6 @@ const StudyPlanProgress: React.FC = () => {
     return arrows;
   }, [semesterLayout, selectedCurriculum, findPrerequisites]);
 
-  // Calculate stats
-  const stats = useMemo(() => {
-    let total = 0, passed = 0, failed = 0, incomplete = 0, noGrade = 0, passedCredits = 0, totalCredits = 0;
-    semesterLayout.forEach(sem => {
-      sem.courses.forEach(course => {
-        total++; totalCredits += course.credits;
-        const status = getGradeStatus(course);
-        if (status === 'passed') { passed++; passedCredits += course.credits; }
-        else if (status === 'failed') { failed++; }
-        else if (status === 'incomplete') { incomplete++; }
-        else { noGrade++; }
-      });
-    });
-    return { total, passed, failed, incomplete, noGrade, passedCredits, totalCredits };
-  }, [semesterLayout, getGradeStatus]);
-
   const officialCurriculum = useMemo(() => {
     const catalog = getCurriculumSummaryCatalog();
     return catalog.find(c => {
@@ -523,28 +349,16 @@ const StudyPlanProgress: React.FC = () => {
     });
   }, [currentProgramCode, currentCurriculumYear, currentBaseYear, isCurrentTrackCoop]);
 
-  // Get box colors based on grade
-  const getCourseBoxColors = (course: Course) => {
-    const status = getGradeStatus(course);
-    switch (status) {
-      case 'passed': return { bg: '#dcfce7', border: '#22c55e', text: '#14532d' }; // green
-      case 'failed': return { bg: '#fee2e2', border: '#ef4444', text: '#7f1d1d' }; // red
-      case 'incomplete': return { bg: '#fef9c3', border: '#eab308', text: '#713f12' }; // yellow
-      default: return { bg: 'white', border: 'black', text: 'black' }; // default
-    }
-  };
-
-  // Personal plan view derived directly from student recorded data
-  const { studyPlan: firebaseStudyPlan } = useStudyPlan(user?.id || '');
-  const requiredCredits = useMemo(() => {
-    if (!firebaseStudyPlan?.program) return null;
-    const c = getCurriculumTotalCredits(firebaseStudyPlan.program, firebaseStudyPlan.curriculumYear);
-    return c > 0 ? c : null;
-  }, [firebaseStudyPlan]);
-  const personalView = useMemo(() => {
-    if (!firebaseStudyPlan?.courses) return null;
-    return buildStudyPlanView(firebaseStudyPlan.courses as any, requiredCredits);
-  }, [firebaseStudyPlan, requiredCredits]);
+  // Compute KPI progression comparing student passed courses/credits against official curriculum targets
+  const kpi = useMemo(() => {
+    if (!personalView) return null;
+    return computeProgressKPI(
+      personalView.passedCount,
+      personalView.passedCredits,
+      officialCurriculum?.totalCourses,
+      officialCurriculum?.totalCredits ?? requiredCredits
+    );
+  }, [personalView, officialCurriculum, requiredCredits]);
 
   // Loading state
   if (isLoadingPlan) {
@@ -571,29 +385,41 @@ const StudyPlanProgress: React.FC = () => {
       </div>
 
       {/* Shared KPI — derived from personal recorded data */}
-      {personalView && (
-        <Card className="academic-panel shadow-soft">
+      {kpi && (
+        <Card className="academic-panel shadow-soft border border-slate-200">
           <CardContent className="p-4">
-            <div className="flex flex-wrap items-center gap-4 justify-center">
-              <Badge className="academic-number bg-green-100 text-green-800 text-sm px-3 py-1">
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                ผ่านตามแผนที่บันทึก {personalView.passedCount} วิชา · {personalView.passedCredits} หน่วยกิต
+            <div className="flex flex-wrap items-center gap-3 justify-center">
+              {/* Passed vs Target progression badge: e.g. INE 62: 47/50 วิชา · 126/135 หน่วยกิต */}
+              <Badge className="academic-number bg-slate-900 text-white hover:bg-slate-800 text-sm px-3.5 py-1.5 font-medium shadow-xs">
+                <GraduationCap className="w-4 h-4 mr-1.5 inline" />
+                {currentProgramCode} {currentCurriculumYear}: {kpi.formattedProgress}
               </Badge>
-              {officialCurriculum?.totalCredits && (
-                <Badge className="academic-number bg-blue-100 text-blue-800 text-sm px-3 py-1">
-                  <BookOpen className="w-4 h-4 mr-1" />
-                  เป้าหมายหลักสูตร {officialCurriculum.totalCredits} หน่วยกิต
-                </Badge>
+
+              {/* Remaining / Missing status badge */}
+              {kpi.formattedRemaining && (
+                kpi.isCompleted ? (
+                  <Badge className="academic-number bg-emerald-100 text-emerald-800 border border-emerald-300 text-sm px-3.5 py-1.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-600 inline" />
+                    {kpi.formattedRemaining}
+                  </Badge>
+                ) : (
+                  <Badge className="academic-number bg-amber-100 text-amber-900 border border-amber-300 text-sm px-3.5 py-1.5 font-medium">
+                    <Clock className="w-4 h-4 mr-1.5 text-amber-700 inline" />
+                    {kpi.formattedRemaining}
+                  </Badge>
+                )
               )}
-              {personalView.progressPercent !== null && (
-                <Badge className="academic-number bg-gray-100 text-gray-700 text-sm px-3 py-1">
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  สัดส่วนหน่วยกิตที่ผ่าน {personalView.progressPercent}%
+
+              {/* Progress Percentage Badge */}
+              {kpi.progressPercent !== null && (
+                <Badge className="academic-number bg-blue-100 text-blue-800 border border-blue-200 text-sm px-3.5 py-1.5 font-medium">
+                  <BarChart3 className="w-4 h-4 mr-1.5 text-blue-600 inline" />
+                  สัดส่วนที่ผ่าน {kpi.progressPercent}%
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              * ยอดนี้เป็นผลรวมจากรายวิชาที่บันทึกไว้ ไม่ใช่การตรวจเงื่อนไขสำเร็จการศึกษา
+            <p className="text-xs text-muted-foreground text-center mt-2.5">
+              * ยอดนี้เป็นผลรวมจากรายวิชาที่บันทึกไว้ในแผนของฉัน เทียบกับเกณฑ์โครงสร้างหลักสูตร ไม่ใช่การตรวจสอบเงื่อนไขสำเร็จการศึกษาอย่างเป็นทางการ
             </p>
           </CardContent>
         </Card>
@@ -611,10 +437,10 @@ const StudyPlanProgress: React.FC = () => {
           {personalView ? (
             <StudentPlanTimeline
               view={personalView}
-              program={studyPlanData?.program || currentProgramCode}
-              curriculumYear={studyPlanData?.curriculumYear || currentCurriculumYear}
+              program={firebaseStudyPlan?.program || currentProgramCode}
+              curriculumYear={firebaseStudyPlan?.curriculumYear || currentCurriculumYear}
             />
-          ) : !studyPlanData ? (
+          ) : !firebaseStudyPlan ? (
             <Card className="academic-panel shadow-medium my-4">
               <CardContent className="p-12 text-center">
                 <div className="space-y-4">
@@ -646,84 +472,55 @@ const StudyPlanProgress: React.FC = () => {
                   ? (isCurrentTrackCoop ? '💼 โครงการสหกิจศึกษา' : '📘 โครงการปกติ') + ` (หลักสูตร ${currentProgramCode} ${currentCurriculumYear})`
                   : `หลักสูตร ${currentProgramCode} ${currentCurriculumYear}`}
               </Badge>
-              {studyPlanData && (
+              {officialCurriculum && (
+                <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-medium border-neutral-400 bg-neutral-50 text-neutral-800">
+                  เกณฑ์รวม {officialCurriculum.totalCourses} วิชา · {officialCurriculum.totalCredits} หน่วยกิต
+                </Badge>
+              )}
+              {firebaseStudyPlan && (
                 <span className="text-xs text-muted-foreground hidden sm:inline">
-                  (แสดงผลอัตโนมัติตามแผนการเรียนของคุณ)
+                  (แสดงผลเริ่มต้นตามแผนการเรียนของคุณ)
                 </span>
               )}
             </div>
 
-            {/* Switcher: only shown if the curriculum actually offers a separate co-op track */}
+            {/* Track Switcher: segmented buttons */}
             {hasCoopTrack && (
-              <div className="flex items-center gap-2">
-                {studyPlanData ? (
-                  activeTrack !== (isStudentPlanCoop ? 'coop' : 'normal') ? (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setActiveTrack(isStudentPlanCoop ? 'coop' : 'normal')}
-                      className="border-black text-black text-xs hover:bg-neutral-100"
-                    >
-                      ↩️ กลับสู่ผังหลักสูตรของคุณ ({isStudentPlanCoop ? 'สหกิจ' : 'ปกติ'})
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setActiveTrack(isStudentPlanCoop ? 'normal' : 'coop')}
-                      className="text-xs text-muted-foreground hover:text-black border border-dashed border-neutral-300 hover:border-black"
-                    >
-                      🔍 ดูผัง{isStudentPlanCoop ? 'แผนปกติ' : 'แผนสหกิจ'} (เพื่อเปรียบเทียบ)
-                    </Button>
-                  )
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={!isCurrentTrackCoop ? "default" : "outline"}
-                      onClick={() => setActiveTrack('normal')}
-                      className={!isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
-                    >
-                      📘 แผนปกติ ({currentBaseYear})
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={isCurrentTrackCoop ? "default" : "outline"}
-                      onClick={() => setActiveTrack('coop')}
-                      className={isCurrentTrackCoop ? "bg-black text-white hover:bg-neutral-800" : "border-black text-black hover:bg-neutral-100"}
-                    >
-                      💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
-                    </Button>
-                  </div>
-                )}
+              <div className="flex items-center gap-1.5 bg-neutral-100 p-1 rounded-lg border border-neutral-300">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={!isCurrentTrackCoop ? "default" : "ghost"}
+                  onClick={() => setSelectedTrack('normal')}
+                  className={!isCurrentTrackCoop 
+                    ? "bg-black text-white shadow-xs text-xs font-semibold px-3 py-1.5 h-8 hover:bg-neutral-800" 
+                    : "text-neutral-600 hover:text-black text-xs font-medium px-3 py-1.5 h-8 hover:bg-neutral-200/60"}
+                >
+                  📘 แผนปกติ ({currentBaseYear})
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={isCurrentTrackCoop ? "default" : "ghost"}
+                  onClick={() => setSelectedTrack('coop')}
+                  className={isCurrentTrackCoop 
+                    ? "bg-black text-white shadow-xs text-xs font-semibold px-3 py-1.5 h-8 hover:bg-neutral-800" 
+                    : "text-neutral-600 hover:text-black text-xs font-medium px-3 py-1.5 h-8 hover:bg-neutral-200/60"}
+                >
+                  💼 แผนสหกิจศึกษา ({currentBaseYear} สหกิจ)
+                </Button>
               </div>
             )}
           </div>
 
-          {/* Legend */}
-          <Card className="academic-panel shadow-soft mb-4">
+          {/* Official Curriculum Info Banner */}
+          <Card className="academic-panel shadow-soft mb-4 bg-blue-50/60 border-blue-200">
             <CardContent className="p-4">
-              <div className="flex flex-wrap items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border-2 border-green-500 bg-green-100"></div>
-                  <span className="text-sm font-medium">ผ่านแล้ว</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border-2 border-yellow-500 bg-yellow-100"></div>
-                  <span className="text-sm font-medium">การประเมินผลยังไม่สมบูรณ์ (I)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border-2 border-red-500 bg-red-100"></div>
-                  <span className="text-sm font-medium">ไม่ผ่าน (F)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border-2 border-black bg-white"></div>
-                  <span className="text-sm font-medium">ยังไม่ได้ลงเกรด</span>
-                </div>
+              <div className="flex items-start sm:items-center gap-3 text-sm text-blue-950">
+                <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5 sm:mt-0" />
+                <p className="leading-relaxed">
+                  <span className="font-bold">ผังแม่บทอ้างอิงตามโครงสร้างหลักสูตร:</span> แสดงลำดับรายวิชาและวิชาบังคับก่อน (Prerequisite) ตามเกณฑ์มาตรฐานหลักสูตร เพื่อใช้ตรวจสอบความต่อเนื่อง สำหรับประวัติการเรียน ผลการเรียน และความคืบหน้ารายวิชาจริงของท่าน สามารถดูได้ที่แท็บ <strong className="font-semibold text-blue-800">📋 แผนของฉัน</strong>
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -836,47 +633,40 @@ const StudyPlanProgress: React.FC = () => {
                   {semesterLayout.map((semData, semIndex) => 
                     semData.courses.map((course, courseIndex) => {
                       const rect = getCourseRect(semIndex, courseIndex);
-                      const colors = getCourseBoxColors(course);
-                      const gradeStatus = getGradeStatus(course);
-                      const displayGrade = getDisplayGrade(course);
+                      const isWildcardElective = /x{2,}/i.test(course.code) || course.name.includes('วิชาเลือก');
 
                       return (
                         <div
                           key={course.id}
                           id={`progress-course-${course.id}`}
-                          className="absolute p-2 text-xs flex flex-col justify-between shadow-sm transition-all duration-300"
+                          className={`absolute p-2 text-xs flex flex-col justify-between shadow-sm transition-all duration-300 ${
+                            isWildcardElective 
+                              ? 'border-2 border-dashed border-neutral-400 bg-neutral-50/70' 
+                              : 'border-2 border-black bg-white'
+                          }`}
                           style={{ 
                             left: `${rect.x}px`,
                             top: `${rect.y}px`,
                             width: `${COURSE_WIDTH}px`,
                             height: `${COURSE_HEIGHT}px`,
-                            backgroundColor: colors.bg,
-                            border: `2px solid ${colors.border}`,
-                            borderWidth: gradeStatus !== 'none' ? '3px' : '2px',
                           }}
                         >
                           {/* Course Code */}
-                          <div className="font-bold text-center text-[12px] leading-tight px-2" style={{ color: colors.text }}>
+                          <div className="font-bold text-center text-[12px] leading-tight px-2 text-neutral-900">
                             {removeCodePrefix(course.code)}
                           </div>
                           
                           {/* Course Name */}
-                          <div className="text-center leading-tight flex-1 flex items-center justify-center px-1" style={{ fontSize: '10px', color: colors.text }}>
+                          <div className="text-center leading-tight flex-1 flex items-center justify-center px-1 text-neutral-800" style={{ fontSize: '10px' }}>
                             <span className="line-clamp-none overflow-hidden w-full">
                               {course.name}
                             </span>
                           </div>
                           
-                          {/* Grade Badge or Credits */}
-                          {gradeStatus !== 'none' ? (
-                            <div className="text-center font-bold text-[11px]" style={{ color: colors.text }}>
-                              {gradeStatus === 'passed' ? `✓ เกรด ${displayGrade}` : gradeStatus === 'incomplete' ? `! เกรด I` : '✗ F'}
-                            </div>
-                          ) : (
-                            <div className="text-center font-bold text-[10px]">
-                              {formatCredits(course.credits)}
-                            </div>
-                          )}
+                          {/* Credits */}
+                          <div className="text-center font-bold text-[10px] text-neutral-600">
+                            {formatCredits(course.credits)}
+                          </div>
                         </div>
                       );
                     })
@@ -902,26 +692,6 @@ const StudyPlanProgress: React.FC = () => {
                     );
                   })}
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Summary */}
-          <div className="bg-white p-4 border-2 border-black">
-            <div className="text-center">
-              <h3 className="font-bold mb-2">สรุปภาพรวม</h3>
-              <div className="flex justify-center space-x-8 text-sm">
-                <div>
-                  <span className="font-bold">หน่วยกิตที่ผ่าน:</span> {stats.passedCredits} / {officialCurriculum?.totalCredits || stats.totalCredits} หน่วยกิต
-                </div>
-                <div>
-                  <span className="font-bold">วิชาที่ผ่าน:</span> {stats.passed} / {stats.total} วิชา
-                </div>
-                {stats.failed > 0 && (
-                  <div>
-                    <span className="font-bold text-red-600">ไม่ผ่าน:</span> {stats.failed} วิชา
-                  </div>
-                )}
               </div>
             </div>
           </div>

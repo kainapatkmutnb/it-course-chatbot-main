@@ -85,11 +85,14 @@
 ระบบถูกออกแบบโดยแยกฟังก์ชันการทำงานหลักออกเป็น 4 ขุมพลังสำคัญ เพื่อประสบการณ์การใช้งานที่ราบรื่น:
 
 ### 🧭 1. จัดทำแผนการเรียนและผังวิชาอัจฉริยะ (Curriculum & Study Plan Engine)
-> `Interactive Flowchart` · `Dual-View Progress` · `Anti-Collision Multi-Lane Routing` · `Prerequisites Path Tracing` · `GPAX Calculator` · `S/U Internship Evaluation`
+> `Interactive Flowchart` · `Dual-View Progress` · `Anti-Collision Multi-Lane Routing` · `Prerequisites Path Tracing` · `GPAX Calculator` · `S/U Internship Evaluation` · `Academic Alert Dialogs` · `All-Curricula Progress KPI`
 
 - **Visual Course Flowchart**: แสดงผังรายวิชาพร้อมเส้นเชื่อมโยงวิชาบังคับก่อน (Prerequisites) และวิชาบังคับร่วม (Corequisites) ด้วยสีสันที่แยกแยะสถานะชัดเจน
 - **แผนการเรียน 4 ปี (Study Plan)**: จัดการรายวิชาตามชั้นปีและภาคการศึกษา พร้อมระบบจำลองเกรดเพื่อคำนวณ GPA รายภาคและ GPAX สะสม
 - **มุมมองความคืบหน้าสองรูปแบบ (Dual-View Student Progress & Personal Timeline)**: รองรับการสลับมุมมองระหว่าง "แผนของฉัน (Personal Plan Timeline)" ที่ประมวลผลตำแหน่ง ชื่อ รหัส เกรด และหน่วยกิตจากข้อมูลที่นักศึกษาบันทึกไว้จริงตามรายภาคเรียนโดยตรง ร่วมกับ "โครงสร้างหลักสูตร (Curriculum Flowchart)" พร้อมระบบคำนวณ KPI และความคืบหน้าหน่วยกิตที่แม่นยำตรงตามรายงานผลการเรียน
+- **แดชบอร์ดสรุปความคืบหน้ารายวิชาและหน่วยกิต (All 13 Curricula Progress KPI Dashboard)**: สรุปจำนวนวิชาและหน่วยกิตที่ผ่านเทียบกับเกณฑ์รวมของหลักสูตรอย่างละเอียด (เช่น `INE 62: 47/50 วิชา · 126/135 หน่วยกิต`) พร้อมป้ายสถานะระบุวิชาและหน่วยกิตที่ขาดอย่างชัดเจน (เช่น `ขาดอีก 3 วิชา · 9 หน่วยกิต` หรือ `ครบตามเกณฑ์หลักสูตรแล้ว`) รองรับครบทุก 13 ฉบับหลักสูตร และอัปเดตแบบเรียลไทม์เมื่อสลับแทร็กแผนการเรียน
+- **ระบบสลับผังหลักสูตรและแทร็กสหกิจศึกษาอัตโนมัติ (Curriculum Track Switcher & Coop Auto-Selection)**: ปรับผังโครงสร้างหลักสูตรให้เป็นมาตรฐานทางการ พร้อมตรวจจับแทร็กของนักศึกษาเพื่อแสดงผลผังหลักสูตรแบบสหกิจศึกษา (Co-op) เป็นค่าเริ่มต้นโดยอัตโนมัติ และเปิดให้สลับมุมมองระหว่างแผนปกติและแผนสหกิจได้อย่างอิสระ
+- **ระบบแจ้งเตือนและกล่องยืนยันธีมวิชาการ (Academic Alert & Confirmation Modal Dialogs)**: ยกระดับการแจ้งเตือนจาก Native Browser Dialog (`alert()`, `window.confirm()`) สู่ `AcademicAlertDialog` บน Radix UI Primitives สอดคล้องกับ Academic Design System ป้องกันความผิดพลาดในการลงทะเบียน เช่น วิชาบังคับก่อนไม่ผ่าน (ติด F/U), การย้ายภาคเรียนที่ขัดแย้งกับ Prerequisite, ข้อกำหนดเกรดฝึกงาน S/U และกล่องยืนยันการรีเซ็ตแผนการเรียนพร้อมปุ่มยืนยันสีแดงพรีเมียม
 - **ระบบผังเส้นทางวิชาต่อเนื่องแบบลดการทับซ้อน (Anti-Collision Multi-Lane Flowchart Routing & Smooth Rounded Corners)**:
   - **Multi-Lane Track Allocator**: จัดสรรเลนย่อย (Offset $\pm 5\text{px}$ ถึง $\pm 6\text{px}$) สำหรับเส้นที่วิ่งขนานกันในร่องเดียวกันทั้งแนวนอนและแนวตั้ง ป้องกันเส้นทับซ้อนกันเป็นเส้นเดียวในหลักสูตรที่มีความซับซ้อนสูง (เช่น INE 62, INE 67, IT 62, INET 62)
   - **Multi-Port Spreading**: สำหรับวิชาที่มีวิชาตัวต่อหลายตัว (เช่น `060233108` มีวิชาต่อ 5 ตัว) จุดส่งออกของลูกศรบนขอบขวาของการ์ดจะกระจายตัวในแนวตั้งตามจำนวนเส้น ไม่กระจุกตัวที่จุดกึ่งกลาง
@@ -280,7 +283,7 @@ it-course-chatbot-main/
 │   │   ├── curriculum/      # ผังหลักสูตรและ Flowchart รายวิชา
 │   │   ├── dashboard/       # แดชบอร์ดตามสิทธิ์ (Admin, Staff, Instructor, Student)
 │   │   ├── layout/          # โครงหน้าเว็บ Header, Footer และ Navigation
-│   │   ├── study-plan/      # ตัวจัดการแผนการเรียนและระบบคำนวณหน่วยกิต
+│   │   ├── study-plan/      # ตัวจัดการแผนการเรียน, ระบบคำนวณหน่วยกิต, และ Academic Alert Dialog
 │   │   └── ui/              # shadcn / Radix UI Design System Primitives
 │   ├── contexts/            # Context Providers (Auth, System State)
 │   ├── hooks/               # Custom React Hooks

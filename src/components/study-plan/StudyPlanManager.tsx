@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { courseDatabase } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
 import { serializeStudentCourse } from './studyPlanIdentity';
+import { AcademicAlertDialog, AcademicAlertState } from './AcademicAlertDialog';
 import {
   BookOpen,
   Calendar,
@@ -80,6 +81,21 @@ interface StudyPlan {
 
 const StudyPlanManager: React.FC = () => {
   const { user } = useAuth();
+
+  // Academic Alert & Confirm Dialog State
+  const [academicDialog, setAcademicDialog] = useState<AcademicAlertState | null>(null);
+
+  const showAlert = useCallback((config: Omit<AcademicAlertState, 'isOpen'>) => {
+    setAcademicDialog({ ...config, isOpen: true });
+  }, []);
+
+  const showConfirm = useCallback((config: Omit<AcademicAlertState, 'isOpen' | 'isConfirm'>) => {
+    setAcademicDialog({ ...config, isOpen: true, isConfirm: true });
+  }, []);
+
+  const closeAlert = useCallback(() => {
+    setAcademicDialog(prev => prev ? { ...prev, isOpen: false } : null);
+  }, []);
 
   // State สำหรับ inline schedule editor
   const [editingSchedule, setEditingSchedule] = useState<string | null>(null);
@@ -392,11 +408,23 @@ const StudyPlanManager: React.FC = () => {
     if (!course.grade) {
       const prereqIssues = getPrerequisiteIssues(course, studyPlan.courses);
       if (prereqIssues.missing.length > 0) {
-        alert(`วิชานี้มีวิชาที่ต้องเรียนก่อน\nกรุณาใส่เกรดวิชา prerequisite ก่อน: ${prereqIssues.missing.join(', ')}`);
+        showAlert({
+          title: 'วิชานี้มีวิชาที่ต้องเรียนก่อน (Prerequisite)',
+          description: 'กรุณาลงทะเบียนและบันทึกเกรดวิชาบังคับก่อนให้ครบถ้วนก่อน จึงจะสามารถกรอกเกรดวิชานี้ได้',
+          highlightItems: prereqIssues.missing.map(code => `วิชาตัวต้น: ${code}`),
+          variant: 'warning',
+          confirmText: 'เข้าใจแล้ว',
+        });
         return;
       }
       if (prereqIssues.failed.length > 0) {
-        alert(`ไม่สามารถใส่เกรดได้ เพราะวิชาที่ต้องก่อนเรียน (${prereqIssues.failed.join(', ')}) ติด F`);
+        showAlert({
+          title: 'ไม่สามารถบันทึกเกรดได้',
+          description: 'ไม่สามารถบันทึกเกรดวิชานี้ได้ เนื่องจากวิชาที่ต้องเรียนก่อนยังไม่ผ่าน (ติดเกรด F หรือ U)\n\nตามเกณฑ์โครงสร้างหลักสูตร นักศึกษาจำเป็นต้องสอบผ่านวิชาบังคับก่อน จึงจะมีสิทธิ์ศึกษาหรือบันทึกผลการเรียนในวิชาตัวต่อได้',
+          highlightItems: prereqIssues.failed.map(code => `${code} (ติด F/U)`),
+          variant: 'destructive',
+          confirmText: 'เข้าใจแล้ว',
+        });
         return;
       }
     }
@@ -407,11 +435,12 @@ const StudyPlanManager: React.FC = () => {
     // - U = ไม่ผ่าน ❌ ไม่นับหน่วยกิต (ไม่ completed) และไม่นับ GPA
     // ==========================================================
     if (isInternshipCourse(course) && grade !== '' && grade !== 'S' && grade !== 'U') {
-      alert(
-        'วิชาฝึกงาน / สหกิจศึกษา ใส่ได้เฉพาะ 2 เกรดเท่านั้น:\n' +
-        '✅ S = ผ่าน (นับหน่วยกิต แต่ไม่นับ GPA\n' +
-        '❌ U = ไม่ผ่าน (ไม่นับหน่วยกิต และไม่นับ GPA'
-      );
+      showAlert({
+        title: 'เงื่อนไขการใส่เกรดวิชาฝึกงาน / สหกิจศึกษา',
+        description: 'รายวิชาฝึกงานและสหกิจศึกษาสามารถบันทึกได้เฉพาะ 2 ผลการประเมินเท่านั้น:\n\n• S (Satisfactory) = ผ่านการฝึกงาน (นับหน่วยกิต แต่ไม่นำมาคิด GPA)\n• U (Unsatisfactory) = ไม่ผ่าน (ไม่นับหน่วยกิต และไม่นำมาคิด GPA)',
+        variant: 'info',
+        confirmText: 'เข้าใจแล้ว',
+      });
       return;
     }
 
@@ -507,9 +536,13 @@ const StudyPlanManager: React.FC = () => {
     }
 
     if (prereqsInConflict.length > 0) {
-      alert(
-        `❌ ไม่สามารถย้ายได้\n\nวิชา ${prereqsInConflict.join(', ')} เป็น prerequisite ที่ต้องเรียนก่อน\nต้องให้ ${prereqsInConflict.join(', ')} อยู่ในเทอมก่อนปีที่ ${newYear} เทอม ${newSemester}`
-      );
+      showAlert({
+        title: 'ไม่สามารถย้ายภาคเรียนได้',
+        description: `วิชาที่เลือกมีวิชาบังคับก่อน (Prerequisite) ที่ต้องเรียนก่อนหน้า\nกรุณาจัดวางให้วิชาตัวต้นอยู่ในภาคเรียนก่อนปีที่ ${newYear} เทอม ${newSemester}`,
+        highlightItems: prereqsInConflict.map(c => `วิชาตัวต้น: ${c}`),
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
       return;
     }
 
@@ -535,9 +568,13 @@ const StudyPlanManager: React.FC = () => {
     }
 
     if (dependentsInConflict.length > 0) {
-      alert(
-        `❌ ไม่สามารถย้ายได้\n\nวิชา ${dependentsInConflict.join(', ')} ต้องเรียนหลังจากวิชานี้ แต่ขณะนี้อยู่ในเทอมที่เท่ากันหรือก่อนหน้า\nย้าย ${dependentsInConflict.join(', ')} ออกก่อน หรือเลือกเทอมที่เร็วกว่านั้น`
-      );
+      showAlert({
+        title: 'ไม่สามารถย้ายภาคเรียนได้',
+        description: `มีวิชาอื่นที่ต้องเรียนต่อหลังจากวิชานี้ แต่ปัจจุบันวิชาต่อเหล่านั้นถูกจัดอยู่ในเทอมเดียวกันหรือเทอมก่อนหน้า\nกรุณาย้ายวิชาต่อออกไปก่อน หรือเลือกภาคเรียนที่เร็วกว่านั้น`,
+        highlightItems: dependentsInConflict.map(c => `วิชาต่อ: ${c}`),
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
       return;
     }
 
@@ -568,7 +605,12 @@ const StudyPlanManager: React.FC = () => {
     const course = studyPlan.courses.find(c => c.id === courseId);
     if (!course) return;
     if (course.grade) {
-      alert('ไม่สามารถนำวิชาที่มีเกรดแล้วออกจากตารางได้\nกรุณาล้างเกรดก่อน');
+      showAlert({
+        title: 'ไม่สามารถนำวิชาออกจากตารางได้',
+        description: 'วิชานี้มีผลการเรียนที่บันทึกไว้แล้ว หากต้องการนำวิชานี้ออกจากแผนการเรียน กรุณาล้างเกรดของวิชานี้ให้เป็นช่องว่างก่อน',
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
       return;
     }
     const updatedCourses = studyPlan.courses.filter(c => c.id !== courseId);
@@ -795,7 +837,12 @@ const StudyPlanManager: React.FC = () => {
 
   const createStudyPlan = useCallback(async () => {
     if (!user?.id || !selectedProgram || !selectedCurriculumYear || curriculumCourses.length === 0) {
-      alert('กรุณาเลือกหลักสูตรและปีหลักสูตรให้ครบถ้วน');
+      showAlert({
+        title: 'กรุณาเลือกข้อมูลให้ครบถ้วน',
+        description: 'กรุณาเลือกหลักสูตรและปีหลักสูตรให้ครบถ้วนก่อนเริ่มต้นสร้างแผนการเรียน',
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
       return;
     }
 
@@ -852,19 +899,26 @@ const StudyPlanManager: React.FC = () => {
       setStudyPlan({ ...newPlan, id: planId });
     } catch (err) {
       console.error('Error creating study plan:', err);
-      alert('เกิดข้อผิดพลาด: ' + (err as Error).message);
+      showAlert({
+        title: 'เกิดข้อผิดพลาดในการสร้างแผนการเรียน',
+        description: `ไม่สามารถสร้างแผนการเรียนได้ในขณะนี้: ${(err as Error).message}\nกรุณาลองใหม่อีกครั้งหรือติดต่อผู้ดูแลระบบ`,
+        variant: 'destructive',
+        confirmText: 'เข้าใจแล้ว',
+      });
     }
-  }, [user?.id, user?.email, selectedProgram, selectedCurriculumYear, curriculumCourses]);
+  }, [user?.id, user?.email, selectedProgram, selectedCurriculumYear, curriculumCourses, showAlert]);
 
-  const resetStudyPlan = useCallback(async () => {
+  const handleConfirmReset = useCallback(async () => {
     if (!user?.id) return;
-    const confirmed = window.confirm('ต้องการรีเซ็ตแผนการเรียนใช่ไหม?\nข้อมูลแผนการเรียนและเกรดที่บันทึกไว้จะถูกลบออกจากระบบ และต้องเลือกหลักสูตรใหม่อีกครั้ง');
-    if (!confirmed) return;
-
     try {
       const ok = await firebaseService.deleteStudyPlansByStudentId(user.id);
       if (!ok) {
-        alert('รีเซ็ตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+        showAlert({
+          title: 'รีเซ็ตแผนการเรียนไม่สำเร็จ',
+          description: 'ระบบไม่สามารถลบแผนการเรียนได้ กรุณาลองใหม่อีกครั้ง',
+          variant: 'destructive',
+          confirmText: 'เข้าใจแล้ว',
+        });
         return;
       }
 
@@ -876,9 +930,26 @@ const StudyPlanManager: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Error resetting study plan:', err);
-      alert('รีเซ็ตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+      showAlert({
+        title: 'รีเซ็ตแผนการเรียนไม่สำเร็จ',
+        description: 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
+        variant: 'destructive',
+        confirmText: 'เข้าใจแล้ว',
+      });
     }
-  }, [user?.id]);
+  }, [user?.id, showAlert]);
+
+  const resetStudyPlan = useCallback(() => {
+    if (!user?.id) return;
+    showConfirm({
+      title: 'ต้องการรีเซ็ตแผนการเรียนใช่ไหม?',
+      description: 'ข้อมูลแผนการเรียนและเกรดที่บันทึกไว้จะถูกลบออกจากระบบ และต้องเลือกหลักสูตรใหม่อีกครั้ง',
+      variant: 'destructive',
+      confirmText: 'ยืนยันการรีเซ็ต',
+      cancelText: 'ยกเลิก',
+      onConfirm: handleConfirmReset,
+    });
+  }, [user?.id, showConfirm, handleConfirmReset]);
 
   const completedCourses = studyPlan?.courses?.filter(c => c.status === 'completed') || [];
   const inProgressCourses = studyPlan?.courses?.filter(c => c.status === 'in_progress') || [];
@@ -2117,6 +2188,9 @@ const StudyPlanManager: React.FC = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Academic Alert and Confirmation Dialog */}
+      <AcademicAlertDialog dialog={academicDialog} onClose={closeAlert} />
     </div>
   );
 };

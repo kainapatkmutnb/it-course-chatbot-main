@@ -150,29 +150,44 @@ export function StudentPlanTimeline({ view, program, curriculumYear }: StudentPl
     const orderMap = new Map<string, number>();
     const prereqMap = new Map<string, string[]>();
 
+    const targetProg = (program || '').replace(/[-_]COOP/i, '').replace(/\s*สหกิจ/i, '').trim();
+    const targetYear = (curriculumYear || '').trim();
+
     if (courseDatabase) {
-      for (const p in courseDatabase) {
-        for (const y in courseDatabase[p]) {
-          for (const sem in courseDatabase[p][y]) {
-            const list = courseDatabase[p][y][sem];
+      // 1. First pass: target program & curriculumYear takes highest precedence
+      const targetCurricula = (courseDatabase as any)[targetProg];
+      const targetCourses = targetCurricula?.[targetYear] || targetCurricula?.[targetYear.replace(/\s*สหกิจ/i, '').trim()];
+      
+      if (targetCourses && typeof targetCourses === 'object') {
+        Object.entries(targetCourses).forEach(([sem, list]: [string, any]) => {
+          if (Array.isArray(list)) {
             list.forEach((c: any, idx: number) => {
               const cleaned = cleanCode(c.code);
-              const isTargetScope = (!program || p === program) && (!curriculumYear || y === curriculumYear);
+              orderMap.set(`${sem}_${cleaned}`, idx);
+              orderMap.set(cleaned, idx);
+              const pList = (c.prerequisites && c.prerequisites.length > 0) ? c.prerequisites : [];
+              prereqMap.set(`${targetProg}_${targetYear}_${cleaned}`, pList);
+              prereqMap.set(cleaned, pList);
+            });
+          }
+        });
+      }
 
-              if (isTargetScope) {
-                orderMap.set(`${sem}_${cleaned}`, idx);
-                if (!orderMap.has(cleaned)) orderMap.set(cleaned, idx);
-                if (c.prerequisites && c.prerequisites.length > 0) {
-                  prereqMap.set(`${p}_${y}_${cleaned}`, c.prerequisites);
-                  prereqMap.set(cleaned, c.prerequisites);
-                }
-              } else {
+      // 2. Second pass: fallback from other scopes only if not already established
+      for (const p in courseDatabase) {
+        for (const y in courseDatabase[p]) {
+          if (p === targetProg && (y === targetYear || y === targetYear.replace(/\s*สหกิจ/i, '').trim())) continue;
+          for (const sem in courseDatabase[p][y]) {
+            const list = (courseDatabase as any)[p][y][sem];
+            if (Array.isArray(list)) {
+              list.forEach((c: any, idx: number) => {
+                const cleaned = cleanCode(c.code);
                 if (!orderMap.has(cleaned)) orderMap.set(cleaned, idx);
                 if (c.prerequisites && c.prerequisites.length > 0 && !prereqMap.has(cleaned)) {
                   prereqMap.set(cleaned, c.prerequisites);
                 }
-              }
-            });
+              });
+            }
           }
         }
       }
@@ -695,7 +710,7 @@ export function StudentPlanTimeline({ view, program, curriculumYear }: StudentPl
             <span className="text-amber-600 font-bold">💡 เคล็ดลับ:</span>
             <span>คลิกที่กล่องรายวิชาเพื่อดูเส้นทางสายวิชา หรือชี้เมาส์ที่เส้นเพื่อดูคู่ความต่อเนื่อง</span>
           </div>
-          <div className="flex items-center gap-3 text-[11px]">
+          <div className="flex flex-wrap items-center gap-3 text-[11px]">
             <span className="flex items-center gap-1">
               <span className="w-3 h-0.5 bg-green-600 inline-block"></span> ผ่านแล้ว
             </span>
@@ -707,6 +722,9 @@ export function StudentPlanTimeline({ view, program, curriculumYear }: StudentPl
             </span>
             <span className="flex items-center gap-1">
               <span className="w-3 h-0.5 border-t border-dashed border-orange-500 inline-block"></span> เทอมเดียวกัน
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-0.5 border-t border-dashed border-red-600 inline-block"></span> ย้อนศร (ข้ามเทอม)
             </span>
           </div>
         </div>

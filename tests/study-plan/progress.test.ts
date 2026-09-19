@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { studentCourses } from './fixtures.js';
-import { buildStudyPlanView, resolveResult } from '../../src/components/study-plan/studyPlanViewModel.js';
+import { buildStudyPlanView, resolveResult, computeProgressKPI } from '../../src/components/study-plan/studyPlanViewModel.js';
+import { getCurriculumSummaryCatalog } from '../../src/services/curriculumCatalogService.js';
 
 test('personal view matches all eight reported semesters', () => {
   const view = buildStudyPlanView(studentCourses, 135);
@@ -74,3 +75,76 @@ test('unassigned semester (year=0, semester=0) groups at start', () => {
   assert.equal(view.groups[0].year, 0);
   assert.equal(view.groups[0].semester, 0);
 });
+
+// computeProgressKPI tests
+test('computeProgressKPI: user example INE 62 47/50 courses and 126/135 credits', () => {
+  const kpi = computeProgressKPI(47, 126, 50, 135);
+  assert.equal(kpi.passedCourses, 47);
+  assert.equal(kpi.targetCourses, 50);
+  assert.equal(kpi.passedCredits, 126);
+  assert.equal(kpi.targetCredits, 135);
+  assert.equal(kpi.remainingCourses, 3);
+  assert.equal(kpi.remainingCredits, 9);
+  assert.equal(kpi.progressPercent, 93);
+  assert.equal(kpi.isCompleted, false);
+  assert.equal(kpi.formattedProgress, '47/50 วิชา · 126/135 หน่วยกิต');
+  assert.equal(kpi.formattedRemaining, 'ขาดอีก 3 วิชา · 9 หน่วยกิต');
+});
+
+test('computeProgressKPI: exact completion', () => {
+  const kpi = computeProgressKPI(50, 135, 50, 135);
+  assert.equal(kpi.remainingCourses, 0);
+  assert.equal(kpi.remainingCredits, 0);
+  assert.equal(kpi.progressPercent, 100);
+  assert.equal(kpi.isCompleted, true);
+  assert.equal(kpi.formattedProgress, '50/50 วิชา · 135/135 หน่วยกิต');
+  assert.equal(kpi.formattedRemaining, 'ครบตามเกณฑ์หลักสูตรแล้ว');
+});
+
+test('computeProgressKPI: exceeding requirements clamp remaining to 0', () => {
+  const kpi = computeProgressKPI(52, 140, 50, 135);
+  assert.equal(kpi.remainingCourses, 0);
+  assert.equal(kpi.remainingCredits, 0);
+  assert.equal(kpi.progressPercent, 100);
+  assert.equal(kpi.isCompleted, true);
+  assert.equal(kpi.formattedProgress, '52/50 วิชา · 140/135 หน่วยกิต');
+  assert.equal(kpi.formattedRemaining, 'ครบตามเกณฑ์หลักสูตรแล้ว');
+});
+
+test('computeProgressKPI: handles missing target courses gracefully', () => {
+  const kpi = computeProgressKPI(45, 120, null, 135);
+  assert.equal(kpi.targetCourses, null);
+  assert.equal(kpi.remainingCourses, null);
+  assert.equal(kpi.remainingCredits, 15);
+  assert.equal(kpi.formattedProgress, '45 วิชา · 120/135 หน่วยกิต');
+  assert.equal(kpi.formattedRemaining, 'ขาดอีก 15 หน่วยกิต');
+});
+
+test('all 13 curricula in catalog have positive totalCourses and totalCredits', () => {
+  const catalog = getCurriculumSummaryCatalog();
+  assert.equal(catalog.length, 13);
+  
+  const expectedCurricula = [
+    { id: 'IT-62', courses: 44, credits: 127 },
+    { id: 'IT-62-COOP', courses: 43, credits: 127 },
+    { id: 'IT-67', courses: 42, credits: 120 },
+    { id: 'IT-67-COOP', courses: 41, credits: 120 },
+    { id: 'INE-62', courses: 50, credits: 135 },
+    { id: 'INE-62-COOP', courses: 49, credits: 135 },
+    { id: 'INE-67', courses: 46, credits: 125 },
+    { id: 'INE-67-COOP', courses: 45, credits: 125 },
+    { id: 'INET-62', courses: 38, credits: 103 },
+    { id: 'INET-67', courses: 38, credits: 102 },
+    { id: 'ITI-61', courses: 31, credits: 81 },
+    { id: 'ITI-66', courses: 32, credits: 78 },
+    { id: 'ITT-67', courses: 28, credits: 84 },
+  ];
+
+  for (const exp of expectedCurricula) {
+    const found = catalog.find(c => c.id === exp.id);
+    assert.ok(found, `Curriculum ${exp.id} must exist in catalog`);
+    assert.equal(found.totalCourses, exp.courses, `${exp.id} totalCourses`);
+    assert.equal(found.totalCredits, exp.credits, `${exp.id} totalCredits`);
+  }
+});
+
