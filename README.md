@@ -49,14 +49,55 @@
 
 ระบบเป็น React + TypeScript browser SPA ใช้ Firebase Authentication สำหรับ sign-in และ Firebase Realtime Database สำหรับข้อมูล runtime ส่วนการให้คำปรึกษา AI เรียก n8n ผ่าน webhook เพื่อทำ RAG และคืนคำตอบ
 
-แผนภาพด้านล่างสร้างและ export จาก Draw.io โดยอิงพฤติกรรมปัจจุบันใน source code; ไฟล์ `.drawio` เปิดแก้ไขต่อได้ และไฟล์ `.drawio.png` ฝัง source diagram ไว้ในภาพแล้ว
+แผนภาพสถาปัตยกรรมด้านล่างถูกออกแบบในรูปแบบเวกเตอร์ความละเอียดสูง รองรับการสลับโหมด **GitHub Light &amp; Dark Mode** อัตโนมัติตามธีมของผู้ใช้ พร้อมลิงก์เปิดดูแบบ Interactive:
 
-| มุมมอง | ไฟล์ภาพ | ไฟล์แก้ไขได้ |
-| --- | --- | --- |
-| System context | ![Context diagram](diagrams/diagrams2/context-diagram.drawio.png) | [context-diagram.drawio](diagrams/diagrams2/context-diagram.drawio) |
-| Component layers | ![Component diagram](diagrams/diagrams2/component-diagram.drawio.png) | [component-diagram.drawio](diagrams/diagrams2/component-diagram.drawio) |
-| Data flow (DFD Level 1) | ![Data-flow diagram](diagrams/diagrams2/data-flow-diagram.drawio.png) | [data-flow-diagram.drawio](diagrams/diagrams2/data-flow-diagram.drawio) |
-| Student-session sequence | ![Sequence diagram](diagrams/diagrams2/sequence-diagram.drawio.png) | [sequence-diagram.drawio](diagrams/diagrams2/sequence-diagram.drawio) |
+| ไดอะแกรม (Diagram) | มุมมองสถาปัตยกรรม | ภาพเวกเตอร์ (SVG) | ภาพความละเอียดสูง (PNG) | พรีวิวสลับธีม (HTML) |
+| --- | --- | --- | --- | --- |
+| **System Context Diagram** | บริบทระบบภาพรวมและผู้ใช้งาน 5 บทบาท | [Light](diagrams/diagrams3/system-context-diagram-light.svg) · [Dark](diagrams/diagrams3/system-context-diagram-dark.svg) | [Light](diagrams/diagrams3/system-context-diagram-light.png) · [Dark](diagrams/diagrams3/system-context-diagram-dark.png) | [system-context-diagram.html](diagrams/diagrams3/system-context-diagram.html) |
+| **Component Diagram** | สถาปัตยกรรมเชิงชั้น 4 เลเยอร์ | [Light](diagrams/diagrams3/component-diagram-light.svg) · [Dark](diagrams/diagrams3/component-diagram-dark.svg) | [Light](diagrams/diagrams3/component-diagram-light.png) · [Dark](diagrams/diagrams3/component-diagram-dark.png) | [component-diagram.html](diagrams/diagrams3/component-diagram.html) |
+| **Data Flow Diagram** | การไหลของข้อมูลระดับ 1 (DFD Level 1) | [Light](diagrams/diagrams3/data-flow-diagram-light.svg) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.svg) | [Light](diagrams/diagrams3/data-flow-diagram-light.png) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.png) | [data-flow-diagram.html](diagrams/diagrams3/data-flow-diagram.html) |
+| **Sequence Diagram** | ลำดับการทำงานของนักศึกษา (Session Lifecycle) | [Light](diagrams/diagrams3/sequence-diagram-light.svg) · [Dark](diagrams/diagrams3/sequence-diagram-dark.svg) | [Light](diagrams/diagrams3/sequence-diagram-light.png) · [Dark](diagrams/diagrams3/sequence-diagram-dark.png) | [sequence-diagram.html](diagrams/diagrams3/sequence-diagram.html) |
+
+<br />
+
+### 1. บริบทระบบ · System Context Diagram
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/system-context-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/system-context-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · System Context Diagram" src="diagrams/diagrams3/system-context-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 2. ส่วนประกอบเชิงชั้น · Component Diagram
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/component-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/component-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram" src="diagrams/diagrams3/component-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 3. การไหลของข้อมูล · Data Flow Diagram (DFD Level 1)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/data-flow-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/data-flow-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Data Flow Diagram (DFD Level 1)" src="diagrams/diagrams3/data-flow-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 4. ลำดับการทำงาน · Sequence Diagram
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/sequence-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/sequence-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Sequence Diagram" src="diagrams/diagrams3/sequence-diagram-light.svg" width="100%">
+</picture>
+
 
 ### ข้อเท็จจริงที่ใช้ร่วมกันในแผนภาพ
 

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent-blue: #0284c7;
+    }
+    [data-theme="dark"] {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --border: #30363d;
+      --accent-blue: #58a6ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding: 2rem;
+      transition: background-color 0.2s, color 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header-bar {
+      max-width: 1280px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-family: 'Geist', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--accent-blue);
+    }
+    .diagram-container {
+      max-width: 1280px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      overflow-x: auto;
+    }
+    .diagram-view {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .cards-grid {
+      max-width: 1280px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--accent-blue);
+    }
+    .card p, .card li {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card ul {
+      padding-left: 1.25rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <div class="header-bar">
+    <div>
+      <h1 style="font-size: 1.35rem; font-weight: 700;">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram</h1>
+      <p style="font-size: 0.875rem; color: var(--text-muted);">สถาปัตยกรรมเชิงชั้น (4 Layers): App Shell, Feature Components, Domain Logic &amp; Hybrid Storage, External Runtime</p>
+    </div>
+    <button class="theme-toggle-btn" id="toggleTheme">
+      <span id="themeIcon">🌙</span> <span id="themeText">สลับเป็น Dark Mode</span>
+    </button>
+  </div>
+
+  <div class="diagram-container">
+    <div id="lightSvgWrapper">
+      <object data="component-diagram-light.svg" type="image/svg+xml" class="diagram-view"></object>
+    </div>
+    <div id="darkSvgWrapper" style="display: none;">
+      <object data="component-diagram-dark.svg" type="image/svg+xml" class="diagram-view"></object>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card">
+      <h3>🧩 Presentation &amp; Features</h3>
+      <p>โครงสร้างหน้าจอและเลเยอร์ติดต่อผู้ใช้:</p>
+      <ul>
+        <li><b>StudyPlanView:</b> แผนของฉัน vs ผังหลักสูตร</li>
+        <li><b>CurriculumCatalog:</b> ค้นหาและกรองวิชา</li>
+        <li><b>ChatContainer:</b> แชทบอทพร้อม Native Caret &amp; Feedback</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🔄 Hybrid Precedence Engine</h3>
+      <p>ลำดับความสำคัญของแหล่งข้อมูลรายวิชา:</p>
+      <ul>
+        <li><b>1. Curriculum RTDB:</b> ข้อมูลเฉพาะหลักสูตรที่ Staff ปรับปรุง</li>
+        <li><b>2. General Courses RTDB:</b> ดัชนีรวม courses/{id}</li>
+        <li><b>3. Static Master Catalog:</b> แค็ตตาล็อกแม่บท 13 ฉบับ (Fallback)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>⚙️ Rules &amp; Verification</h3>
+      <p>ตรรกะระเบียบวิชาการอัตโนมัติ:</p>
+      <ul>
+        <li><b>Credit Bounds:</b> ควบคุม 9-22 หน่วยกิต (ภาคปกติ)</li>
+        <li><b>Probation Rule:</b> วิทยาทัณฑ์จำกัดไม่เกิน 16 หน่วยกิต</li>
+        <li><b>Retake Guard:</b> ติด F บล็อกวิชาตัวต่อทันที</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const body = document.body;
+    const btn = document.getElementById('toggleTheme');
+    const icon = document.getElementById('themeIcon');
+    const text = document.getElementById('themeText');
+    const lightWrap = document.getElementById('lightSvgWrapper');
+    const darkWrap = document.getElementById('darkSvgWrapper');
+
+    btn.addEventListener('click', () => {
+      const isDark = body.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        body.setAttribute('data-theme', 'light');
+        icon.textContent = '🌙';
+        text.textContent = 'สลับเป็น Dark Mode';
+        lightWrap.style.display = 'block';
+        darkWrap.style.display = 'none';
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        icon.textContent = '☀️';
+        text.textContent = 'สลับเป็น Light Mode';
+        lightWrap.style.display = 'none';
+        darkWrap.style.display = 'block';
+      }
+    });
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      btn.click();
+    }
+  </script>
+</body>
+</html>

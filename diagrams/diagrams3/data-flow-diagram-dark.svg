@@ -1,0 +1,308 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 820" width="100%" height="100%" role="img" aria-labelledby="dfd-dark-title dfd-dark-desc">
+  <title id="dfd-dark-title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Data Flow Diagram (DFD Level 1)</title>
+  <desc id="dfd-dark-desc">แผนภาพการไหลของข้อมูลระดับ 1 แสดงผู้ใช้งาน, กระบวนการหลัก P1-P5, แหล่งข้อมูล Realtime Database D1-D5, และบริการภายนอก</desc>
+  <defs>
+    <style>
+      .title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; fill: #f0f6fc; }
+      .subtitle { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #8b949e; }
+      .col-header { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+      .node-title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; fill: #f0f6fc; }
+      .node-desc { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #c9d1d9; line-height: 1.35; }
+      .node-code { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10px; fill: #79c0ff; }
+      .badge-text { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; font-weight: 600; text-transform: uppercase; }
+      .edge-label { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; font-weight: 500; fill: #8b949e; }
+      .legend-text { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #8b949e; }
+    </style>
+    <marker id="dfd-arrow-blue-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 1 L 7 4 L 0 7 z" fill="#388bfd" />
+    </marker>
+    <marker id="dfd-arrow-teal-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 1 L 7 4 L 0 7 z" fill="#3fb950" />
+    </marker>
+    <marker id="dfd-arrow-amber-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 1 L 7 4 L 0 7 z" fill="#d29922" />
+    </marker>
+    <marker id="dfd-arrow-purple-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 1 L 7 4 L 0 7 z" fill="#a371f7" />
+    </marker>
+    <marker id="dfd-arrow-green-dark" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M 0 1 L 7 4 L 0 7 z" fill="#3fb950" />
+    </marker>
+    <filter id="dfd-shadow-dark" x="-2%" y="-2%" width="104%" height="106%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#010409" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#0d1117" rx="12" />
+  <rect width="100%" height="100%" fill="none" stroke="#30363d" stroke-width="1" rx="12" />
+
+  <!-- Header -->
+  <g transform="translate(48, 38)">
+    <rect x="0" y="0" width="85" height="22" rx="4" fill="rgba(56, 139, 253, 0.15)" stroke="#1f6feb" stroke-width="0.8" />
+    <text x="42" y="15" text-anchor="middle" class="badge-text" fill="#58a6ff">DFD LEVEL 1</text>
+    <text x="95" y="18" class="title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Data Flow Diagram (DFD Level 1)</text>
+    <text x="0" y="42" class="subtitle">จำแนกตามกระบวนการหลัก (P1–P5) สู่แหล่งข้อมูล RTDB (D1–D5) พร้อมระบุสิทธิ์และระบบเจ้าของการเขียนข้อมูล</text>
+  </g>
+
+  <!-- Column Headers -->
+  <g transform="translate(48, 105)">
+    <!-- Col 1: Users -->
+    <rect x="0" y="0" width="200" height="32" rx="4" fill="rgba(56, 139, 253, 0.15)" stroke="#1f6feb" stroke-width="0.8" />
+    <text x="100" y="21" text-anchor="middle" class="col-header" fill="#58a6ff">1. ผู้ใช้ระบบ (ACTORS)</text>
+
+    <!-- Col 2: Processes -->
+    <rect x="230" y="0" width="370" height="32" rx="4" fill="rgba(63, 185, 80, 0.15)" stroke="#238636" stroke-width="0.8" />
+    <text x="415" y="21" text-anchor="middle" class="col-header" fill="#3fb950">2. กระบวนการ (PROCESSES P1–P5)</text>
+
+    <!-- Col 3: Data Stores -->
+    <rect x="630" y="0" width="320" height="32" rx="4" fill="rgba(210, 153, 34, 0.15)" stroke="#9e6a03" stroke-width="0.8" />
+    <text x="790" y="21" text-anchor="middle" class="col-header" fill="#f1e05a">3. แหล่งข้อมูล (STORES D1–D5)</text>
+
+    <!-- Col 4: External -->
+    <rect x="980" y="0" width="204" height="32" rx="4" fill="rgba(137, 87, 229, 0.15)" stroke="#8957e5" stroke-width="0.8" />
+    <text x="1082" y="21" text-anchor="middle" class="col-header" fill="#d2a8ff">4. ภายนอก (EXTERNAL)</text>
+  </g>
+
+  <!-- Connectors (drawn behind nodes) -->
+  <!-- Row 1: P1 Auth -->
+  <path d="M 248 185 L 278 185" fill="none" stroke="#388bfd" stroke-width="1.8" marker-end="url(#dfd-arrow-blue-dark)" />
+  <path d="M 648 185 L 678 185" fill="none" stroke="#d29922" stroke-width="1.8" marker-end="url(#dfd-arrow-amber-dark)" />
+  <path d="M 648 165 L 1028 165" fill="none" stroke="#d29922" stroke-width="1.8" marker-end="url(#dfd-arrow-amber-dark)" />
+  <rect x="780" y="156" width="105" height="16" rx="2" fill="#0d1117" stroke="#30363d" stroke-width="0.8" />
+  <text x="832" y="168" text-anchor="middle" class="edge-label" fill="#f1e05a">OAuth Credentials</text>
+
+  <!-- Row 2: P2 Courses -->
+  <path d="M 248 300 L 278 300" fill="none" stroke="#388bfd" stroke-width="1.8" marker-end="url(#dfd-arrow-blue-dark)" />
+  <path d="M 648 300 L 678 300" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#dfd-arrow-teal-dark)" />
+
+  <!-- Row 3: P3 Study Plan -->
+  <path d="M 248 420 L 278 420" fill="none" stroke="#388bfd" stroke-width="1.8" marker-end="url(#dfd-arrow-blue-dark)" />
+  <path d="M 648 420 L 678 420" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#dfd-arrow-teal-dark)" />
+
+  <!-- Row 4: P4 Chatbot & Feedback -->
+  <path d="M 248 540 L 278 540" fill="none" stroke="#388bfd" stroke-width="1.8" marker-end="url(#dfd-arrow-blue-dark)" />
+  <path d="M 648 525 L 1028 525" fill="none" stroke="#a371f7" stroke-width="1.8" marker-end="url(#dfd-arrow-purple-dark)" />
+  <rect x="770" y="516" width="120" height="16" rx="2" fill="#0d1117" stroke="#30363d" stroke-width="0.8" />
+  <text x="830" y="528" text-anchor="middle" class="edge-label" fill="#d2a8ff">HTTP Webhook Query</text>
+
+  <!-- P4 to D5 feedback write -->
+  <path d="M 648 555 L 678 555" fill="none" stroke="#3fb950" stroke-width="1.8" marker-end="url(#dfd-arrow-green-dark)" />
+
+  <!-- n8n back to D5 chatLogs write -->
+  <path d="M 1028 565 L 890 565 L 890 560" fill="none" stroke="#a371f7" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#dfd-arrow-purple-dark)" />
+  <rect x="915" y="556" width="90" height="16" rx="2" fill="#0d1117" stroke="#30363d" stroke-width="0.8" />
+  <text x="960" y="568" text-anchor="middle" class="edge-label" fill="#d2a8ff">writes chatLogs</text>
+
+  <!-- Row 5: P5 Audit & Analytics -->
+  <path d="M 248 660 L 278 660" fill="none" stroke="#388bfd" stroke-width="1.8" marker-end="url(#dfd-arrow-blue-dark)" />
+  <path d="M 648 660 L 678 660" fill="none" stroke="#d29922" stroke-width="1.8" marker-end="url(#dfd-arrow-amber-dark)" />
+
+  <!-- ROW 1: AUTHENTICATION -->
+  <g transform="translate(48, 150)">
+    <!-- User box -->
+    <g filter="url(#dfd-shadow-dark)">
+      <rect width="200" height="70" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="24" class="node-title">👥 ผู้ใช้งานทุกคน</text>
+      <text x="14" y="44" class="node-desc">Guest / Student / Staff /</text>
+      <text x="14" y="58" class="node-desc">Instructor / Admin</text>
+    </g>
+
+    <!-- Process P1 -->
+    <g transform="translate(230, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="370" height="70" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(63, 185, 80, 0.15)" stroke="#238636" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#3fb950">P1</text>
+      <text x="56" y="24" class="node-title">Authentication &amp; Role Routing</text>
+      <text x="14" y="44" class="node-desc">ตรวจสอบ Email Domain @kmutnb.ac.th, สร้าง Session,</text>
+      <text x="14" y="58" class="node-desc">กำหนด RBAC Role และบันทึก Audit การเข้าสู่ระบบ</text>
+    </g>
+
+    <!-- Data Store D1 -->
+    <g transform="translate(630, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="320" height="70" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(210, 153, 34, 0.15)" stroke="#9e6a03" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#f1e05a">D1</text>
+      <text x="56" y="24" class="node-title">users/{uid}</text>
+      <text x="14" y="44" class="node-desc">เก็บ Role, Email, DisplayName, EnrolledCurriculum,</text>
+      <text x="14" y="58" class="node-desc">studentYear (รองรับนักศึกษาปี 1–8+), lastLoginAt</text>
+    </g>
+
+    <!-- External Firebase Auth -->
+    <g transform="translate(980, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="204" height="70" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.2" />
+      <text x="12" y="24" class="node-title" font-size="12" fill="#f1e05a">🔥 Firebase Auth</text>
+      <text x="12" y="44" class="node-desc">Identity Provider,</text>
+      <text x="12" y="58" class="node-desc">JWT ID Token Issuer</text>
+    </g>
+  </g>
+
+  <!-- ROW 2: COURSE & CURRICULUM -->
+  <g transform="translate(48, 265)">
+    <!-- User box -->
+    <g filter="url(#dfd-shadow-dark)">
+      <rect width="200" height="70" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="24" class="node-title">🎓 นักศึกษา / 🏢 บุคลากร</text>
+      <text x="14" y="44" class="node-desc">ค้นหารายวิชา, เช็ควิชาเปิด,</text>
+      <text x="14" y="58" class="node-desc">ปรับปรุงโครงสร้างหลักสูตร</text>
+    </g>
+
+    <!-- Process P2 -->
+    <g transform="translate(230, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="370" height="70" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(63, 185, 80, 0.15)" stroke="#238636" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#3fb950">P2</text>
+      <text x="56" y="24" class="node-title">Course &amp; Curriculum Management</text>
+      <text x="14" y="44" class="node-desc">Hybrid Precedence: Curriculum RTDB &gt; General &gt; Static</text>
+      <text x="14" y="58" class="node-desc">จัดการวิชาตัวต่อ (Prerequisites), กลุ่มวิชาศึกษาทั่วไป</text>
+    </g>
+
+    <!-- Data Store D2 -->
+    <g transform="translate(630, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="320" height="70" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(210, 153, 34, 0.15)" stroke="#9e6a03" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#f1e05a">D2</text>
+      <text x="56" y="24" class="node-title">courses &amp; curriculum/{...}</text>
+      <text x="14" y="44" class="node-desc">โครงสร้าง 13 ฉบับ (IT, INE, INET, ITI, ITT)</text>
+      <text x="14" y="58" class="node-desc">และดัชนีรายวิชาส่วนกลาง courses/{courseId}</text>
+    </g>
+
+    <!-- Static Catalog Note -->
+    <g transform="translate(980, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="204" height="70" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.2" />
+      <text x="12" y="24" class="node-title" font-size="12" fill="#3fb950">📚 Master Catalog</text>
+      <text x="12" y="44" class="node-desc">Static Master 13 ฉบับ</text>
+      <text x="12" y="58" class="node-desc">Fallback 100% แน่นอน</text>
+    </g>
+  </g>
+
+  <!-- ROW 3: STUDY PLAN & PROGRESS -->
+  <g transform="translate(48, 380)">
+    <!-- User box -->
+    <g filter="url(#dfd-shadow-dark)">
+      <rect width="200" height="75" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="24" class="node-title">🎓 นักศึกษา (Student)</text>
+      <text x="14" y="44" class="node-desc">วางแผนลงทะเบียนเรียน 4 ปี,</text>
+      <text x="14" y="60" class="node-desc">บันทึกเกรด, จำลองผลการเรียน</text>
+    </g>
+
+    <!-- Process P3 -->
+    <g transform="translate(230, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="370" height="75" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(63, 185, 80, 0.15)" stroke="#238636" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#3fb950">P3</text>
+      <text x="56" y="24" class="node-title">Study Plan &amp; Academic Rules Engine</text>
+      <text x="14" y="44" class="node-desc">ตรวจสอบหน่วยกิต (9–22), วิทยาทัณฑ์ (≤16), ข้อยกเว้นภาคจบ</text>
+      <text x="14" y="60" class="node-desc">Retake Guard บล็อกวิชาที่ติด F และคำนวณ GPAX สะสม</text>
+    </g>
+
+    <!-- Data Store D3 -->
+    <g transform="translate(630, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="320" height="75" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(210, 153, 34, 0.15)" stroke="#9e6a03" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#f1e05a">D3</text>
+      <text x="56" y="24" class="node-title">studyPlans/{pushId}</text>
+      <text x="14" y="44" class="node-desc">แผนการเรียนส่วนบุคคล, รายวิชาที่ลงทะเบียน,</text>
+      <text x="14" y="60" class="node-desc">เกรดที่ได้, สถานะผ่าน/ตก/ถอน, เกรดฝึกงาน S/U</text>
+    </g>
+
+    <!-- PDF/Excel Export -->
+    <g transform="translate(980, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="204" height="75" rx="6" fill="#161b22" stroke="#388bfd" stroke-width="1.2" />
+      <text x="12" y="24" class="node-title" font-size="12" fill="#58a6ff">📑 Exporters</text>
+      <text x="12" y="44" class="node-desc">jsPDF + html2canvas</text>
+      <text x="12" y="60" class="node-desc">SheetJS (Excel .xlsx)</text>
+    </g>
+  </g>
+
+  <!-- ROW 4: AI CHATBOT & FEEDBACK -->
+  <g transform="translate(48, 500)">
+    <!-- User box -->
+    <g filter="url(#dfd-shadow-dark)">
+      <rect width="200" height="85" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="24" class="node-title">💬 ผู้ใช้งานแชทบอท</text>
+      <text x="14" y="44" class="node-desc">ถามเงื่อนไขหลักสูตร/วิชา,</text>
+      <text x="14" y="60" class="node-desc">สถานะตัวเอง, แผนการเรียน,</text>
+      <text x="14" y="74" class="node-desc">ส่ง Feedback ประเมินบอท</text>
+    </g>
+
+    <!-- Process P4 -->
+    <g transform="translate(230, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="370" height="85" rx="6" fill="#161b22" stroke="#8957e5" stroke-width="1.8" />
+      <rect width="36" height="18" rx="2" fill="rgba(137, 87, 229, 0.15)" stroke="#8957e5" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#d2a8ff">P4</text>
+      <text x="56" y="24" class="node-title" fill="#d2a8ff">AI Advising Chat &amp; Sentiment Feedback</text>
+      <text x="14" y="44" class="node-desc">• Deterministic User Identity &amp; Role Isolation</text>
+      <text x="14" y="58" class="node-desc">• ส่งต่อ Webhook สู่ n8n (Context Injection + Master Catalog)</text>
+      <text x="14" y="74" class="node-desc">• Frontend บันทึก chatFeedback/{id} ทุกๆ 5 ข้อความ</text>
+    </g>
+
+    <!-- Data Store D5 -->
+    <g transform="translate(630, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="320" height="85" rx="6" fill="#161b22" stroke="#8957e5" stroke-width="1.8" />
+      <rect width="36" height="18" rx="2" fill="rgba(137, 87, 229, 0.15)" stroke="#8957e5" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#d2a8ff">D5</text>
+      <text x="56" y="24" class="node-title" fill="#d2a8ff">chatLogs &amp; chatFeedback</text>
+      <text x="14" y="44" class="node-desc"><tspan fill="#d2a8ff" font-weight="600">chatLogs/{id}:</tspan> n8n เป็นผู้บันทึกประวัติการตอบ</text>
+      <text x="14" y="60" class="node-desc"><tspan fill="#3fb950" font-weight="600">chatFeedback/{id}:</tspan> Browser เป็นผู้บันทึกคะแนน</text>
+      <text x="14" y="74" class="node-desc">แยกหน้าที่อิสระ ปลอดภัยตามหลัก Zero-Trust</text>
+    </g>
+
+    <!-- External n8n AI Engine -->
+    <g transform="translate(980, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="204" height="85" rx="6" fill="#161b22" stroke="#8957e5" stroke-width="1.4" />
+      <text x="12" y="22" class="node-title" font-size="12" fill="#d2a8ff">⚡ n8n AI Orchestration</text>
+      <text x="12" y="40" class="node-desc">• Pinecone 9 namespaces</text>
+      <text x="12" y="54" class="node-desc">• GPT-5 nano Advisor</text>
+      <text x="12" y="68" class="node-desc">• Cohere Reranker</text>
+    </g>
+  </g>
+
+  <!-- ROW 5: AUDIT LOGS & ANALYTICS -->
+  <g transform="translate(48, 630)">
+    <!-- User box -->
+    <g filter="url(#dfd-shadow-dark)">
+      <rect width="200" height="70" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="24" class="node-title">⚙️ ผู้ดูแลระบบ (Admin)</text>
+      <text x="14" y="44" class="node-desc">ตรวจสอบความปลอดภัย,</text>
+      <text x="14" y="58" class="node-desc">วิเคราะห์สถิติและการใช้งาน</text>
+    </g>
+
+    <!-- Process P5 -->
+    <g transform="translate(230, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="370" height="70" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(63, 185, 80, 0.15)" stroke="#238636" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#3fb950">P5</text>
+      <text x="56" y="24" class="node-title">Audit Logging &amp; System Analytics</text>
+      <text x="14" y="44" class="node-desc">รวบรวมประวัติการแก้ไขข้อมูลหลักสูตร, การเข้าสู่ระบบ,</text>
+      <text x="14" y="58" class="node-desc">และวิเคราะห์แนวโน้มคำถาม/คะแนนพึงพอใจของแชทบอท</text>
+    </g>
+
+    <!-- Data Store D4 -->
+    <g transform="translate(630, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="320" height="70" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5" />
+      <rect width="36" height="18" rx="2" fill="rgba(210, 153, 34, 0.15)" stroke="#9e6a03" stroke-width="0.8" x="12" y="10" />
+      <text x="30" y="23" text-anchor="middle" class="badge-text" fill="#f1e05a">D4</text>
+      <text x="56" y="24" class="node-title">auditLogs/{pushId}</text>
+      <text x="14" y="44" class="node-desc">เก็บบันทึก Timestamp, Action, TargetId,</text>
+      <text x="14" y="58" class="node-desc">Performer UID เพื่อความโปร่งใสและตรวจสอบได้</text>
+    </g>
+
+    <!-- Analytics Dashboard View -->
+    <g transform="translate(980, 0)" filter="url(#dfd-shadow-dark)">
+      <rect width="204" height="70" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.2" />
+      <text x="12" y="24" class="node-title" font-size="12" fill="#c9d1d9">📊 Analytics Bar</text>
+      <text x="12" y="44" class="node-desc">Bento Metric Summary,</text>
+      <text x="12" y="58" class="node-desc">KPI ความพึงพอใจ</text>
+    </g>
+  </g>
+
+  <!-- Legend & Bottom Strip -->
+  <g transform="translate(48, 750)">
+    <line x1="0" y1="0" x2="1184" y2="0" stroke="#30363d" stroke-width="1" />
+    <text x="0" y="20" class="badge-text" fill="#8b949e">ข้อมูลอ้างอิงสถาปัตยกรรม (ARCHITECTURE FACTS):</text>
+    <text x="300" y="20" class="legend-text">• D5: n8n เป็นผู้เขียน chatLogs / หน้าเว็บเป็นผู้เขียน chatFeedback</text>
+    <text x="760" y="20" class="legend-text">• Hybrid Precedence รับประกันข้อมูล 13 ฉบับหลักสูตรแม่นยำ</text>
+    <text x="1184" y="20" text-anchor="end" class="legend-text" font-family="'Geist Mono', monospace" fill="#8b949e">KMUTNB IT ASSISTANT</text>
+  </g>
+</svg>

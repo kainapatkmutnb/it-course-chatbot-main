@@ -1,0 +1,200 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 820" width="100%" height="100%" role="img" aria-labelledby="comp-dark-title comp-dark-desc">
+  <title id="comp-dark-title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram</title>
+  <desc id="comp-dark-desc">แผนภาพส่วนประกอบระบบ 4 ระดับชั้น: App Shell &amp; Routing, Feature Components, Domain Logic, และ External Runtime</desc>
+  <defs>
+    <style>
+      .title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; fill: #f0f6fc; }
+      .subtitle { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #8b949e; }
+      .layer-title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+      .node-title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 600; fill: #f0f6fc; }
+      .node-desc { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #c9d1d9; line-height: 1.35; }
+      .node-code { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10px; fill: #79c0ff; }
+      .badge-text { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; font-weight: 600; text-transform: uppercase; }
+      .edge-label { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; font-weight: 500; fill: #8b949e; }
+      .legend-text { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #8b949e; }
+    </style>
+    <filter id="comp-shadow-dark" x="-2%" y="-2%" width="104%" height="106%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#010409" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#0d1117" rx="12" />
+  <rect width="100%" height="100%" fill="none" stroke="#30363d" stroke-width="1" rx="12" />
+
+  <!-- Header -->
+  <g transform="translate(48, 40)">
+    <rect x="0" y="0" width="105" height="22" rx="4" fill="rgba(56, 139, 253, 0.15)" stroke="#1f6feb" stroke-width="0.8" />
+    <text x="52" y="15" text-anchor="middle" class="badge-text" fill="#58a6ff">C4 COMPONENT</text>
+    <text x="115" y="18" class="title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram</text>
+    <text x="0" y="42" class="subtitle">สถาปัตยกรรมเชิงชั้น (4 Layers): App Shell, Feature Components, Domain Logic &amp; Hybrid Storage, External Runtime</text>
+  </g>
+
+  <!-- LAYER 1: APP SHELL & ROLE ROUTING -->
+  <g transform="translate(48, 120)">
+    <rect width="1184" height="110" rx="8" fill="rgba(56, 139, 253, 0.08)" stroke="#1f6feb" stroke-width="1" />
+    <text x="20" y="24" class="layer-title" fill="#58a6ff">01 · App Shell &amp; Role Routing</text>
+
+    <!-- App / Layout -->
+    <g transform="translate(20, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="360" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="22" class="node-title">App · Router · Main Layout</text>
+      <text x="14" y="42" class="node-desc">Vite SPA, React Router 6.30, Tailwind Shell</text>
+    </g>
+
+    <!-- AuthContext -->
+    <g transform="translate(400, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="360" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="22" class="node-title">AuthContext &amp; Session Store</text>
+      <text x="14" y="42" class="node-desc">Firebase Auth Listener, จัดการ Token &amp; State</text>
+    </g>
+
+    <!-- Role Routing -->
+    <g transform="translate(780, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="384" height="60" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="14" y="22" class="node-title">Role-Based Route Guard (RBAC)</text>
+      <text x="14" y="42" class="node-desc">แยก 5 บทบาท: Student / Instructor / Staff / Admin / Guest</text>
+    </g>
+  </g>
+
+  <!-- LAYER 2: FEATURE COMPONENTS -->
+  <g transform="translate(48, 250)">
+    <rect width="1184" height="135" rx="8" fill="rgba(139, 148, 158, 0.05)" stroke="#30363d" stroke-width="1" />
+    <text x="20" y="24" class="layer-title" fill="#8b949e">02 · Feature UI Components (Client Views)</text>
+
+    <!-- Courses & Curriculum UI -->
+    <g transform="translate(20, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="270" height="85" rx="6" fill="#161b22" stroke="#388bfd" stroke-width="1.2" />
+      <text x="12" y="22" class="node-title" font-size="13">Courses &amp; Curriculum</text>
+      <text x="12" y="40" class="node-desc">แค็ตตาล็อกรายวิชา 13 ฉบับ</text>
+      <text x="12" y="55" class="node-desc">ค้นหา &amp; กรองวิชาตามหมวดหมู่</text>
+      <text x="12" y="70" class="node-code">CurriculumCatalog.tsx</text>
+    </g>
+
+    <!-- Study Plan UI -->
+    <g transform="translate(305, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="285" height="85" rx="6" fill="#161b22" stroke="#388bfd" stroke-width="1.2" />
+      <text x="12" y="22" class="node-title" font-size="13">Study Plan &amp; Flowchart</text>
+      <text x="12" y="40" class="node-desc">Dual-View (แผนของฉัน vs โครงสร้าง)</text>
+      <text x="12" y="55" class="node-desc">Anti-collision multi-lane routing</text>
+      <text x="12" y="70" class="node-code">StudyPlanView.tsx / Flowchart</text>
+    </g>
+
+    <!-- Role Dashboards -->
+    <g transform="translate(605, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="270" height="85" rx="6" fill="#161b22" stroke="#388bfd" stroke-width="1.2" />
+      <text x="12" y="22" class="node-title" font-size="13">Role Dashboards</text>
+      <text x="12" y="40" class="node-desc">Student / Advisor / Staff / Admin</text>
+      <text x="12" y="55" class="node-desc">Audit viewer, Analytics KPI bar</text>
+      <text x="12" y="70" class="node-code">Dashboard.tsx / AdminView</text>
+    </g>
+
+    <!-- ChatBot + Feedback -->
+    <g transform="translate(890, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="274" height="85" rx="6" fill="#161b22" stroke="#a371f7" stroke-width="1.4" />
+      <text x="12" y="22" class="node-title" font-size="13" fill="#d2a8ff">ChatBot &amp; Sentiment Feedback</text>
+      <text x="12" y="40" class="node-desc">Native Caret, Deterministic Routing</text>
+      <text x="12" y="55" class="node-desc">3-Scale Feedback (👍/😐/👎)</text>
+      <text x="12" y="70" class="node-code" fill="#d2a8ff">ChatContainer.tsx / Banner</text>
+    </g>
+  </g>
+
+  <!-- LAYER 3: DOMAIN & DATA ACCESS MODULES -->
+  <g transform="translate(48, 405)">
+    <rect width="1184" height="215" rx="8" fill="rgba(63, 185, 80, 0.08)" stroke="#238636" stroke-width="1" />
+    <text x="20" y="24" class="layer-title" fill="#3fb950">03 · Domain Logic &amp; Data Access Modules</text>
+
+    <!-- courseService & Hybrid Precedence -->
+    <g transform="translate(20, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="365" height="110" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.2" />
+      <text x="12" y="22" class="node-title" font-size="13">courseService &amp; hybridCourseService</text>
+      <text x="12" y="40" class="node-desc"><b>Hybrid Precedence Engine:</b></text>
+      <text x="12" y="56" class="node-desc" font-size="10">1. Curriculum RTDB (ข้อมูลเฉพาะหลักสูตร)</text>
+      <text x="12" y="72" class="node-desc" font-size="10">2. General Courses RTDB (courses/{id})</text>
+      <text x="12" y="88" class="node-desc" font-size="10">3. Static Master Catalog (Fallback ชัวร์ 100%)</text>
+      <text x="12" y="104" class="node-code">hybridCourseService.ts</text>
+    </g>
+
+    <!-- studyPlanIdentity & ViewModel -->
+    <g transform="translate(400, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="375" height="110" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.2" />
+      <text x="12" y="22" class="node-title" font-size="13">studyPlanService &amp; Academic ViewModel</text>
+      <text x="12" y="40" class="node-desc">• คำนวณ GPA รายภาค &amp; GPAX สะสม</text>
+      <text x="12" y="56" class="node-desc">• Prerequisite/Corequisite Validation &amp; Retake Guard</text>
+      <text x="12" y="72" class="node-desc">• S/U Evaluation (ไม่ถ่วงเกรดวิชาฝึกงาน/สหกิจ)</text>
+      <text x="12" y="88" class="node-desc">• ตรวจสอบเพดานหน่วยกิต (9-22, วิทยาทัณฑ์ ≤16)</text>
+      <text x="12" y="104" class="node-code">studyPlanModel.ts / academicRules.ts</text>
+    </g>
+
+    <!-- Static Master Catalogs (13 variants) -->
+    <g transform="translate(790, 36)" filter="url(#comp-shadow-dark)">
+      <rect width="374" height="110" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.2" />
+      <text x="12" y="22" class="node-title" font-size="13">Static Master Catalog (13 Curricula)</text>
+      <text x="12" y="40" class="node-desc">• ครอบคลุม 5 สาขา: IT, INE, INET, ITI, ITT</text>
+      <text x="12" y="56" class="node-desc">• แผนปกติ, สหกิจศึกษา, ต่อเนื่อง, เทียบโอน</text>
+      <text x="12" y="72" class="node-desc">• รหัสวิชา 8 หลัก &amp; เงื่อนไขจบการศึกษา</text>
+      <text x="12" y="88" class="node-desc">• ป้องกัน AI Hallucination ทางข้อมูลหลักสูตร</text>
+      <text x="12" y="104" class="node-code">completeCurriculumData.ts</text>
+    </g>
+
+    <!-- Lower row: firebaseService & chatLogService -->
+    <g transform="translate(20, 156)" filter="url(#comp-shadow-dark)">
+      <rect width="555" height="48" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" />
+      <text x="12" y="20" class="node-title" font-size="12">firebaseService &amp; auditLogService</text>
+      <text x="12" y="36" class="node-desc" font-size="10">Sync users/{uid}, studyPlans/{id}, auditLogs/{id}, RTDB Auth Listener</text>
+    </g>
+
+    <g transform="translate(590, 156)" filter="url(#comp-shadow-dark)">
+      <rect width="574" height="48" rx="6" fill="#161b22" stroke="#a371f7" stroke-width="1.2" />
+      <text x="12" y="20" class="node-title" font-size="12" fill="#d2a8ff">chatLogService &amp; n8nClient</text>
+      <text x="12" y="36" class="node-desc" font-size="10">ส่ง Webhook ไปยัง n8n · อ่าน chatLogs/{id} · บันทึก chatFeedback/{id}</text>
+    </g>
+  </g>
+
+  <!-- LAYER 4: EXTERNAL RUNTIME -->
+  <g transform="translate(48, 640)">
+    <rect width="1184" height="95" rx="8" fill="rgba(210, 153, 34, 0.08)" stroke="#9e6a03" stroke-width="1" />
+    <text x="20" y="24" class="layer-title" fill="#f1e05a">04 · External Services &amp; Cloud Runtime</text>
+
+    <!-- Firebase Auth -->
+    <g transform="translate(20, 34)" filter="url(#comp-shadow-dark)">
+      <rect width="365" height="50" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.2" />
+      <text x="14" y="22" class="node-title" font-size="13" fill="#f1e05a">🔥 Firebase Authentication</text>
+      <text x="14" y="40" class="node-desc">OAuth Provider &amp; Email Domain Guard</text>
+    </g>
+
+    <!-- Firebase RTDB -->
+    <g transform="translate(400, 34)" filter="url(#comp-shadow-dark)">
+      <rect width="375" height="50" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.2" />
+      <text x="14" y="22" class="node-title" font-size="13" fill="#f1e05a">🗄️ Firebase Realtime Database</text>
+      <text x="14" y="40" class="node-desc">users, curriculum, courses, studyPlans, logs</text>
+    </g>
+
+    <!-- n8n Workflow -->
+    <g transform="translate(790, 34)" filter="url(#comp-shadow-dark)">
+      <rect width="374" height="50" rx="6" fill="#161b22" stroke="#a371f7" stroke-width="1.4" />
+      <text x="14" y="22" class="node-title" font-size="13" fill="#d2a8ff">⚡ n8n AI Workflow &amp; Vector RAG</text>
+      <text x="14" y="40" class="node-desc">Pinecone (9 namespaces), OpenAI GPT-5 nano</text>
+    </g>
+  </g>
+
+  <!-- Legend & Colophon -->
+  <g transform="translate(48, 755)">
+    <line x1="0" y1="0" x2="1184" y2="0" stroke="#30363d" stroke-width="1" />
+    <text x="0" y="20" class="badge-text" fill="#8b949e">เลเยอร์ (LAYERS):</text>
+    
+    <rect x="110" y="10" width="12" height="12" rx="2" fill="#388bfd" />
+    <text x="128" y="20" class="legend-text">Presentation &amp; UI Shell</text>
+
+    <rect x="300" y="10" width="12" height="12" rx="2" fill="#2ea043" />
+    <text x="318" y="20" class="legend-text">Domain Logic &amp; Hybrid Storage</text>
+
+    <rect x="535" y="10" width="12" height="12" rx="2" fill="#d29922" />
+    <text x="553" y="20" class="legend-text">Firebase Cloud Runtime</text>
+
+    <rect x="735" y="10" width="12" height="12" rx="2" fill="#a371f7" />
+    <text x="753" y="20" class="legend-text">n8n AI Engine Orchestration</text>
+
+    <text x="1184" y="20" text-anchor="end" class="legend-text" font-family="'Geist Mono', monospace" fill="#8b949e">KMUTNB IT ASSISTANT</text>
+  </g>
+</svg>

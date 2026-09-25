@@ -1,0 +1,224 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 940" width="100%" height="100%" role="img" aria-labelledby="seq-light-title seq-light-desc">
+  <title id="seq-light-title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Sequence Diagram</title>
+  <desc id="seq-light-desc">แผนภาพลำดับการทำงานแสดง 4 ขั้นตอน: Sign-in &amp; Profile, Load Plan &amp; Progress, Grade Edit, และ Advising Chat &amp; Feedback</desc>
+  <defs>
+    <style>
+      .title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #475569; }
+      .phase-title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+      .participant-title { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; text-anchor: middle; }
+      .participant-desc { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10px; fill: #64748b; text-anchor: middle; }
+      .msg-text { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #1e293b; }
+      .msg-code { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10px; fill: #0369a1; }
+      .badge-text { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 9px; font-weight: 600; text-transform: uppercase; }
+      .legend-text { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #475569; }
+    </style>
+    <marker id="seq-arrow-blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#0284c7" />
+    </marker>
+    <marker id="seq-arrow-amber" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#d97706" />
+    </marker>
+    <marker id="seq-arrow-purple" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#7c3aed" />
+    </marker>
+    <marker id="seq-arrow-green" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#059669" />
+    </marker>
+    <marker id="seq-arrow-slate" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#64748b" />
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f8fafc" rx="12" />
+  <rect width="100%" height="100%" fill="none" stroke="#e2e8f0" stroke-width="1" rx="12" />
+
+  <!-- Header -->
+  <g transform="translate(48, 36)">
+    <rect x="0" y="0" width="115" height="22" rx="4" fill="#e0f2fe" />
+    <text x="57" y="15" text-anchor="middle" class="badge-text" fill="#0369a1">SEQUENCE FLOW</text>
+    <text x="125" y="18" class="title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Sequence Diagram</text>
+    <text x="0" y="42" class="subtitle">ลำดับการทำงานของนักศึกษา (Student Session Lifecycle) · 4 ระยะการทำงาน</text>
+  </g>
+
+  <!-- PARTICIPANT HEADERS (X coords: 100, 310, 520, 730, 940, 1150) -->
+  <!-- Lifelines -->
+  <line x1="110" y1="160" x2="110" y2="860" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+  <line x1="320" y1="160" x2="320" y2="860" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+  <line x1="530" y1="160" x2="530" y2="860" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+  <line x1="740" y1="160" x2="740" y2="860" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+  <line x1="950" y1="160" x2="950" y2="860" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+  <line x1="1160" y1="160" x2="1160" y2="860" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />
+
+  <!-- Participant 1: Student -->
+  <g transform="translate(30, 105)">
+    <rect width="160" height="50" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+    <text x="80" y="24" class="participant-title" fill="#0369a1">🎓 Student</text>
+    <text x="80" y="40" class="participant-desc">นักศึกษาเข้าใช้งาน</text>
+  </g>
+
+  <!-- Participant 2: Browser SPA -->
+  <g transform="translate(240, 105)">
+    <rect width="160" height="50" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+    <text x="80" y="24" class="participant-title" fill="#0369a1">💻 Browser SPA</text>
+    <text x="80" y="40" class="participant-desc">React 18.3 + TS</text>
+  </g>
+
+  <!-- Participant 3: Domain Services -->
+  <g transform="translate(450, 105)">
+    <rect width="160" height="50" rx="6" fill="#ffffff" stroke="#0d9488" stroke-width="1.5" />
+    <text x="80" y="24" class="participant-title" fill="#0f766e">⚙️ Domain Services</text>
+    <text x="80" y="40" class="participant-desc">Hybrid &amp; Rules Engine</text>
+  </g>
+
+  <!-- Participant 4: Firebase Auth -->
+  <g transform="translate(660, 105)">
+    <rect width="160" height="50" rx="6" fill="#ffffff" stroke="#d97706" stroke-width="1.5" />
+    <text x="80" y="24" class="participant-title" fill="#b45309">🔥 Firebase Auth</text>
+    <text x="80" y="40" class="participant-desc">Token &amp; Session</text>
+  </g>
+
+  <!-- Participant 5: Firebase RTDB -->
+  <g transform="translate(870, 105)">
+    <rect width="160" height="50" rx="6" fill="#ffffff" stroke="#d97706" stroke-width="1.5" />
+    <text x="80" y="24" class="participant-title" fill="#b45309">🗄️ Firebase RTDB</text>
+    <text x="80" y="40" class="participant-desc">Database Paths</text>
+  </g>
+
+  <!-- Participant 6: n8n AI -->
+  <g transform="translate(1080, 105)">
+    <rect width="160" height="50" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" />
+    <text x="80" y="24" class="participant-title" fill="#6d28d9">⚡ n8n AI / RAG</text>
+    <text x="80" y="40" class="participant-desc">Pinecone &amp; GPT-5</text>
+  </g>
+
+  <!-- ==================== PHASE 1: SIGN-IN & PROFILE ==================== -->
+  <g transform="translate(48, 175)">
+    <rect width="1184" height="28" rx="4" fill="#e0f2fe" />
+    <text x="14" y="19" class="phase-title" fill="#0369a1">01 · Sign-in, Profile &amp; Role Resolution</text>
+  </g>
+
+  <!-- 1.1 Student -> Browser (Sign in) -->
+  <line x1="110" y1="225" x2="313" y2="225" stroke="#0284c7" stroke-width="1.5" marker-end="url(#seq-arrow-blue)" />
+  <text x="215" y="218" text-anchor="middle" class="msg-text">1. ป้อนอีเมล / Google Login</text>
+
+  <!-- 1.2 Browser -> Firebase Auth -->
+  <line x1="320" y1="245" x2="733" y2="245" stroke="#d97706" stroke-width="1.5" marker-end="url(#seq-arrow-amber)" />
+  <text x="530" y="238" text-anchor="middle" class="msg-code">signInWithPopup() / Email</text>
+
+  <!-- 1.3 Firebase Auth --> Browser -->
+  <line x1="740" y1="265" x2="327" y2="265" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,4" marker-end="url(#seq-arrow-amber)" />
+  <text x="530" y="258" text-anchor="middle" class="msg-text">2. คืนค่า Auth State (UID &amp; JWT)</text>
+
+  <!-- 1.4 Browser -> Firebase RTDB (Query profile) -->
+  <line x1="320" y1="285" x2="943" y2="285" stroke="#d97706" stroke-width="1.5" marker-end="url(#seq-arrow-amber)" />
+  <text x="630" y="278" text-anchor="middle" class="msg-code">get(users/{uid})</text>
+
+  <!-- 1.5 Firebase RTDB --> Browser -->
+  <line x1="950" y1="305" x2="327" y2="305" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,4" marker-end="url(#seq-arrow-amber)" />
+  <text x="630" y="298" text-anchor="middle" class="msg-text">3. ส่งคืน Student Profile (Role: student, Enrolled: IT-67, Year: 1–8+)</text>
+
+  <!-- 1.6 Browser -> RTDB (audit sign-in) -->
+  <line x1="320" y1="325" x2="943" y2="325" stroke="#64748b" stroke-width="1.2" marker-end="url(#seq-arrow-slate)" />
+  <text x="630" y="318" text-anchor="middle" class="msg-code">push(auditLogs/{id}, {action: 'SIGN_IN'})</text>
+
+  <!-- ==================== PHASE 2: LOAD PLAN & HYBRID PROGRESS ==================== -->
+  <g transform="translate(48, 350)">
+    <rect width="1184" height="28" rx="4" fill="#f0fdf4" />
+    <text x="14" y="19" class="phase-title" fill="#15803d">02 · Load Plan, Hybrid Courses &amp; Academic Progress</text>
+  </g>
+
+  <!-- 2.1 Student -> Browser (Open Plan) -->
+  <line x1="110" y1="400" x2="313" y2="400" stroke="#0284c7" stroke-width="1.5" marker-end="url(#seq-arrow-blue)" />
+  <text x="215" y="393" text-anchor="middle" class="msg-text">4. เข้าหน้าแผนการเรียน 4 ปี (Study Plan)</text>
+
+  <!-- 2.2 Browser -> Services -->
+  <line x1="320" y1="420" x2="523" y2="420" stroke="#0d9488" stroke-width="1.5" marker-end="url(#seq-arrow-teal)" />
+  <text x="420" y="413" text-anchor="middle" class="msg-code">loadStudyPlanAndCurriculum()</text>
+
+  <!-- 2.3 Services -> RTDB (Fetch plan) -->
+  <line x1="530" y1="440" x2="943" y2="440" stroke="#d97706" stroke-width="1.5" marker-end="url(#seq-arrow-amber)" />
+  <text x="735" y="433" text-anchor="middle" class="msg-code">get(studyPlans/{id}) &amp; get(curriculum/IT/2567/...)</text>
+
+  <!-- 2.4 RTDB --> Services -->
+  <line x1="950" y1="460" x2="537" y2="460" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,4" marker-end="url(#seq-arrow-amber)" />
+  <text x="735" y="453" text-anchor="middle" class="msg-text">5. ส่งข้อมูลแผน + รายวิชาเฉพาะหลักสูตร</text>
+
+  <!-- 2.5 Services Internal: Hybrid merge & calculation -->
+  <rect x="475" y="475" width="220" height="22" rx="4" fill="#ccfbf1" stroke="#0d9488" stroke-width="1" />
+  <text x="585" y="490" text-anchor="middle" class="msg-text" font-size="10" fill="#0f766e">⚙️ Hybrid Merge &gt; Validate GPAX &amp; Prerequisites</text>
+
+  <!-- 2.6 Services --> Browser -->
+  <line x1="530" y1="515" x2="327" y2="515" stroke="#0d9488" stroke-width="1.2" stroke-dasharray="4,4" marker-end="url(#seq-arrow-teal)" />
+  <text x="420" y="508" text-anchor="middle" class="msg-text">6. ส่งผลการคำนวณ KPI, Prereq Paths, S/U Status</text>
+
+  <!-- 2.7 Browser -> Student -->
+  <line x1="320" y1="535" x2="117" y2="535" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="4,4" marker-end="url(#seq-arrow-blue)" />
+  <text x="215" y="528" text-anchor="middle" class="msg-text">7. แสดงผัง Dual-View (แผนของฉัน + โครงสร้าง)</text>
+
+  <!-- ==================== PHASE 3: GRADE EDIT & VALIDATION ==================== -->
+  <g transform="translate(48, 555)">
+    <rect width="1184" height="28" rx="4" fill="#fef3c7" />
+    <text x="14" y="19" class="phase-title" fill="#b45309">03 · Grade Edit, Prerequisite Guard &amp; Real-time Sync</text>
+  </g>
+
+  <!-- 3.1 Student -> Browser (Edit grade) -->
+  <line x1="110" y1="605" x2="313" y2="605" stroke="#0284c7" stroke-width="1.5" marker-end="url(#seq-arrow-blue)" />
+  <text x="215" y="598" text-anchor="middle" class="msg-text">8. บันทึก/เปลี่ยนเกรดรายวิชา (เช่น Grade 'A' หรือ 'F')</text>
+
+  <!-- 3.2 Browser -> Services -->
+  <line x1="320" y1="625" x2="523" y2="625" stroke="#0d9488" stroke-width="1.5" marker-end="url(#seq-arrow-teal)" />
+  <text x="420" y="618" text-anchor="middle" class="msg-code">updateCourseGradeAndRecalculate()</text>
+
+  <!-- 3.3 Services -> RTDB (Update plan) -->
+  <line x1="530" y1="645" x2="943" y2="645" stroke="#d97706" stroke-width="1.5" marker-end="url(#seq-arrow-amber)" />
+  <text x="735" y="638" text-anchor="middle" class="msg-code">update(studyPlans/{id}/courses/{courseId}, {grade: 'A'})</text>
+
+  <!-- 3.4 Services --> Browser -->
+  <line x1="530" y1="665" x2="327" y2="665" stroke="#0d9488" stroke-width="1.2" stroke-dasharray="4,4" marker-end="url(#seq-arrow-teal)" />
+  <text x="420" y="658" text-anchor="middle" class="msg-text">9. อัปเดต GPA รายภาค, GPAX สะสม, ป้ายเตือน Retake ติด F</text>
+
+  <!-- ==================== PHASE 4: AI CHAT & SENTIMENT FEEDBACK ==================== -->
+  <g transform="translate(48, 685)">
+    <rect width="1184" height="28" rx="4" fill="#f3e8ff" />
+    <text x="14" y="19" class="phase-title" fill="#6d28d9">04 · Advising Chatbot &amp; Sentiment Feedback Workflow</text>
+  </g>
+
+  <!-- 4.1 Student -> Browser (Ask bot) -->
+  <line x1="110" y1="735" x2="313" y2="735" stroke="#0284c7" stroke-width="1.5" marker-end="url(#seq-arrow-blue)" />
+  <text x="215" y="728" text-anchor="middle" class="msg-text">10. พิมพ์ถามคำถาม ("วิชาปี 2 เทอม 1 มีอะไรบ้าง")</text>
+
+  <!-- 4.2 Browser -> Services (Deterministic check) -->
+  <rect x="270" y="748" width="180" height="20" rx="3" fill="#e0e7ff" />
+  <text x="360" y="762" text-anchor="middle" class="msg-text" font-size="10" fill="#3730a3">ตรวจเช็ค Role / ถามชื่อตัวตน (0 ms)</text>
+
+  <!-- 4.3 Browser -> n8n Webhook -->
+  <line x1="320" y1="785" x2="1153" y2="785" stroke="#7c3aed" stroke-width="1.8" marker-end="url(#seq-arrow-purple)" />
+  <text x="740" y="778" text-anchor="middle" class="msg-code">POST /webhook/chat (Query + EnrolledCurriculum + 13 Catalogs)</text>
+
+  <!-- 4.4 n8n -> RTDB (writes chatLogs) -->
+  <line x1="1160" y1="805" x2="957" y2="805" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#seq-arrow-purple)" />
+  <text x="1060" y="798" text-anchor="middle" class="msg-code">writes chatLogs/{id}</text>
+
+  <!-- 4.5 n8n --> Browser -->
+  <line x1="1160" y1="825" x2="327" y2="825" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#seq-arrow-purple)" />
+  <text x="740" y="818" text-anchor="middle" class="msg-text">11. คืนคำตอบมาตรฐาน [รหัสวิชา] [ชื่อวิชาภาษาไทย] (GPT-5 nano)</text>
+
+  <!-- 4.6 Student -> Browser (Submit Feedback) -->
+  <line x1="110" y1="848" x2="313" y2="848" stroke="#059669" stroke-width="1.5" marker-end="url(#seq-arrow-green)" />
+  <text x="215" y="842" text-anchor="middle" class="msg-text">12. ประเมินความพึงพอใจ (👍 ชอบ / 😐 ปานกลาง / 👎 ไม่ชอบ)</text>
+
+  <!-- 4.7 Browser -> RTDB (writes chatFeedback) -->
+  <line x1="320" y1="865" x2="943" y2="865" stroke="#059669" stroke-width="1.8" marker-end="url(#seq-arrow-green)" />
+  <text x="630" y="858" text-anchor="middle" class="msg-code">chatLogService.saveFeedback() ➔ push(chatFeedback/{id})</text>
+
+  <!-- Legend & Bottom Strip -->
+  <g transform="translate(48, 895)">
+    <line x1="0" y1="0" x2="1184" y2="0" stroke="#cbd5e1" stroke-width="1" />
+    <text x="0" y="20" class="badge-text" fill="#64748b">กฎการเป็นเจ้าของข้อมูล (OWNERSHIP TRUTH):</text>
+    <text x="280" y="20" class="legend-text">• chatLogs/{id}: n8n AI เป็นผู้บันทึก</text>
+    <text x="560" y="20" class="legend-text">• chatFeedback/{id}: Browser Frontend เป็นผู้บันทึก</text>
+    <text x="1184" y="20" text-anchor="end" class="legend-text" font-family="'Geist Mono', monospace" fill="#94a3b8">KMUTNB IT ASSISTANT</text>
+  </g>
+</svg>

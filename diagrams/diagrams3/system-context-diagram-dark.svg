@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="100%" height="100%" role="img" aria-labelledby="system-context-dark-title system-context-dark-desc">
+  <title id="system-context-dark-title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · System Context Diagram</title>
+  <desc id="system-context-dark-desc">C4 System Context Diagram Level 1 แสดงขอบเขตของระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot ความสัมพันธ์กับผู้ใช้งาน 5 บทบาท และระบบภายนอก 3 ระบบ</desc>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;family=Instrument+Serif:ital@0;1&amp;display=swap');
+      .font-serif { font-family: 'Instrument Serif', Georgia, serif; }
+      .font-sans { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .font-mono { font-family: 'Geist Mono', monospace; }
+    </style>
+    <marker id="arrow-muted-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#8b949e"/>
+    </marker>
+    <marker id="arrow-link-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrow-coral-dark" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff7b72"/>
+    </marker>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="100%" height="100%" fill="#0d1117"/>
+
+  <!-- Header Section -->
+  <g transform="translate(50, 48)">
+    <rect x="0" y="0" width="180" height="20" rx="3" fill="none" stroke="#ff7b72" stroke-width="1"/>
+    <text x="90" y="14" fill="#ff7b72" class="font-mono" font-size="9" font-weight="600" text-anchor="middle" letter-spacing="0.12em">C4 MODEL · LEVEL 1</text>
+    <text x="0" y="44" fill="#e6edf3" class="font-serif" font-size="24" font-weight="400">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · System Context Diagram</text>
+    <text x="0" y="66" fill="#8b949e" class="font-sans" font-size="12" font-weight="400">System Context Diagram: Stakeholders, Core Web SPA Boundary, and External Cloud / AI Services</text>
+  </g>
+
+  <!-- Connectors & Flow Lines (Drawn before boxes for z-index integrity) -->
+  <g fill="none">
+    <!-- Student to System -->
+    <path d="M 260 182 H 342 Q 350 182 350 190 V 252 Q 350 260 358 260 H 440" stroke="#8b949e" stroke-width="1.2" marker-end="url(#arrow-muted-dark)"/>
+    <rect x="272" y="168" width="124" height="15" rx="3" fill="#0d1117"/>
+    <text x="334" y="179" fill="#8b949e" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">STUDY PLAN &amp; CHAT</text>
+
+    <!-- Instructor to System -->
+    <line x1="260" y1="282" x2="440" y2="282" stroke="#8b949e" stroke-width="1.2" marker-end="url(#arrow-muted-dark)"/>
+    <rect x="290" y="268" width="118" height="15" rx="3" fill="#0d1117"/>
+    <text x="349" y="279" fill="#8b949e" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">ADVISING &amp; REVIEW</text>
+
+    <!-- Staff to System -->
+    <line x1="260" y1="386" x2="440" y2="386" stroke="#8b949e" stroke-width="1.2" marker-end="url(#arrow-muted-dark)"/>
+    <rect x="275" y="372" width="148" height="15" rx="3" fill="#0d1117"/>
+    <text x="349" y="383" fill="#8b949e" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">MANAGE 13 CURRICULA</text>
+
+    <!-- Admin to System -->
+    <path d="M 260 490 H 352 Q 360 490 360 482 V 448 Q 360 440 368 440 H 440" stroke="#8b949e" stroke-width="1.2" marker-end="url(#arrow-muted-dark)"/>
+    <rect x="280" y="476" width="120" height="15" rx="3" fill="#0d1117"/>
+    <text x="340" y="487" fill="#8b949e" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">RBAC &amp; PLATFORM</text>
+
+    <!-- Guest to System -->
+    <path d="M 260 594 H 322 Q 330 594 330 586 V 508 Q 330 500 338 500 H 440" stroke="#8b949e" stroke-width="1.2" marker-end="url(#arrow-muted-dark)"/>
+    <rect x="270" y="580" width="116" height="15" rx="3" fill="#0d1117"/>
+    <text x="328" y="591" fill="#8b949e" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">PUBLIC INQUIRIES</text>
+
+    <!-- System to Firebase Auth -->
+    <path d="M 760 250 H 832 Q 840 250 840 242 V 224 Q 840 216 848 216 H 920" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#arrow-link-dark)"/>
+    <rect x="780" y="236" width="108" height="15" rx="3" fill="#0d1117"/>
+    <text x="834" y="247" fill="#58a6ff" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">AUTH &amp; CLAIMS</text>
+
+    <!-- System to Firebase RTDB -->
+    <line x1="760" y1="390" x2="920" y2="390" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#arrow-link-dark)"/>
+    <rect x="786" y="376" width="104" height="15" rx="3" fill="#0d1117"/>
+    <text x="838" y="387" fill="#58a6ff" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">SYNC RTDB STATE</text>
+
+    <!-- System to n8n AI -->
+    <path d="M 760 500 H 832 Q 840 500 840 508 V 556 Q 840 564 848 564 H 920" stroke="#58a6ff" stroke-width="1.2" marker-end="url(#arrow-link-dark)"/>
+    <rect x="778" y="486" width="116" height="15" rx="3" fill="#0d1117"/>
+    <text x="836" y="497" fill="#58a6ff" class="font-mono" font-size="8.5" font-weight="500" text-anchor="middle" letter-spacing="0.06em">RAG CHAT WEBHOOK</text>
+  </g>
+
+  <!-- Left Column: 5 Actors (Personas) -->
+  <g id="actors-dark">
+    <!-- Student -->
+    <g transform="translate(60, 144)">
+      <rect width="200" height="76" rx="6" fill="#161b22" stroke="rgba(240,246,252,0.18)" stroke-width="1"/>
+      <rect x="12" y="10" width="58" height="14" rx="2" fill="transparent" stroke="#8b949e" stroke-width="0.8"/>
+      <text x="41" y="20" fill="#8b949e" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">STUDENT</text>
+      <text x="12" y="42" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">นักศึกษา (Student)</text>
+      <text x="12" y="60" fill="#8b949e" class="font-sans" font-size="10.5">วางแผนการเรียน · ดูผล · ปรึกษา AI</text>
+    </g>
+
+    <!-- Instructor -->
+    <g transform="translate(60, 244)">
+      <rect width="200" height="76" rx="6" fill="#161b22" stroke="rgba(240,246,252,0.18)" stroke-width="1"/>
+      <rect x="12" y="10" width="76" height="14" rx="2" fill="transparent" stroke="#8b949e" stroke-width="0.8"/>
+      <text x="50" y="20" fill="#8b949e" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">INSTRUCTOR</text>
+      <text x="12" y="42" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">อาจารย์ (Instructor)</text>
+      <text x="12" y="60" fill="#8b949e" class="font-sans" font-size="10.5">ตรวจสอบแผน · ให้คำปรึกษาหลักสูตร</text>
+    </g>
+
+    <!-- Staff -->
+    <g transform="translate(60, 348)">
+      <rect width="200" height="76" rx="6" fill="#161b22" stroke="rgba(240,246,252,0.18)" stroke-width="1"/>
+      <rect x="12" y="10" width="46" height="14" rx="2" fill="transparent" stroke="#8b949e" stroke-width="0.8"/>
+      <text x="35" y="20" fill="#8b949e" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">STAFF</text>
+      <text x="12" y="42" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">เจ้าหน้าที่ (Staff)</text>
+      <text x="12" y="60" fill="#8b949e" class="font-sans" font-size="10.5">จัดการหลักสูตร 5 สาขา 13 เล่ม</text>
+    </g>
+
+    <!-- Admin -->
+    <g transform="translate(60, 452)">
+      <rect width="200" height="76" rx="6" fill="#161b22" stroke="rgba(240,246,252,0.18)" stroke-width="1"/>
+      <rect x="12" y="10" width="46" height="14" rx="2" fill="transparent" stroke="#8b949e" stroke-width="0.8"/>
+      <text x="35" y="20" fill="#8b949e" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">ADMIN</text>
+      <text x="12" y="42" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">ผู้ดูแลระบบ (Admin)</text>
+      <text x="12" y="60" fill="#8b949e" class="font-sans" font-size="10.5">จัดการผู้ใช้ กำหนดบทบาทสิทธิ์</text>
+    </g>
+
+    <!-- Guest -->
+    <g transform="translate(60, 556)">
+      <rect width="200" height="76" rx="6" fill="#161b22" stroke="rgba(240,246,252,0.18)" stroke-width="1"/>
+      <rect x="12" y="10" width="46" height="14" rx="2" fill="transparent" stroke="#8b949e" stroke-width="0.8"/>
+      <text x="35" y="20" fill="#8b949e" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">GUEST</text>
+      <text x="12" y="42" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">ผู้เยี่ยมชม (Guest)</text>
+      <text x="12" y="60" fill="#8b949e" class="font-sans" font-size="10.5">สอบถามข้อมูลหลักสูตรสาธารณะ</text>
+    </g>
+  </g>
+
+  <!-- Center Focal Node: Primary System -->
+  <g id="system-boundary-dark" transform="translate(440, 160)">
+    <!-- Opaque mask -->
+    <rect width="320" height="460" rx="8" fill="#0d1117"/>
+    <!-- Box with Accent Coral Focus -->
+    <rect width="320" height="460" rx="8" fill="rgba(255, 123, 114, 0.08)" stroke="#ff7b72" stroke-width="1.8"/>
+    
+    <!-- Tag -->
+    <rect x="20" y="18" width="138" height="16" rx="2" fill="#ff7b72" fill-opacity="0.15" stroke="#ff7b72" stroke-width="0.8"/>
+    <text x="89" y="30" fill="#ff7b72" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="0.1em">CENTRAL SYSTEM BOUNDARY</text>
+
+    <!-- Title -->
+    <text x="20" y="68" fill="#e6edf3" class="font-sans" font-size="15" font-weight="700">ระบบแนะนำหลักสูตร</text>
+    <text x="20" y="88" fill="#e6edf3" class="font-sans" font-size="15" font-weight="700">ภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot</text>
+    <text x="20" y="112" fill="#8b949e" class="font-mono" font-size="10">React 18 · TypeScript · Vite SPA</text>
+
+    <!-- Separator -->
+    <line x1="20" y1="130" x2="300" y2="130" stroke="rgba(255, 123, 114, 0.3)" stroke-width="1"/>
+
+    <!-- Functional Modules -->
+    <g transform="translate(20, 150)">
+      <rect width="280" height="60" rx="4" fill="#161b22" stroke="rgba(240,246,252,0.12)" stroke-width="1"/>
+      <text x="14" y="24" fill="#e6edf3" class="font-sans" font-size="11.5" font-weight="600">โมดูลแผนการเรียน (Study Plan)</text>
+      <text x="14" y="44" fill="#8b949e" class="font-sans" font-size="9.5">แผนของฉัน, ตรวจสอบเงื่อนไข Prerequisite, GPA</text>
+    </g>
+
+    <g transform="translate(20, 222)">
+      <rect width="280" height="60" rx="4" fill="#161b22" stroke="rgba(240,246,252,0.12)" stroke-width="1"/>
+      <text x="14" y="24" fill="#e6edf3" class="font-sans" font-size="11.5" font-weight="600">โมดูลโครงสร้างหลักสูตร (Curriculum)</text>
+      <text x="14" y="44" fill="#8b949e" class="font-sans" font-size="9.5">แคตตาล็อกหลักสูตร 5 สาขาวิชา 13 ชุดหลักสูตร</text>
+    </g>
+
+    <g transform="translate(20, 294)">
+      <rect width="280" height="60" rx="4" fill="#161b22" stroke="rgba(240,246,252,0.12)" stroke-width="1"/>
+      <text x="14" y="24" fill="#e6edf3" class="font-sans" font-size="11.5" font-weight="600">โมดูลแชทบอทแนะนำ (Chatbot Advising)</text>
+      <text x="14" y="44" fill="#8b949e" class="font-sans" font-size="9.5">Floating UI, Context Routing, บันทึก Feedback 3 ระดับ</text>
+    </g>
+
+    <g transform="translate(20, 366)">
+      <rect width="280" height="68" rx="4" fill="#161b22" stroke="rgba(240,246,252,0.12)" stroke-width="1"/>
+      <text x="14" y="22" fill="#e6edf3" class="font-sans" font-size="11.5" font-weight="600">โมดูลความปลอดภัย &amp; สิทธิ์ (RBAC &amp; Auth)</text>
+      <text x="14" y="42" fill="#8b949e" class="font-sans" font-size="9.5">ควบคุม 5 สิทธิ์, แยกข้อมูลนักศึกษาและผู้ดูแล</text>
+      <text x="14" y="58" fill="#8b949e" class="font-mono" font-size="8.5">NonStudentRoleIsolation Enforcement</text>
+    </g>
+  </g>
+
+  <!-- Right Column: 3 External Systems -->
+  <g id="external-systems-dark">
+    <!-- Firebase Auth -->
+    <g transform="translate(920, 160)">
+      <rect width="220" height="112" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1" stroke-dasharray="5,4"/>
+      <rect x="12" y="10" width="105" height="14" rx="2" fill="transparent" stroke="#58a6ff" stroke-width="0.8"/>
+      <text x="64" y="20" fill="#58a6ff" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">IDENTITY &amp; AUTH</text>
+      <text x="12" y="44" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">Firebase Authentication</text>
+      <text x="12" y="64" fill="#8b949e" class="font-sans" font-size="10.5">บริการยืนยันตัวตนผู้ใช้</text>
+      <text x="12" y="82" fill="#8b949e" class="font-sans" font-size="10">ออก JWT &amp; Custom Claims กำหนดสิทธิ์</text>
+      <text x="12" y="98" fill="#7d8590" class="font-mono" font-size="9">auth.currentUser · RBAC</text>
+    </g>
+
+    <!-- Firebase Realtime Database -->
+    <g transform="translate(920, 334)">
+      <rect width="220" height="112" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1" stroke-dasharray="5,4"/>
+      <rect x="12" y="10" width="112" height="14" rx="2" fill="transparent" stroke="#58a6ff" stroke-width="0.8"/>
+      <text x="68" y="20" fill="#58a6ff" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">CLOUD NO-SQL RTDB</text>
+      <text x="12" y="44" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">Firebase Realtime DB</text>
+      <text x="12" y="64" fill="#8b949e" class="font-sans" font-size="10.5">จัดเก็บข้อมูล runtime ของระบบ</text>
+      <text x="12" y="82" fill="#8b949e" class="font-sans" font-size="10">users, curriculum, courses, feedback</text>
+      <text x="12" y="98" fill="#7d8590" class="font-mono" font-size="9">Realtime Sync · Hybrid Precedence</text>
+    </g>
+
+    <!-- n8n AI Orchestration -->
+    <g transform="translate(920, 508)">
+      <rect width="220" height="112" rx="6" fill="#161b22" stroke="#58a6ff" stroke-width="1" stroke-dasharray="5,4"/>
+      <rect x="12" y="10" width="118" height="14" rx="2" fill="transparent" stroke="#58a6ff" stroke-width="0.8"/>
+      <text x="71" y="20" fill="#58a6ff" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">AI &amp; RAG PIPELINE</text>
+      <text x="12" y="44" fill="#e6edf3" class="font-sans" font-size="13" font-weight="600">n8n AI Orchestration</text>
+      <text x="12" y="64" fill="#8b949e" class="font-sans" font-size="10.5">ระบบเชื่อมต่อ AI อัตโนมัติ</text>
+      <text x="12" y="82" fill="#8b949e" class="font-sans" font-size="10">ค้นหาหลักสูตร (RAG) + Google Gemini</text>
+      <text x="12" y="98" fill="#7d8590" class="font-mono" font-size="9">POST Webhook · DirectAdvising</text>
+    </g>
+  </g>
+
+  <!-- Bottom Legend Strip (Horizontal, cleanly separated per taste gate) -->
+  <g id="legend-dark" transform="translate(50, 680)">
+    <line x1="0" y1="0" x2="1100" y2="0" stroke="rgba(240,246,252,0.15)" stroke-width="1"/>
+    <text x="0" y="22" fill="#8b949e" class="font-mono" font-size="8.5" font-weight="600" letter-spacing="0.14em">LEGEND</text>
+
+    <!-- Legend Item 1: Focal System -->
+    <g transform="translate(90, 10)">
+      <rect x="0" y="2" width="22" height="12" rx="3" fill="rgba(255, 123, 114, 0.15)" stroke="#ff7b72" stroke-width="1.5"/>
+      <text x="30" y="12" fill="#e6edf3" class="font-sans" font-size="11" font-weight="500">ระบบเป้าหมายหลัก (Target System Boundary)</text>
+    </g>
+
+    <!-- Legend Item 2: Persona -->
+    <g transform="translate(390, 10)">
+      <rect x="0" y="2" width="22" height="12" rx="3" fill="#161b22" stroke="rgba(240,246,252,0.25)" stroke-width="1"/>
+      <text x="30" y="12" fill="#e6edf3" class="font-sans" font-size="11" font-weight="500">บทบาทผู้ใช้งาน (User Persona / Stakeholder)</text>
+    </g>
+
+    <!-- Legend Item 3: External System -->
+    <g transform="translate(690, 10)">
+      <rect x="0" y="2" width="22" height="12" rx="3" fill="#161b22" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="30" y="12" fill="#e6edf3" class="font-sans" font-size="11" font-weight="500">ระบบภายนอก (External Cloud / AI Service)</text>
+    </g>
+
+    <!-- Legend Item 4: Data Flow -->
+    <g transform="translate(980, 10)">
+      <line x1="0" y1="8" x2="24" y2="8" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow-muted-dark)"/>
+      <text x="32" y="12" fill="#e6edf3" class="font-sans" font-size="11" font-weight="500">ทิศทางข้อมูล</text>
+    </g>
+  </g>
+</svg>
