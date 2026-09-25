@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · แผนภาพบริบท (Context Diagram)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --rule: #e2e8f0;
+      --accent: #eb6c36;
+      --link: #0284c7;
+    }
+    body.dark {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --rule: #334155;
+      --accent: #ff7b72;
+      --link: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 2.5rem 2rem;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .wrapper {
+      max-width: 1280px;
+      width: 100%;
+    }
+    header {
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 1.5rem;
+    }
+    .eyebrow {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--link);
+      letter-spacing: 0.12em;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: 'Geist', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      margin-bottom: 0.4rem;
+    }
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 0.5rem 0.85rem;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+    }
+    .diagram-container {
+      background: var(--card-bg);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    .diagram-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 0.95fr;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    @media (max-width: 900px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 1.25rem;
+    }
+    .card-eyebrow {
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-coral { background: var(--accent); }
+    .dot-blue { background: var(--link); }
+    .dot-muted { background: var(--muted); }
+    .card-list {
+      list-style: none;
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .card-list li {
+      margin-bottom: 0.4rem;
+      padding-left: 1.1rem;
+      position: relative;
+    }
+    .card-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    footer {
+      border-top: 1px solid var(--rule);
+      padding-top: 1.5rem;
+      font-family: 'Geist Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div>
+        <p class="eyebrow">Data Flow Diagram · Level 0</p>
+        <h1>ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · แผนภาพบริบท (Context Diagram)</h1>
+        <p class="subtitle">DFD Level 0: แผนภาพแสดงกระบวนการรวมศูนย์ 0.0 ความสัมพันธ์และการไหลของข้อมูลกับเอนทิตีภายนอก 7 ส่วน</p>
+      </div>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">Dark Mode</span>
+      </button>
+    </header>
+
+    <main>
+      <div class="diagram-container">
+        <img id="diagramImage" src="context-diagram-light.svg" alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · แผนภาพบริบท (Context Diagram)">
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <p class="card-eyebrow">Central Process 0.0</p>
+          <div class="card-title">
+            <span class="dot dot-coral"></span>
+            <h3>กระบวนการหลักระดับ 0</h3>
+          </div>
+          <ul class="card-list">
+            <li><strong>ขอบเขตของระบบ</strong>: รวบรวมทุกฟังก์ชันงานและฐานข้อมูลไว้ภายใน Process 0.0 ก่อนจำแนกออกเป็น P1-P5 และ D1-D5 ใน DFD Level 1</li>
+            <li><strong>การประมวลผลคำปรึกษา</strong>: รับคำถามจากผู้ใช้ ส่งต่อให้ AI Engine (RAG) และส่งมอบคำตอบที่อิงตามหลักสูตรอย่างแม่นยำ</li>
+            <li><strong>การจัดการแผนการเรียน</strong>: ตรวจสอบวิชาบังคับก่อน (Prerequisites) และคำนวณหน่วยกิต/GPA สะสม</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <p class="card-eyebrow">External Entities (7 ส่วน)</p>
+          <div class="card-title">
+            <span class="dot dot-blue"></span>
+            <h3>เอนทิตีภายนอกระบบ</h3>
+          </div>
+          <ul class="card-list">
+            <li><strong>นักศึกษา (Student)</strong>: ส่งข้อมูลแผนการเรียน ผลการเรียน และคำถามแชท / รับคำแนะนำและผลการตรวจสอบ</li>
+            <li><strong>อาจารย์ (Instructor)</strong>: รับรายงานแผนการเรียนของนักศึกษา / ส่งผลการตรวจสอบและคำแนะนำ</li>
+            <li><strong>เจ้าหน้าที่ (Staff)</strong>: ส่งข้อมูลหลักสูตร 5 สาขา 13 ฉบับ / รับสถานะการบันทึก</li>
+            <li><strong>ผู้ดูแลระบบ (Admin)</strong>: กำหนดสิทธิ์ผู้ใช้ (RBAC) / รับบันทึกประวัติระบบ (Audit Logs)</li>
+            <li><strong>ผู้เยี่ยมชม (Guest)</strong>: ส่งคำถามทั่วไป / รับข้อมูลหลักสูตรสาธารณะ</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <p class="card-eyebrow">External Systems &amp; DFD Alignment</p>
+          <div class="card-title">
+            <span class="dot dot-muted"></span>
+            <h3>การเชื่อมโยงระบบภายนอก</h3>
+          </div>
+          <ul class="card-list">
+            <li><strong>Firebase Authentication</strong>: ส่งข้อมูลคำขอยืนยันตัวตน / รับ ID Token และสิทธิ์ Custom Claims</li>
+            <li><strong>n8n AI Orchestration</strong>: ส่ง Webhook Prompt และ Context หลักสูตร / รับคำตอบคำปรึกษาที่ผ่านการประมวลผลจาก Gemini</li>
+            <li><strong>สอดรับ 100% กับ DFD Level 1</strong>: ทุกกระแสข้อมูลเข้า-ออกตรงกับ Process P1-P5 ในแผนภาพระดับ 1</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div>ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · KMUTNB</div>
+      <div>Designed with diagram-design architectural standards</div>
+    </footer>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const body = document.body;
+      const isDark = body.classList.toggle('dark');
+      const img = document.getElementById('diagramImage');
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+
+      if (isDark) {
+        img.src = 'context-diagram-dark.svg';
+        icon.textContent = '☀️';
+        text.textContent = 'Light Mode';
+        localStorage.setItem('theme_ctx', 'dark');
+      } else {
+        img.src = 'context-diagram-light.svg';
+        icon.textContent = '🌙';
+        text.textContent = 'Dark Mode';
+        localStorage.setItem('theme_ctx', 'light');
+      }
+    }
+
+    // Auto load saved preference or match system
+    (function initTheme() {
+      const saved = localStorage.getItem('theme_ctx');
+      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+        document.getElementById('diagramImage').src = 'context-diagram-dark.svg';
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeText').textContent = 'Light Mode';
+      }
+    })();
+  </script>
+</body>
+</html>

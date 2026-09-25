@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 820" width="100%" height="100%" role="img" aria-labelledby="ctx-dark-title ctx-dark-desc">
+  <title id="ctx-dark-title">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · แผนภาพบริบท (Context Diagram)</title>
+  <desc id="ctx-dark-desc">แผนภาพบริบทระดับ 0 (DFD Level 0) แสดงกระบวนการหลัก 0.0 และการไหลของข้อมูลระหว่างเอนทิตีภายนอก 7 ส่วน</desc>
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap');
+      .font-sans { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .font-mono { font-family: 'Geist Mono', monospace; }
+      .title-dark { font-size: 20px; font-weight: 700; fill: #f1f5f9; }
+      .subtitle-dark { font-size: 13px; fill: #94a3b8; }
+      .entity-title-dark { font-size: 13px; font-weight: 600; fill: #f1f5f9; }
+      .entity-sub-dark { font-size: 10.5px; fill: #94a3b8; }
+      .badge-text-dark { font-size: 9px; font-weight: 600; text-transform: uppercase; }
+    </style>
+    <marker id="arrow-cyan" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrow-slate-dark" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrow-coral-dark" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M 0 0.5 L 6 3.5 L 0 6.5 z" fill="#ff7b72"/>
+    </marker>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="100%" height="100%" fill="#0f172a" rx="12"/>
+  <rect width="100%" height="100%" fill="none" stroke="#334155" stroke-width="1" rx="12"/>
+
+  <!-- Header -->
+  <g transform="translate(48, 36)">
+    <rect x="0" y="0" width="115" height="22" rx="4" fill="rgba(56, 189, 248, 0.15)"/>
+    <text x="57" y="15" text-anchor="middle" class="font-mono badge-text-dark" fill="#38bdf8">DFD LEVEL 0</text>
+    <text x="125" y="18" class="font-sans title-dark">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · แผนภาพบริบท (Context Diagram)</text>
+    <text x="0" y="42" class="font-sans subtitle-dark">แผนภาพบริบทระดับ 0: กระบวนการหลัก 0.0 ความสัมพันธ์และการไหลของข้อมูลกับเอนทิตีภายนอก 7 ส่วน</text>
+  </g>
+
+  <!-- Data Flow Lines (Drawn behind nodes) -->
+  <g fill="none" stroke-width="1.2">
+    <!-- Student <-> Process 0.0 -->
+    <path d="M 250 160 H 420 Q 430 160 430 170 V 350 Q 430 360 440 360 H 510" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="260" y="146" width="160" height="15" rx="3" fill="#0f172a"/>
+    <text x="340" y="157" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">ข้อมูลลงทะเบียน, ผลการเรียน, คำถามแชท</text>
+
+    <path d="M 510 380 H 450 Q 440 380 440 370 V 200 Q 440 190 430 190 H 250" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="260" y="196" width="165" height="15" rx="3" fill="#0f172a"/>
+    <text x="342" y="207" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">คำตอบแชท, เงื่อนไขวิชา, สรุปหน่วยกิต/GPA</text>
+
+    <!-- Instructor <-> Process 0.0 -->
+    <path d="M 250 345 H 510" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="280" y="331" width="150" height="15" rx="3" fill="#0f172a"/>
+    <text x="355" y="342" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">ผลการตรวจสอบแผน, คำแนะนำการศึกษา</text>
+
+    <path d="M 510 365 H 250" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="290" y="371" width="135" height="15" rx="3" fill="#0f172a"/>
+    <text x="357" y="382" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">รายงานแผนการเรียนของนักศึกษา</text>
+
+    <!-- Staff <-> Process 0.0 -->
+    <path d="M 250 515 H 390 Q 400 515 400 505 V 450 Q 400 440 410 440 H 510" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="265" y="501" width="168" height="15" rx="3" fill="#0f172a"/>
+    <text x="349" y="512" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">ข้อมูลหลักสูตร 5 สาขา 13 ฉบับ, รายวิชา</text>
+
+    <path d="M 510 460 H 420 Q 410 460 410 470 V 545 Q 410 555 400 555 H 250" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="270" y="561" width="138" height="15" rx="3" fill="#0f172a"/>
+    <text x="339" y="572" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">สถานะบันทึกและแก้ไขข้อมูลหลักสูตร</text>
+
+    <!-- Admin <-> Process 0.0 -->
+    <path d="M 250 675 H 480 Q 490 675 490 665 V 500 Q 490 490 500 490 H 510" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="260" y="661" width="162" height="15" rx="3" fill="#0f172a"/>
+    <text x="341" y="672" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">กำหนดสิทธิ์ผู้ใช้ (RBAC), ตั้งค่าระบบ</text>
+
+    <path d="M 510 510 H 500 Q 490 510 490 520 V 705 Q 490 715 480 715 H 250" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="275" y="721" width="145" height="15" rx="3" fill="#0f172a"/>
+    <text x="347" y="732" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">รายงานบันทึกประวัติระบบ (Audit Logs)</text>
+
+    <!-- Guest <-> Process 0.0 -->
+    <path d="M 450 180 V 270 Q 450 280 460 280 H 540 Q 550 280 550 290 V 300" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="380" y="215" width="85" height="15" rx="3" fill="#0f172a"/>
+    <text x="422" y="226" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">คำถามหลักสูตร</text>
+
+    <path d="M 570 300 V 290 Q 570 280 580 280 H 470 Q 460 280 460 270 V 180" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="475" y="235" width="112" height="15" rx="3" fill="#0f172a"/>
+    <text x="531" y="246" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">ข้อมูลหลักสูตรสาธารณะ</text>
+
+    <!-- Process 0.0 <-> Firebase Auth -->
+    <path d="M 720 300 V 260 Q 720 250 730 250 H 830 Q 840 250 840 240 V 180" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="735" y="225" width="118" height="15" rx="3" fill="#0f172a"/>
+    <text x="794" y="236" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">คำขอยืนยันตัวตนผู้ใช้งาน</text>
+
+    <path d="M 860 180 V 260 Q 860 270 850 270 H 750 Q 740 270 740 280 V 300" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="850" y="245" width="138" height="15" rx="3" fill="#0f172a"/>
+    <text x="919" y="256" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">ID Token &amp; สิทธิ์ Custom Claims</text>
+
+    <!-- Process 0.0 <-> n8n AI -->
+    <path d="M 770 410 H 980" stroke="#38bdf8" marker-end="url(#arrow-cyan)"/>
+    <rect x="795" y="396" width="160" height="15" rx="3" fill="#0f172a"/>
+    <text x="875" y="407" fill="#38bdf8" class="font-sans" font-size="8.5" text-anchor="middle">Webhook Prompt, Context หลักสูตร</text>
+
+    <path d="M 980 435 H 770" stroke="#94a3b8" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+    <rect x="800" y="441" width="150" height="15" rx="3" fill="#0f172a"/>
+    <text x="875" y="452" fill="#94a3b8" class="font-sans" font-size="8.5" text-anchor="middle">คำตอบแนะนำหลักสูตร (RAG Gemini)</text>
+  </g>
+
+  <!-- Central Process 0.0 (Core System Process) -->
+  <g transform="translate(510, 300)">
+    <!-- Opaque background -->
+    <rect width="260" height="230" rx="32" fill="#1e293b" stroke="#ff7b72" stroke-width="2"/>
+    <rect width="260" height="230" rx="32" fill="#ff7b72" fill-opacity="0.08"/>
+    
+    <!-- Top Process ID Badge -->
+    <rect x="100" y="16" width="60" height="20" rx="4" fill="#ff7b72"/>
+    <text x="130" y="30" fill="#0f172a" class="font-mono" font-size="11" font-weight="700" text-anchor="middle">0.0</text>
+    
+    <!-- Process Label -->
+    <text x="130" y="68" fill="#f1f5f9" class="font-sans" font-size="14.5" font-weight="700" text-anchor="middle">ระบบแนะนำหลักสูตร</text>
+    <text x="130" y="88" fill="#f1f5f9" class="font-sans" font-size="14.5" font-weight="700" text-anchor="middle">ภาควิชาเทคโนโลยีสารสนเทศ</text>
+    <text x="130" y="108" fill="#ff7b72" class="font-sans" font-size="14.5" font-weight="700" text-anchor="middle">ด้วย Chatbot</text>
+    
+    <!-- Dividing line -->
+    <line x1="30" y1="126" x2="230" y2="126" stroke="rgba(255, 123, 114, 0.3)" stroke-width="1"/>
+    
+    <!-- System Capabilities Overview -->
+    <text x="130" y="148" fill="#94a3b8" class="font-sans" font-size="10.5" text-anchor="middle">แชทบอทแนะนำวิชาเรียน &amp; เงื่อนไข</text>
+    <text x="130" y="168" fill="#94a3b8" class="font-sans" font-size="10.5" text-anchor="middle">แผนการเรียน 4 ปี (Personal Study Plan)</text>
+    <text x="130" y="188" fill="#94a3b8" class="font-sans" font-size="10.5" text-anchor="middle">จัดการหลักสูตร 5 สาขา 13 ชุด</text>
+    <text x="130" y="208" fill="#38bdf8" class="font-mono" font-size="9" text-anchor="middle">React 18 · Firebase · n8n</text>
+  </g>
+
+  <!-- External Entities (Rectangular nodes with thick borders per DFD standard) -->
+  <g id="entities-dark">
+    <!-- Entity 1: นักศึกษา -->
+    <g transform="translate(70, 130)">
+      <rect width="180" height="90" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.6"/>
+      <rect x="12" y="10" width="58" height="15" rx="2" fill="rgba(56, 189, 248, 0.15)"/>
+      <text x="41" y="21" fill="#38bdf8" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">STUDENT</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">นักศึกษา (Student)</text>
+      <text x="12" y="62" class="font-sans entity-sub-dark">ผู้ใช้งานวางแผนการเรียน</text>
+      <text x="12" y="78" class="font-sans entity-sub-dark">และขอคำปรึกษาวิชาเรียน</text>
+    </g>
+
+    <!-- Entity 2: อาจารย์ -->
+    <g transform="translate(70, 320)">
+      <rect width="180" height="80" rx="4" fill="#1e293b" stroke="#2dd4bf" stroke-width="1.6"/>
+      <rect x="12" y="10" width="76" height="15" rx="2" fill="rgba(45, 212, 191, 0.15)"/>
+      <text x="50" y="21" fill="#2dd4bf" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">INSTRUCTOR</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">อาจารย์ (Instructor)</text>
+      <text x="12" y="64" class="font-sans entity-sub-dark">อาจารย์ที่ปรึกษา ตรวจสอบแผน</text>
+    </g>
+
+    <!-- Entity 3: เจ้าหน้าที่ -->
+    <g transform="translate(70, 490)">
+      <rect width="180" height="80" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="1.6"/>
+      <rect x="12" y="10" width="46" height="15" rx="2" fill="rgba(251, 191, 36, 0.15)"/>
+      <text x="35" y="21" fill="#fbbf24" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">STAFF</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">เจ้าหน้าที่ (Staff)</text>
+      <text x="12" y="64" class="font-sans entity-sub-dark">ผู้จัดการข้อมูลหลักสูตรและรายวิชา</text>
+    </g>
+
+    <!-- Entity 4: ผู้ดูแลระบบ -->
+    <g transform="translate(70, 650)">
+      <rect width="180" height="80" rx="4" fill="#1e293b" stroke="#c084fc" stroke-width="1.6"/>
+      <rect x="12" y="10" width="46" height="15" rx="2" fill="rgba(192, 132, 252, 0.15)"/>
+      <text x="35" y="21" fill="#c084fc" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">ADMIN</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">ผู้ดูแลระบบ (Admin)</text>
+      <text x="12" y="64" class="font-sans entity-sub-dark">กำหนดสิทธิ์และติดตามการใช้งาน</text>
+    </g>
+
+    <!-- Entity 5: ผู้เยี่ยมชม -->
+    <g transform="translate(360, 110)">
+      <rect width="180" height="70" rx="4" fill="#1e293b" stroke="#94a3b8" stroke-width="1.6"/>
+      <rect x="12" y="10" width="46" height="15" rx="2" fill="rgba(148, 163, 184, 0.15)"/>
+      <text x="35" y="21" fill="#94a3b8" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">GUEST</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">ผู้เยี่ยมชม (Guest)</text>
+      <text x="12" y="60" class="font-sans entity-sub-dark">สอบถามหลักสูตรสาธารณะ</text>
+    </g>
+
+    <!-- Entity 6: Firebase Authentication -->
+    <g transform="translate(760, 110)">
+      <rect width="210" height="70" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.6"/>
+      <rect x="12" y="10" width="95" height="15" rx="2" fill="rgba(56, 189, 248, 0.15)"/>
+      <text x="59" y="21" fill="#38bdf8" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">EXTERNAL AUTH</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">Firebase Authentication</text>
+      <text x="12" y="60" class="font-sans entity-sub-dark">ระบบยืนยันตัวตน &amp; สิทธิ์ RBAC</text>
+    </g>
+
+    <!-- Entity 7: n8n AI Orchestration -->
+    <g transform="translate(980, 370)">
+      <rect width="220" height="85" rx="4" fill="#1e293b" stroke="#fb923c" stroke-width="1.6"/>
+      <rect x="12" y="10" width="85" height="15" rx="2" fill="rgba(251, 146, 60, 0.15)"/>
+      <text x="54" y="21" fill="#fb923c" class="font-mono" font-size="7.5" font-weight="600" text-anchor="middle">EXTERNAL AI</text>
+      <text x="12" y="44" class="font-sans entity-title-dark">n8n AI Orchestration</text>
+      <text x="12" y="62" class="font-sans entity-sub-dark">ค้นหาหลักสูตร (RAG Pinecone)</text>
+      <text x="12" y="76" class="font-sans entity-sub-dark">และประมวลผลคำตอบ (Gemini)</text>
+    </g>
+  </g>
+
+  <!-- Legend Strip at bottom -->
+  <g transform="translate(48, 770)">
+    <line x1="0" y1="0" x2="1180" y2="0" stroke="#334155" stroke-width="1"/>
+    <text x="0" y="20" fill="#94a3b8" class="font-mono" font-size="8.5" font-weight="600" letter-spacing="0.12em">LEGEND</text>
+    
+    <g transform="translate(80, 10)">
+      <circle cx="10" cy="8" r="8" fill="rgba(255,123,114,0.15)" stroke="#ff7b72" stroke-width="1.5"/>
+      <text x="26" y="12" fill="#94a3b8" class="font-sans" font-size="11" font-weight="500">กระบวนการหลัก 0.0 (Central System Process)</text>
+    </g>
+
+    <g transform="translate(380, 10)">
+      <rect x="0" y="2" width="20" height="12" rx="2" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="28" y="12" fill="#94a3b8" class="font-sans" font-size="11" font-weight="500">เอนทิตีภายนอก (External Entity)</text>
+    </g>
+
+    <g transform="translate(640, 10)">
+      <line x1="0" y1="8" x2="24" y2="8" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+      <text x="32" y="12" fill="#94a3b8" class="font-sans" font-size="11" font-weight="500">ข้อมูลนำเข้า (Input Data Flow)</text>
+    </g>
+
+    <g transform="translate(890, 10)">
+      <line x1="0" y1="8" x2="24" y2="8" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-slate-dark)"/>
+      <text x="32" y="12" fill="#94a3b8" class="font-sans" font-size="11" font-weight="500">ข้อมูลส่งออก (Output Data Flow)</text>
+    </g>
+  </g>
+</svg>
