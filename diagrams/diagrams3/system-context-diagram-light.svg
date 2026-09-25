@@ -198,7 +198,7 @@
       <text x="71" y="20" fill="#2e5aa8" class="font-mono" font-size="7" font-weight="600" text-anchor="middle" letter-spacing="0.08em">AI &amp; RAG PIPELINE</text>
       <text x="12" y="44" fill="#2d3142" class="font-sans" font-size="13" font-weight="600">n8n AI Orchestration</text>
       <text x="12" y="64" fill="#4f5d75" class="font-sans" font-size="10.5">ระบบเชื่อมต่อ AI อัตโนมัติ</text>
-      <text x="12" y="82" fill="#4f5d75" class="font-sans" font-size="10">ค้นหาหลักสูตร (RAG) + Google Gemini</text>
+      <text x="12" y="82" fill="#4f5d75" class="font-sans" font-size="10">ค้นหาหลักสูตร (RAG) + GPT-5 nano</text>
       <text x="12" y="98" fill="#7a8399" class="font-mono" font-size="9">POST Webhook · DirectAdvising</text>
     </g>
   </g>

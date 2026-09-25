@@ -54,7 +54,7 @@
 | ไดอะแกรม (Diagram) | มุมมองสถาปัตยกรรม | ภาพเวกเตอร์ (SVG) | ภาพความละเอียดสูง (PNG) | พรีวิวสลับธีม (HTML) |
 | --- | --- | --- | --- | --- |
 | **System Context Diagram** | บริบทระบบภาพรวมและสถาปัตยกรรมคลาวด์/AI | [Light](diagrams/diagrams3/system-context-diagram-light.svg) · [Dark](diagrams/diagrams3/system-context-diagram-dark.svg) | [Light](diagrams/diagrams3/system-context-diagram-light.png) · [Dark](diagrams/diagrams3/system-context-diagram-dark.png) | [system-context-diagram.html](diagrams/diagrams3/system-context-diagram.html) |
-| **Context Diagram (DFD L0)** | แผนภาพบริบทกระบวนการ 0.0 และการไหลของข้อมูล | [Light](diagrams/diagrams3/context-diagram-light.svg) · [Dark](diagrams/diagrams3/context-diagram-dark.svg) | [Light](diagrams/diagrams3/context-diagram-light.png) · [Dark](diagrams/diagrams3/context-diagram-dark.png) | [context-diagram.html](diagrams/diagrams3/context-diagram.html) |
+| **Context Diagram (DFD L0)** | ภาพรวมกระบวนการ 0.0 และการไหลของข้อมูล | [Light](diagrams/diagrams3/context-diagram-light.svg) · [Dark](diagrams/diagrams3/context-diagram-dark.svg) | [Light](diagrams/diagrams3/context-diagram-light.png) · [Dark](diagrams/diagrams3/context-diagram-dark.png) | [context-diagram.html](diagrams/diagrams3/context-diagram.html) |
 | **Component Diagram** | สถาปัตยกรรมเชิงชั้น 4 เลเยอร์ | [Light](diagrams/diagrams3/component-diagram-light.svg) · [Dark](diagrams/diagrams3/component-diagram-dark.svg) | [Light](diagrams/diagrams3/component-diagram-light.png) · [Dark](diagrams/diagrams3/component-diagram-dark.png) | [component-diagram.html](diagrams/diagrams3/component-diagram.html) |
 | **Data Flow Diagram (DFD L1)** | การไหลของข้อมูลระดับ 1 (Processes & RTDB) | [Light](diagrams/diagrams3/data-flow-diagram-light.svg) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.svg) | [Light](diagrams/diagrams3/data-flow-diagram-light.png) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.png) | [data-flow-diagram.html](diagrams/diagrams3/data-flow-diagram.html) |
 | **Sequence Diagram** | ลำดับการทำงานของนักศึกษา (Session Lifecycle) | [Light](diagrams/diagrams3/sequence-diagram-light.svg) · [Dark](diagrams/diagrams3/sequence-diagram-dark.svg) | [Light](diagrams/diagrams3/sequence-diagram-light.png) · [Dark](diagrams/diagrams3/sequence-diagram-dark.png) | [sequence-diagram.html](diagrams/diagrams3/sequence-diagram.html) |
@@ -71,12 +71,12 @@
 
 <br />
 
-### 2. แผนภาพบริบท · Context Diagram (DFD Level 0)
+### 2. Context Diagram (DFD Level 0)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/context-diagram-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/context-diagram-light.svg">
-  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · แผนภาพบริบท (Context Diagram)" src="diagrams/diagrams3/context-diagram-light.svg" width="100%">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Context Diagram" src="diagrams/diagrams3/context-diagram-light.svg" width="100%">
 </picture>
 
 <br />
