@@ -50,9 +50,12 @@ export const generateCoursesForSemester = (
 ) => {
   const semesterKey = `${year}-${semester}`;
   const programData = courseDatabase?.[programCode];
+  const coopAlias = curriculumYear?.includes('COOP')
+    ? `${curriculumYear.replace('-COOP', '')} สหกิจ`
+    : undefined;
+  const curriculumData = programData?.[curriculumYear] || (coopAlias ? programData?.[coopAlias] : undefined);
   
-  if (programData && programData[curriculumYear]) {
-    const curriculumData = programData[curriculumYear];
+  if (curriculumData) {
     const semesterCourses = curriculumData[semesterKey];
     
     if (semesterCourses && Array.isArray(semesterCourses)) {
