@@ -167,6 +167,7 @@ export interface AcademicStandingResult {
   standingLabel: string;
   currentGPAX: number;
   consecutiveProbationCount: number;
+  consecutiveBelow2Terms: number;
   maxConsecutiveTerms: number;
   isRetired: boolean;
   isProbation: boolean;
@@ -174,6 +175,7 @@ export interface AcademicStandingResult {
   isLowProbation: boolean;
   retireReason?: string;
   allowedMaxCredits: number;
+  probationCreditRange: { min: number; max: number };
   targetGPANextTerm: TargetGPANextTerm | null;
   history: SemesterGPAHistoryItem[];
 }
@@ -345,12 +347,14 @@ export const evaluateAcademicStanding = (
       standingLabel: 'สถานะปกติ (ยังไม่มีเกรดสะสม)',
       currentGPAX: 0,
       consecutiveProbationCount: 0,
+      consecutiveBelow2Terms: 0,
       maxConsecutiveTerms: 4,
       isRetired: false,
       isProbation: false,
       isHighProbation: false,
       isLowProbation: false,
       allowedMaxCredits: 22,
+      probationCreditRange: { min: 15, max: 16 },
       targetGPANextTerm: null,
       history: []
     };
@@ -389,6 +393,7 @@ export const evaluateAcademicStanding = (
     standingLabel,
     currentGPAX: latest.cumulativeGPAX,
     consecutiveProbationCount: latest.consecutiveProbations,
+    consecutiveBelow2Terms: latest.consecutiveProbations,
     maxConsecutiveTerms: 4,
     isRetired,
     isProbation,
@@ -396,6 +401,7 @@ export const evaluateAcademicStanding = (
     isLowProbation,
     retireReason,
     allowedMaxCredits,
+    probationCreditRange: { min: 15, max: 16 },
     targetGPANextTerm,
     history
   };

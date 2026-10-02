@@ -25,21 +25,26 @@ _Avoid_: ประวัติการเรียนจริงของน�
 - **Course**: An accredited academic subject containing course code (standard or custom), course name (Thai & English), credit weight, curriculum year, semester, prerequisites, and corequisites.
 - **CoursePresentationFormat**: The standardized presentation pattern for mentioning academic courses across chatbot answers: `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` (and optional credit weight), guaranteeing students never receive raw, ambiguous alphanumeric codes in isolation.
 - **StudyPlan**: A student's registered 4-year academic roadmap detailing course progression, pass/fail status, and grade history.
+- **StudyMode**: The student enrollment track mode governing standard registration credit thresholds:
+  - `regular` (ภาคปกติ): 9–22 credits per regular semester.
+  - `special_evening` (โครงการจัดการศึกษาภาคพิเศษ/สมทบ): 6–18 credits per regular semester.
 - **AcademicStanding**: Student GPA and completed credits tracked for automated advising and credit cap validation. Categorized into four distinct standing tiers:
-  1. *Normal Standing (สถานะปกติ)*: Cumulative GPAX $\ge 2.00$, eligible for regular semester credit bounds (9–22 credits).
-  2. *High Academic Probation (ติดโปรสูง / Probation 2)*: Cumulative GPAX between $1.75$ and $1.99$. Permitted maximum 16 credits per regular semester; must raise GPAX to $\ge 2.00$ prior to degree conferral to graduate.
-  3. *Low Academic Probation (ติดโปรต่ำ / Probation 1)*: Cumulative GPAX between $1.50$ and $1.74$. Permitted maximum 16 credits per regular semester; strictly restricted to a maximum of 4 consecutive regular semesters before academic dismissal.
+  1. *Normal Standing (สถานะปกติ)*: Cumulative GPAX $\ge 2.00$, eligible for standard regular semester credit bounds (9–22 credits for regular, 6–18 credits for special/evening).
+  2. *High Academic Probation (ติดโปรสูง / Probation 2 / P2)*: Cumulative GPAX between $1.75$ and $1.99$. Registration credit range 15–16 credits (standard fallback maximum 16 credits); must raise GPAX to $\ge 2.00$ prior to degree conferral to graduate.
+  3. *Low Academic Probation (ติดโปรต่ำ / Probation 1 / P1)*: Cumulative GPAX between $1.50$ and $1.74$. Registration credit range 15–16 credits (standard fallback maximum 16 credits); strictly restricted to a maximum of 4 consecutive regular semesters before academic dismissal (does not trigger immediate dismissal in earlier terms).
   4. *Academic Retirement / Dismissal (การพ้นสภาพนักศึกษา / รีไทร์)*: Automatic termination of student status triggered by either:
-     - Cumulative GPAX $< 1.50$ at the conclusion of any graded academic semester.
+     - Cumulative GPAX $< 1.50$ at the conclusion of any graded academic semester after Year 1 Semester 2.
      - Accumulating 4 consecutive regular semesters on academic probation (GPAX $< 2.00$).
-- **ConsecutiveProbationTracker**: The chronological counter evaluating consecutive regular academic semesters (excluding Summer sessions) where cumulative GPAX falls below $2.00$. The counter resets to 0 whenever a subsequent regular semester's cumulative GPAX reaches $\ge 2.00$.
+- **ConsecutiveProbationTracker (consecutiveBelow2Terms / consecutiveProbationCount)**: The chronological counter evaluating consecutive regular academic semesters (excluding Summer sessions) where cumulative GPAX falls below $2.00$. The counter resets to 0 whenever a subsequent regular semester's cumulative GPAX reaches $\ge 2.00$.
 - **ProbationRecoveryTarget**: The mathematically calculated semester GPA target that a student on academic probation must achieve in their next registered semester (assuming standard 16 credits) to elevate their cumulative GPAX to $\ge 2.00$ and restore Normal Standing.
 - **RegistrationCreditLimit**: University credit bounds enforced per semester:
-  - *Regular Semester (เทอม 1 & 2)*: Minimum 9 credits, Maximum 22 credits (exempt for final graduating term).
-  - *Academic Probation (ติดวิทยาทัณฑ์ ทั้งโปรต่ำและโปรสูง)*: Maximum 16 credits; overload requires special exceptional approval petition.
-  - *Summer Session (ภาคฤดูร้อน)*: Maximum 6 credits.
-- **GraduationTermExemption**: Policy waiver allowing students in their expected final graduation semester to register for fewer than 9 credits.
-- **ProbationPetition**: Special approval workflow required when a student on academic probation needs to register beyond 16 credits to satisfy compulsory graduation requirements or maintain status.
+  - *Regular Semester (ภาคปกติ)*: Minimum 9 credits, Maximum 22 credits (exempt for final graduating term).
+  - *Special Evening Semester (ภาคพิเศษ/สมทบ)*: Minimum 6 credits, Maximum 18 credits.
+  - *Academic Probation (ติดวิทยาทัณฑ์ ทั้งโปรต่ำและโปรสูง)*: Credit range 15–16 credits (fallback maximum 16 credits); overload requires special exceptional approval.
+  - *Summer Session (ภาคฤดูร้อน)*: Maximum 9 credits for both regular and special evening tracks.
+- **RegistrationCreditLimitAuthorized**: Flag indicating whether a student on probation or special track has received official approval for an authorized registration overload (`creditLimitSource: 'approved'`), defaulting to `false`.
+- **GraduationTermExemption**: Policy waiver allowing students in their expected final graduation semester to register for fewer than 9 credits (or fewer than 6 credits for special evening).
+- **ProbationPetition**: Special approval workflow required when a student on academic probation needs to register beyond 15–16 credits to satisfy compulsory graduation requirements or maintain status.
 - **EnrolledCurriculum**: The specific academic degree curriculum bound to the authenticated student profile (e.g. `IT-67`, `INE-62`). For Admin or Guest users without an enrolled curriculum, this defaults to empty or general context.
 - **QueryTargetCurriculum**: The intended curriculum inferred or explicitly specified in the user's inquiry (e.g. when an Admin, Guest, or IT student asks about `INE-67`). Must take precedence over `EnrolledCurriculum` when explicitly present.
 - **CurriculumMasterCatalog**: The comprehensive department catalog containing all accredited curricula across 5 programs (`IT`, `INE`, `INET`, `ITI`, `ITT`) and 13 curriculum variants, ensuring deterministic access without lossy vector truncation.

@@ -178,9 +178,9 @@
   ประเมินสถานภาพนักศึกษาจากประวัติผลการเรียนสะสมย้อนหลังตามเส้นเวลาจริง (Time-Series Chronological Calculation) ครอบคลุม 4 ระดับตามข้อบังคับมหาวิทยาลัย:
   | สถานภาพ (Standing Tier) | เกณฑ์ GPAX สะสม | สิทธิ์และเงื่อนไขตามระเบียบมหาวิทยาลัย |
   | :--- | :---: | :--- |
-  | **🟢 สถานะปกติ (Normal Standing)** | $\ge 2.00$ | ลงทะเบียนเรียนได้ตามปกติ $9 - 22$ หน่วยกิต |
-  | **🟠 วิทยาทัณฑ์โปรสูง (High Probation)** | $1.75 - 1.99$ | ลงทะเบียนเรียนได้สูงสุดไม่เกิน **16 หน่วยกิต** และต้องสะสม GPAX รวมให้ถึง 2.00 ก่อนสำเร็จการศึกษา |
-  | **🔴 วิทยาทัณฑ์โปรต่ำ (Low Probation)** | $1.50 - 1.74$ | ลงทะเบียนเรียนได้สูงสุดไม่เกิน **16 หน่วยกิต** และติดสถานะวิทยาทัณฑ์ติดต่อกันได้**ไม่เกิน 4 ภาคการศึกษาปกติ** |
+  | **🟢 สถานะปกติ (Normal Standing)** | $\ge 2.00$ | ลงทะเบียนเรียนได้ตามปกติ $9 - 22$ หน่วยกิต (โครงการจัดการศึกษาภาคพิเศษ/สมทบ $6 - 18$ หน่วยกิต) |
+  | **🟠 วิทยาทัณฑ์โปรสูง (High Probation / P2)** | $1.75 - 1.99$ | ลงทะเบียนเรียนได้ในช่วง **15 - 16 หน่วยกิต** (เว้นแต่ได้รับอนุมัติกรณีพิเศษ) และต้องสะสม GPAX รวมให้ถึง 2.00 ก่อนสำเร็จการศึกษา |
+  | **🔴 วิทยาทัณฑ์โปรต่ำ (Low Probation / P1)** | $1.50 - 1.74$ | ลงทะเบียนเรียนได้ในช่วง **15 - 16 หน่วยกิต** (เว้นแต่ได้รับอนุมัติกรณีพิเศษ) และติดสถานะวิทยาทัณฑ์ติดต่อกันได้**ไม่เกิน 4 ภาคการศึกษาปกติ** (ไม่รีไทร์ทันทีก่อนครบเกณฑ์) |
   | **🛑 พ้นสภาพนักศึกษา (Academic Retirement)** | $< 1.50$ หรือติดโปร 4 เทอม | • **GPAX ต่ำกว่า 1.50** หลังสิ้นสุดภาค 2 ของชั้นปีที่ 1 เป็นต้นไป<br />• **ติดสถานะวิทยาทัณฑ์ติดต่อกันครบ 4 ภาคการศึกษาปกติ** (GPAX $< 2.00$) |
 - **ระบบติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง (Consecutive Probation Tracker)**:
   - นับเฉพาะภาคการศึกษาปกติ (เทอม 1 และ เทอม 2) โดยไม่นับภาคฤดูร้อน (Summer Session) เป็นรอบวิทยาทัณฑ์ (แต่เกรดในภาคฤดูร้อนจะถูกนำไปคำนวณรวมใน GPAX สะสมตามจริง)
@@ -191,11 +191,13 @@
 - **การแจ้งเตือนเชิงรุก 4 มิติ (Proactive Academic Safeguards)**:
   - **Dashboard Hero Banner**: แถบแจ้งเตือนระดับความเสี่ยงพร้อม **4-Step Stepper** แสดงจำนวนเทอมที่ติดโปร (1 $\rightarrow$ 2 $\rightarrow$ 3 $\rightarrow$ รีไทร์) และจำนวนเทอมโอกาสที่เหลือ
   - **Study Plan & Report Badges**: แสดงป้ายสถานภาพทางวิชาการและข้อความเตือนในหน้าจัดการแผนและรายงานสรุปผลการเรียน
-  - **AI Chatbot Advising Injection**: ป้อนข้อมูลสถานภาพ (`academicStanding`, `standingLabel`, `consecutiveProbationCount`, `allowedMaxCredits`, `targetGPANextTerm`) เข้าสู่สมองของ AI แชทบอท เพื่อให้คำปรึกษา แนะนำวิชา Retake ดึงเกรด และแจ้งเตือนความเสี่ยงได้อย่างแม่นยำ
-- **ขอบเขตหน่วยกิตภาคปกติและภาคฤดูร้อน**: ควบคุมการลงทะเบียนภาคปกติ $9 - 22$ หน่วยกิต, นักศึกษาติดโปรไม่เกิน 16 หน่วยกิต, ภาคฤดูร้อนไม่เกิน 6 หน่วยกิต และข้อยกเว้นภาคสุดท้ายที่คาดว่าจะสำเร็จการศึกษา (Graduation Term Exemption) ลงต่ำกว่า 9 หน่วยกิตได้
+  - **AI Chatbot Advising Injection**: ป้อนข้อมูลสถานภาพ (`academicStanding`, `standingLabel`, `consecutiveBelow2Terms`, `consecutiveProbationCount`, `probationCreditRange`, `allowedMaxCredits`, `targetGPANextTerm`) เข้าสู่สมองของ AI แชทบอท เพื่อให้คำปรึกษา แนะนำวิชา Retake ดึงเกรด และแจ้งเตือนความเสี่ยงได้อย่างแม่นยำ
+- **ขอบเขตหน่วยกิตภาคปกติและภาคฤดูร้อน**: ควบคุมการลงทะเบียนภาคปกติ $9 - 22$ หน่วยกิต (ภาคพิเศษ/สมทบ $6 - 18$ หน่วยกิต), นักศึกษาติดโปรช่วง 15–16 หน่วยกิต (เว้นแต่ได้รับอนุมัติ), ภาคฤดูร้อนไม่เกิน 9 หน่วยกิต (ทั้ง 2 รูปแบบ) และข้อยกเว้นภาคสุดท้ายที่คาดว่าจะสำเร็จการศึกษา (Graduation Term Exemption) ลงต่ำกว่าเกณฑ์ขั้นต่ำได้
 
 ### 🤖 3. แชทบอทให้คำปรึกษาหลักสูตร (Modern Academic Chat Surface)
-> `n8n Orchestration (v14)` · `Pinecone Vector RAG` · `Deterministic Identity & Status Routing` · `Non-Student Role Isolation` · `Curriculum Duration Guard` · `Sentiment Feedback` · `Native Caret Navigation`
+> `n8n Orchestration (v19.19)` · `Pinecone Vector RAG` · `Deterministic Identity & Status Routing` · `Non-Student Role Isolation` · `Curriculum Duration Guard` · `Registration Metadata Alignment` · `Sentiment Feedback` · `Native Caret Navigation`
+
+- **การจัดโครงสร้าง Metadata รองรับ n8n Workflow v19.19 (Canonical Metadata Alignment)**: ส่งออก ground-truth metadata ครอบคลุมฟิลด์มาตรฐาน `consecutiveBelow2Terms` (ควบคู่ `consecutiveProbationCount` สำหรับ backward compatibility), `probationCreditRange: { min: 15, max: 16 }`, รองรับรูปแบบการศึกษา `studyMode` และ `programType` (`regular` / `special_evening`), เพดานภาคฤดูร้อน 9 หน่วยกิต, และแฟล็กการขออนุมัติลงทะเบียนเกินเพดาน `registrationCreditLimitAuthorized` (`creditLimitSource: 'approved'`) โดยไม่ทำการ Intent Classification ด้วย Regex ในฝั่ง Frontend ปล่อยให้ n8n ประมวลผลอย่างอิสระ
 
 - **การนำทางเคอร์เซอร์ด้วยปุ่มลูกศร (Native Caret & Arrow Key Navigation)**: แก้ไขปัญหาช่องพิมพ์ของ `@n8n/chat` ดักจับคีย์บอร์ดที่ Container แม่แล้วเรียก `preventDefault()` อัตโนมัติ โดยทำการตัดการกระจายอีเวนต์ (Stop Propagation) ในระดับ Textarea ทำให้ผู้ใช้สามารถใช้งานปุ่มลูกศร (`ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`), `Home`, `End`, `PageUp`, `PageDown`, การเลื่อนเคอร์เซอร์ข้ามบรรทัด และการคลุมเลือกข้อความ (`Shift + Arrow` / `Ctrl + Arrow`) ในช่องพิมพ์ได้อย่างสมบูรณ์ 100%
 - **ระบบชี้ขาดตัวตนผู้ใช้และการแยกสิทธิ์ Non-Student อัตโนมัติ (Deterministic User Identity & Role Isolation)**: แยกแยะระหว่างนักศึกษาและบุคลากร (`admin`, `instructor`, `staff`) อย่างเด็ดขาด ดักจับคำถามเกี่ยวกับชื่อ ตัวตน หรือหลักสูตรที่ศึกษา (เช่น *"ผมชื่ออะไรตอนนี้ผมเรียนหลักสูตรอะไร"*, *"ผมเรียนสาขาอะไร"*, *"ฉันเป็นใคร"*) แล้วตอบกลับทันทีแบบ Deterministic (Bypass LLM 0 ms) โดยสำหรับบัญชีที่ไม่ใช่นักศึกษา ระบบจะระบุบทบาทอย่างถูกต้อง (เช่น ผู้ดูแลระบบ / อาจารย์ผู้สอน / เจ้าหน้าที่) และระบุว่าไม่มีข้อมูลหลักสูตรที่กำลังศึกษาในระบบ ป้องกัน AI นำหลักสูตร IT-67 ไปผูกกับ Admin หรือถามขอรหัสนักศึกษาโดยเด็ดขาด
@@ -336,6 +338,9 @@ npm run migrate:curriculum
 # ตรวจสอบการประเมินสถานภาพวิทยาทัณฑ์และการพ้นสภาพนักศึกษา (Academic Standing Engine)
 npx tsx --test tests/study-plan/academicStanding.test.ts
 
+# ตรวจสอบการจัดโครงสร้าง Metadata ส่งเข้า n8n Workflow v19.19 (Case A - G, StudyMode, Credit Limits)
+npx tsx --test tests/study-plan/n8nWorkflowMetadata.test.ts
+
 # ตรวจสอบการตัดยอดโควตาวิชาเลือกและ Wildcard ครบทั้ง 13 หลักสูตร (Category-Quota Deduplication)
 npx tsx --test tests/study-plan/curriculumDeduplicationAllCurricula.test.ts
 
@@ -423,6 +428,7 @@ it-course-chatbot-main/
 | [ADR-010](docs/adr/ADR-010-non-student-role-isolation-and-deterministic-identity-routing.md) | การแยกบทบาทผู้ใช้ที่ไม่ใช่นักศึกษาและระบบเราต์ตัวตนผู้ใช้แบบ Deterministic (Non-Student Role Isolation & Deterministic Identity Routing) | **Accepted** |
 | [ADR-011](docs/adr/ADR-011-academic-standing-tiers-consecutive-probation-and-retirement.md) | ระบบประเมินสถานภาพทางวิชาการ 4 ระดับ การติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง และเกณฑ์การพ้นสภาพนักศึกษา (Four-Tier Academic Standing, Consecutive Probation Tracking, and Retirement Enforcement) | **Accepted** |
 | [ADR-012](docs/adr/ADR-012-curriculum-wildcard-category-quota-deduplication.md) | ระบบตัดยอดโควตาวิชาเลือกและการหักลบรหัส Wildcard ในหลักสูตร (Curriculum Wildcard Deduplication and Prioritized Category-Quota Matching) | **Accepted** |
+| [ADR-013](docs/adr/ADR-013-n8n-workflow-v19-metadata-and-registration-regulations.md) | การจัดโครงสร้าง Metadata รองรับ n8n Workflow v19.19 และการปรับปรุงระเบียบหน่วยกิตลงทะเบียน (n8n Workflow v19.19 Metadata Alignment & Registration Regulations) | **Accepted** |
 
 ### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
