@@ -164,6 +164,10 @@
   - **Interactive Tracing & Focus Mode**: เลื่อนเมาส์ชี้ที่เส้น (Hover Tooltip) เพื่อดูคู่ความต่อเนื่อง คลิกเลือกวิชาเพื่อไฮไลต์สายวิชาบังคับก่อน (สีน้ำเงิน) และวิชาเรียนต่อได้ (สีม่วง) พร้อมปุ่มเปิด/ปิด "โหมดโฟกัส" (Focus Mode)
   - **Master Catalog Fallback**: รองรับและผ่านการตรวจสอบความถูกต้อง 100% ครอบคลุมครบทั้ง 13 ฉบับหลักสูตร
 - **ระบบคงความถูกต้องของข้อมูลรายวิชา (Identity & Origin Preservation)**: ป้องกันการเขียนทับรหัสวิชาตั้งต้นด้วย `customCode` และป้องกันข้อมูลสูญหายเมื่อมีการแก้ไขชื่อหรือย้ายภาคเรียน ผ่าน `serializeStudentCourse`
+- **ระบบตัดยอดโควตาวิชาเลือกและการหักลบ Wildcard อัจฉริยะ (Category-Quota Deduplication Engine & Prioritized Bucket Matching)**:
+  - แก้ไขปัญหาหลักสูตรที่มีรหัส Wildcard / Placeholder (เช่น `080xxxxxx`, `0602333xx`, `xxxxxxxxx`, `080303xxx`) ซึ่งเดิมเปรียบเทียบรหัสแบบตรงตัว ทำให้วิชาเลือกที่นักศึกษาเรียนผ่านแล้วไม่ถูกหักลบ และหลุดไปแสดงเป็นวิชาค้างเรียนในแชทบอท
+  - ใช้ **Prioritized Multi-Pass Matching**: จัดหมวดหมู่วิชาเลือกเป็น 4 บักเก็ต ได้แก่ พลศึกษา (`pe`), วิชาชีพเลือก (`major_elective`), ศึกษาทั่วไป (`gened`) และเลือกเสรี (`free_elective`) โดยตัดยอดตามความจำเพาะของหมวดก่อน แล้วจึงนำวิชาที่เหลือเข้าตัดยอดวิชาเลือกเสรี
+  - รองรับครบทั้ง **13 ฉบับหลักสูตร** พร้อมระบบจัดการคีย์หลักสูตรสหกิจศึกษา (`-COOP` $\rightarrow$ `${year} สหกิจ`) แบบเบ็ดเสร็จ ผ่านการทดสอบระดับระบบ 100%
 - **ระบบประเมินผลฝึกงาน/สหกิจศึกษา (S/U Evaluation System)**: รองรับการประเมินผลรายวิชาฝึกงานและสหกิจศึกษาด้วยเกรด `S` (Satisfactory - ผ่าน) และ `U` (Unsatisfactory - ไม่ผ่าน) โดยไม่นำมาถ่วงน้ำหนักแต้มระดับคะแนน (Non-graded credits) ตามข้อบังคับมหาวิทยาลัย
 - **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
 
@@ -208,6 +212,7 @@
 - **การป้อนบริบทอัตโนมัติ (Context Injection)**: ส่งรหัสหลักสูตรที่นักศึกษาศึกษาอยู่ (`EnrolledCurriculum`) และแคตตาล็อกรวม 13 ฉบับ เข้าสู่ Prompt แชทบอท เพื่อให้ได้คำตอบที่ถูกต้องตรงกับโครงสร้างจริง 100%
 - **มาตรฐานชื่อวิชา (CoursePresentationFormat)**: คำตอบจากบอทจะประกอบด้วย `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` เสมอ ไม่ปล่อยรหัสวิชาลอยๆ ให้นักศึกษาสับสน
 - **ระบบสำรวจความพึงพอใจ 3 ระดับ (FeedbackScale)**: แสดงป้ายประเมินความพึงพอใจ (👎 ไม่ชอบ, 😐 ปานกลาง, 👍 ชอบ) ทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเข้าสู่ Realtime Database
+- **กฎการชี้ขาดวิชาค้างเรียนตามหลักสูตร (Uncompleted Courses Truth Directives)**: เมื่อนักศึกษาถามว่า *"ผมเหลือวิชาที่ยังไม่ได้เรียนคือวิชาไร"* หรือ *"ขาดวิชาอะไรบ้าง"* แชทบอทจะอ้างอิงรายการวิชาจาก `uncompletedCurriculumCourses` ที่คำนวณผ่าน Deduplication Engine เป็น Single Source of Truth โดยตอบเฉพาะวิชาที่ยังไม่ได้เรียนจริงและไม่แสดงรหัส Wildcard ที่ผ่านครบตามโควตาแล้วเด็ดขาด
 - **แถบเวลาการแจ้งเตือน (Alert Timeout Progress)**: Toast, inline error และข้อความขอบคุณหลังส่ง feedback ที่ปิดอัตโนมัติจะแสดงแถบบางที่ขอบล่างเพื่อบอกเวลาคงเหลือ โดยแถบและการปิดใช้ตัวจับเวลาเดียวกัน
 
 ### 📑 4. รายงานและการบริหารจัดการระดับองค์กร (Reporting & Admin Controls)
@@ -331,6 +336,12 @@ npm run migrate:curriculum
 # ตรวจสอบการประเมินสถานภาพวิทยาทัณฑ์และการพ้นสภาพนักศึกษา (Academic Standing Engine)
 npx tsx --test tests/study-plan/academicStanding.test.ts
 
+# ตรวจสอบการตัดยอดโควตาวิชาเลือกและ Wildcard ครบทั้ง 13 หลักสูตร (Category-Quota Deduplication)
+npx tsx --test tests/study-plan/curriculumDeduplicationAllCurricula.test.ts
+
+# ตรวจสอบการหักลบวิชาค้างเรียนของนักศึกษาตัวอย่าง (INE-62)
+npx tsx --test tests/study-plan/curriculumDeduplication.test.ts
+
 # ตรวจข้อมูลความคืบหน้าและตัวตนรายวิชาของนักศึกษา
 npx tsx --test tests/study-plan/progress.test.ts
 
@@ -355,7 +366,7 @@ npm run preview
 it-course-chatbot-main/
 ├── diagrams/                # แผนภาพสถาปัตยกรรม (Context, DFD, Component, Sequence)
 ├── docs/
-│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-010)
+│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-012)
 │   ├── audits/              # รายงานผลการตรวจสอบระบบ (CRUD Audit, Navigation QA)
 │   └── superpowers/         # บันทึกแผนการพัฒนาและแบบร่างระบบ
 ├── public/                  # Static Assets และฟอนต์ภาษาไทย
@@ -372,9 +383,9 @@ it-course-chatbot-main/
 │   ├── pages/               # Routing Page Components
 │   ├── services/            # บริการเชื่อมต่อ Firebase, n8n และหลักสูตร
 │   ├── types/               # TypeScript Interfaces และ Type Definitions
-│   └── utils/               # ฟังก์ชันคำนวณหน่วยกิตและโมดูล Export PDF/Excel
+│   └── utils/               # ฟังก์ชันคำนวณหน่วยกิต, Deduplication Engine และโมดูล Export PDF/Excel
 ├── tests/
-│   └── study-plan/          # ชุดทดสอบ Regression สำหรับ Study Plan View Model & Identity
+│   └── study-plan/          # ชุดทดสอบ Regression: Study Plan ViewModel, Academic Standing & 13 Curricula Deduplication
 ├── CONTEXT.md               # Ubiquitous Language & Domain Model ของระบบ
 ├── database.rules.json      # กฎความปลอดภัย Firebase Realtime Database Rules
 ├── MASTER_CURRICULUM_CATALOG.md # คลังหลักสูตรฉบับสมบูรณ์ 13 ฉบับ (Single Source of Truth สำหรับ AI ChatBot)
@@ -411,6 +422,7 @@ it-course-chatbot-main/
 | [ADR-009](docs/adr/ADR-009-page-grounded-concise-chat-answers.md) | คำตอบแชทบอทแบบกระชับและการอ้างอิงหลักฐานหน้าเอกสาร PDF (Page-Grounded Concise Chat Answers) | **Accepted** |
 | [ADR-010](docs/adr/ADR-010-non-student-role-isolation-and-deterministic-identity-routing.md) | การแยกบทบาทผู้ใช้ที่ไม่ใช่นักศึกษาและระบบเราต์ตัวตนผู้ใช้แบบ Deterministic (Non-Student Role Isolation & Deterministic Identity Routing) | **Accepted** |
 | [ADR-011](docs/adr/ADR-011-academic-standing-tiers-consecutive-probation-and-retirement.md) | ระบบประเมินสถานภาพทางวิชาการ 4 ระดับ การติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง และเกณฑ์การพ้นสภาพนักศึกษา (Four-Tier Academic Standing, Consecutive Probation Tracking, and Retirement Enforcement) | **Accepted** |
+| [ADR-012](docs/adr/ADR-012-curriculum-wildcard-category-quota-deduplication.md) | ระบบตัดยอดโควตาวิชาเลือกและการหักลบรหัส Wildcard ในหลักสูตร (Curriculum Wildcard Deduplication and Prioritized Category-Quota Matching) | **Accepted** |
 
 ### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
