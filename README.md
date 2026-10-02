@@ -14,6 +14,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase_RTDB-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
 [![n8n](https://img.shields.io/badge/n8n_Workflow-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io)
 [![Quality](https://img.shields.io/badge/Audit_Pass_Rate-100%25-059669?style=for-the-badge&logo=checkmarx&logoColor=white)](docs/audits/firebase-crud-credit-audit.md)
+[![Unit Tests](https://img.shields.io/badge/Unit_Tests-86%20Passed%20(100%25)-059669?style=for-the-badge&logo=vitest&logoColor=white)](tests/)
 
 <br />
 
@@ -169,9 +170,31 @@
   - ใช้ **Prioritized Multi-Pass Matching**: จัดหมวดหมู่วิชาเลือกเป็น 4 บักเก็ต ได้แก่ พลศึกษา (`pe`), วิชาชีพเลือก (`major_elective`), ศึกษาทั่วไป (`gened`) และเลือกเสรี (`free_elective`) โดยตัดยอดตามความจำเพาะของหมวดก่อน แล้วจึงนำวิชาที่เหลือเข้าตัดยอดวิชาเลือกเสรี
   - รองรับครบทั้ง **13 ฉบับหลักสูตร** พร้อมระบบจัดการคีย์หลักสูตรสหกิจศึกษา (`-COOP` $\rightarrow$ `${year} สหกิจ`) แบบเบ็ดเสร็จ ผ่านการทดสอบระดับระบบ 100%
 - **ระบบตรวจสอบหน่วยกิตระดับหมวดวิชาและการส่งต่อหน่วยกิตวิชาเลือกเกิน (Category-Level Elective Credit Audit & Waterfall Overflow Engine)**:
-  - ตรวจสอบความคืบหน้าหน่วยกิตแยก 4 หมวดหลักตามหลักสูตรอย่างแม่นยำ: (1) หมวดวิชาศึกษาทั่วไป, (2) หมวดวิชาเฉพาะ - บังคับ, (3) หมวดวิชาเฉพาะ - เลือกกลุ่มวิชาชีพ, และ (4) หมวดวิชาเลือกเสรี
-  - **Waterfall Overflow อัตโนมัติ**: เมื่อนักศึกษาเรียนวิชาเลือกกลุ่มวิชาชีพหรือศึกษาทั่วไปเกินเกณฑ์หลักสูตร หน่วยกิตส่วนเกินจะส่งต่อไปเติมเต็มในหมวดวิชาเลือกเสรีโดยอัตโนมัติ ไม่ตัดหน่วยกิตทิ้ง
-  - **Category Progress Cards บนหน้าแดชบอร์ด**: แสดงการ์ดสรุปความคืบหน้า 4 หมวดใต้ KPI Bar พร้อมแถบเปอร์เซ็นต์ (Progress Bar), ป้ายสถานะครบ/ขาด, และ Badge แจ้งเตือนการโอนหน่วยกิตแบบเรียลไทม์
+  - **การจำแนก 4 หมวดหลักตามโครงสร้างหลักสูตร (4 Primary Category Buckets)**:
+    1. **หมวดวิชาศึกษาทั่วไป (`gened`)**: กลุ่มวิชาศึกษาทั่วไป (มนุษยศาสตร์, สังคมศาสตร์, ภาษา, วิทยาศาสตร์กับคณิตศาสตร์)
+    2. **หมวดวิชาเฉพาะ - บังคับ (`core_required`)**: วิชาแกน บังคับทางวิชาชีพ บังคับร่วม และวิชาเตรียม/ฝึกงาน/สหกิจศึกษา
+    3. **หมวดวิชาเฉพาะ - เลือกกลุ่มวิชาชีพ (`major_elective`)**: วิชาเลือกเฉพาะด้าน/กลุ่มวิชาชีพตามแทร็กความเชี่ยวชาญ
+    4. **หมวดวิชาเลือกเสรี (`free_elective`)**: วิชาเลือกเสรีที่เปิดกว้างสำหรับทุกหมวดวิชา
+  - **กลไก Waterfall Overflow อัตโนมัติ (Waterfall Cascade Rule)**:
+    - ตามข้อบังคับการศึกษาของมหาวิทยาลัย หากนักศึกษาลงทะเบียนเรียนวิชาในหมวดศึกษาทั่วไปหรือหมวดวิชาชีพเลือกเกินกว่าเกณฑ์ขั้นต่ำที่หลักสูตรกำหนด หน่วยกิตส่วนเกินดังกล่าวจะไม่สูญเปล่า แต่จะถูกส่งต่อ (Cascade) ไปนับชดเชยเป็น "หมวดวิชาเลือกเสรี" โดยอัตโนมัติ:
+    ```
+    ┌───────────────────────────┐      ┌───────────────────────────┐
+    │  หมวดวิชาศึกษาทั่วไป (GenEd) │      │ วิชาชีพเลือก (Major Elec) │
+    └─────────────┬─────────────┘      └─────────────┬─────────────┘
+                  │ ส่วนเกิน (Surplus Credits)        │ ส่วนเกิน (Surplus Credits)
+                  └───────────────────┬───────────────┘
+                                      ▼
+                        ┌───────────────────────────┐
+                        │ หมวดวิชาเลือกเสรี (Free)   │
+                        │ (รับ Waterfall ชดเชยครบ)   │
+                        └───────────────────────────┘
+    ```
+    - **การคำนวณแบบ Multi-Pass**: ตัดยอดวิชาบังคับและวิชาเฉพาะก่อน เมื่อหมวด `major_elective` มีหน่วยกิตเกินเกณฑ์ จะโอนเข้า `free_elective` และหากหมวด `gened` มีหน่วยกิตเกินเกณฑ์ ก็จะโอนเข้า `free_elective` เพิ่มเติมจนเต็มเกณฑ์
+  - **Category Progress Cards บนหน้าแดชบอร์ด**:
+    - แสดงการ์ดสรุปความคืบหน้า 4 หมวดหมู่ย่อยใต้ KPI Bar ของหน้าจัดการแผนการเรียนแบบเรียลไทม์
+    - มีแถบเปอร์เซ็นต์ความคืบหน้า (Progress Bar), ป้ายสถานะชัดเจน (`ครบตามเกณฑ์` สีเขียวมรกต หรือ `ขาดอีก X นก.` สีกรมท่า), และ Badge แจ้งเตือนการโอนหน่วยกิตแบบชัดเจน เช่น `+3 นก. โอนจากวิชาชีพเลือก` หรือ `+3 นก. โอนจากศึกษาทั่วไป`
+  - **Single Source of Truth สำหรับ AI Chatbot**:
+    - ส่งโครงสร้าง `categoryCreditAudit` และคำสั่ง `advisingDirectives.categoryCreditAuditRule` สู่ n8n metadata ทำให้แชทบอทสามารถวิเคราะห์และตอบคำถามสถานะวิชาเลือกได้อย่างแม่นยำ 100% เช่น *"วิชาเลือกเสรีผมครบยัง ขาดอีกกี่หน่วยกิต"* หรือ *"วิชาเลือกกลุ่มวิชาชีพเรียนเกินจะเอาไปนับเป็นเลือกเสรีได้ไหม"*
 - **ระบบประเมินผลฝึกงาน/สหกิจศึกษา (S/U Evaluation System)**: รองรับการประเมินผลรายวิชาฝึกงานและสหกิจศึกษาด้วยเกรด `S` (Satisfactory - ผ่าน) และ `U` (Unsatisfactory - ไม่ผ่าน) โดยไม่นำมาถ่วงน้ำหนักแต้มระดับคะแนน (Non-graded credits) ตามข้อบังคับมหาวิทยาลัย
 - **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
 
@@ -395,7 +418,9 @@ it-course-chatbot-main/
 │   ├── types/               # TypeScript Interfaces และ Type Definitions
 │   └── utils/               # ฟังก์ชันคำนวณหน่วยกิต, Deduplication Engine และโมดูล Export PDF/Excel
 ├── tests/
-│   └── study-plan/          # ชุดทดสอบ Regression: Study Plan ViewModel, Academic Standing & 13 Curricula Deduplication
+│   ├── curriculum/          # การทดสอบกฎระยะเวลาและเงื่อนไขหลักสูตร (CurriculumDurationGuard)
+│   ├── regression/          # การทดสอบการปฏิบัติตามระเบียบและโครงสร้าง n8n metadata v19.19
+│   └── study-plan/          # ชุดทดสอบ Regression: Study Plan ViewModel, Academic Standing, Deduplication & Elective Audit (86 tests)
 ├── CONTEXT.md               # Ubiquitous Language & Domain Model ของระบบ
 ├── database.rules.json      # กฎความปลอดภัย Firebase Realtime Database Rules
 ├── MASTER_CURRICULUM_CATALOG.md # คลังหลักสูตรฉบับสมบูรณ์ 13 ฉบับ (Single Source of Truth สำหรับ AI ChatBot)
@@ -438,6 +463,7 @@ it-course-chatbot-main/
 
 ### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
+- [Automated Regression Test Suite](tests/) — ชุดทดสอบอัตโนมัติ 86 รายการ (Unit Tests) ครอบคลุมทั้ง 13 หลักสูตร, Academic Standing 4 ระดับ, Consecutive Probation Tracking, Wildcard Deduplication, และ Elective Waterfall Overflow Audit (อัตราผ่าน 100%, 86/86 การทดสอบ)
 - [Student Progress Consistency Implementation Plan](docs/superpowers/plans/2026-09-13-student-progress-consistency.md) — แผนปฏิบัติการและผลการปรับปรุงความสอดคล้องของภาพรวมความคืบหน้านักศึกษา (Dual-View Progress, Pure ViewModel Projection, Identity Preservation)
 - [Modern Academic Web Redesign QA Audit](docs/audits/modern-academic-web-redesign-qa.md) — รายงานการตรวจรับส่วนติดต่อผู้ใช้สไตล์วิชาการร่วมสมัย ครอบคลุม 13 มิติการทดสอบและผลการตรวจรับ Protected Files 100%
 - [Modern Academic Web Redesign Specification](docs/superpowers/specs/2026-09-13-modern-academic-web-redesign.md) — ข้อกำหนดรายละเอียดการออกแบบระบบวิชาการร่วมสมัย (Opt-in Architecture, Color Tokens, Typography, Accessibility)

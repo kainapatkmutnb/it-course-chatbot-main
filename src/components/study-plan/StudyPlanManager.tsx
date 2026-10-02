@@ -81,6 +81,10 @@ interface StudyPlan {
   isLocked: boolean;
   courses: StudentCourse[];
   totalCredits: number;
+  completedCredits?: number;
+  gpa?: number;
+  studentYear?: number;
+  currentYear?: number;
   createdAt: Date;
   updatedAt: Date;
 }

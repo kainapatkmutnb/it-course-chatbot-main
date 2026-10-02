@@ -80,6 +80,8 @@ export interface StudyPlan {
   totalCredits: number;
   completedCredits?: number;
   gpa?: number;
+  studentYear?: number;
+  currentYear?: number;
   courses: StudyPlanCourse[];
   createdAt: Date;
   updatedAt: Date;
@@ -625,7 +627,7 @@ class FirebaseService {
       const snapshot = await get(studyPlansRef);
       
       if (snapshot.exists()) {
-        const studyPlansData = snapshot.val();
+        const studyPlansData: Record<string, any> = snapshot.val() || {};
         const matches = Object.entries(studyPlansData)
           .filter(([, plan]) => plan?.studentId === studentId)
           .map(([key, plan]) => {
