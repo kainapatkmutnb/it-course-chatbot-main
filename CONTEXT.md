@@ -25,10 +25,18 @@ _Avoid_: ประวัติการเรียนจริงของน�
 - **Course**: An accredited academic subject containing course code (standard or custom), course name (Thai & English), credit weight, curriculum year, semester, prerequisites, and corequisites.
 - **CoursePresentationFormat**: The standardized presentation pattern for mentioning academic courses across chatbot answers: `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` (and optional credit weight), guaranteeing students never receive raw, ambiguous alphanumeric codes in isolation.
 - **StudyPlan**: A student's registered 4-year academic roadmap detailing course progression, pass/fail status, and grade history.
-- **AcademicStanding**: Student GPA and completed credits tracked for automated advising and credit cap validation.
+- **AcademicStanding**: Student GPA and completed credits tracked for automated advising and credit cap validation. Categorized into four distinct standing tiers:
+  1. *Normal Standing (สถานะปกติ)*: Cumulative GPAX $\ge 2.00$, eligible for regular semester credit bounds (9–22 credits).
+  2. *High Academic Probation (ติดโปรสูง / Probation 2)*: Cumulative GPAX between $1.75$ and $1.99$. Permitted maximum 16 credits per regular semester; must raise GPAX to $\ge 2.00$ prior to degree conferral to graduate.
+  3. *Low Academic Probation (ติดโปรต่ำ / Probation 1)*: Cumulative GPAX between $1.50$ and $1.74$. Permitted maximum 16 credits per regular semester; strictly restricted to a maximum of 4 consecutive regular semesters before academic dismissal.
+  4. *Academic Retirement / Dismissal (การพ้นสภาพนักศึกษา / รีไทร์)*: Automatic termination of student status triggered by either:
+     - Cumulative GPAX $< 1.50$ at the conclusion of any graded academic semester.
+     - Accumulating 4 consecutive regular semesters on academic probation (GPAX $< 2.00$).
+- **ConsecutiveProbationTracker**: The chronological counter evaluating consecutive regular academic semesters (excluding Summer sessions) where cumulative GPAX falls below $2.00$. The counter resets to 0 whenever a subsequent regular semester's cumulative GPAX reaches $\ge 2.00$.
+- **ProbationRecoveryTarget**: The mathematically calculated semester GPA target that a student on academic probation must achieve in their next registered semester (assuming standard 16 credits) to elevate their cumulative GPAX to $\ge 2.00$ and restore Normal Standing.
 - **RegistrationCreditLimit**: University credit bounds enforced per semester:
   - *Regular Semester (เทอม 1 & 2)*: Minimum 9 credits, Maximum 22 credits (exempt for final graduating term).
-  - *Academic Probation (ติดวิทยาทัณฑ์)*: Maximum 16 credits; overload requires special exceptional approval petition.
+  - *Academic Probation (ติดวิทยาทัณฑ์ ทั้งโปรต่ำและโปรสูง)*: Maximum 16 credits; overload requires special exceptional approval petition.
   - *Summer Session (ภาคฤดูร้อน)*: Maximum 6 credits.
 - **GraduationTermExemption**: Policy waiver allowing students in their expected final graduation semester to register for fewer than 9 credits.
 - **ProbationPetition**: Special approval workflow required when a student on academic probation needs to register beyond 16 credits to satisfy compulsory graduation requirements or maintain status.

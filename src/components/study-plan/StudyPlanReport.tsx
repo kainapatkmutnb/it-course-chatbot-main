@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudyPlan } from '@/hooks/useFirebaseData';
-import { calculateGPA, getGPAColor } from '@/utils/gradeUtils';
+import { calculateGPA, getGPAColor, evaluateAcademicStanding } from '@/utils/gradeUtils';
 import { getCurriculumTotalCredits, getDepartments } from '@/services/departmentService';
 import { exportElementToPdf } from '@/utils/exportPdf';
 import {
@@ -142,6 +142,7 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
       resolvedStatus: resolveCourseStatus(c.status, c.grade),
     }));
     const gpaResult = calculateGPA(rawCourses as any);
+    const standingResult = evaluateAcademicStanding(rawCourses as any);
     const requiredCredits = getCurriculumTotalCredits(
       studyPlan?.program,
       studyPlan?.curriculumYear
@@ -160,6 +161,7 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
 
     return {
       gpa: gpaResult.gpa,
+      standingResult,
       completedCredits,
       requiredCredits: targetRequiredCredits,
       progressPct,
@@ -319,6 +321,21 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
             <div className="text-[11px] text-gray-600 font-medium mt-0.5">
               เกรดเฉลี่ยสะสม (GPAX)
             </div>
+            {kpis.standingResult?.history?.length > 0 && (
+              <div className="mt-1">
+                <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                  kpis.standingResult.isRetired
+                    ? 'bg-red-100 text-red-800'
+                    : kpis.standingResult.isLowProbation
+                      ? 'bg-rose-100 text-rose-800'
+                      : kpis.standingResult.isHighProbation
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  {kpis.standingResult.standingLabel}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="p-2.5 rounded-lg border border-gray-200 bg-gray-50 text-center">
@@ -348,6 +365,27 @@ const StudyPlanReport: React.FC<StudyPlanReportProps> = ({ studentId, studentUse
             </div>
           </div>
         </div>
+
+        {/* ---- Academic Standing Warning Banner (pdf-section) ---- */}
+        {kpis.standingResult && (kpis.standingResult.isProbation || kpis.standingResult.isRetired) && (
+          <div className={`pdf-section p-3 rounded-lg border text-xs ${
+            kpis.standingResult.isRetired
+              ? 'bg-red-50 border-red-300 text-red-900'
+              : kpis.standingResult.isLowProbation
+                ? 'bg-rose-50 border-rose-300 text-rose-900'
+                : 'bg-amber-50 border-amber-300 text-amber-900'
+          }`}>
+            <div className="font-semibold flex items-center gap-1.5 mb-1">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>แจ้งเตือนสถานภาพทางวิชาการ: {kpis.standingResult.standingLabel}</span>
+            </div>
+            <p className="leading-relaxed">
+              {kpis.standingResult.isRetired
+                ? kpis.standingResult.retireReason
+                : `${kpis.standingResult.standingLabel} — ลงทะเบียนเรียนได้สูงสุดไม่เกิน 16 หน่วยกิต ${kpis.standingResult.targetGPANextTerm?.formulaExplanation || ''}`}
+            </p>
+          </div>
+        )}
 
         {/* ---- 4 Status Summary Cards (pdf-section) ---- */}
         <div className="pdf-section p-3 rounded-lg bg-gray-50 border border-gray-200">

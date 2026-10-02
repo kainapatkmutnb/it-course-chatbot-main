@@ -7,6 +7,7 @@ import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
 import { Course } from '@/types/course';
 import { FeedbackBanner } from './FeedbackBanner';
 import { getCurriculumSummaryCatalog, getAllCurriculumsMap, getCurriculumDurationGuard, getActiveCurriculumRule } from '@/services/curriculumCatalogService';
+import { evaluateAcademicStanding } from '@/utils/gradeUtils';
 
 
 const ChatBot: React.FC = () => {
@@ -173,9 +174,13 @@ const ChatBot: React.FC = () => {
           })) || [];
         const failedCourseCodes = failedCourses.map(c => c.code);
 
-        const userGpa = Number(gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0);
-        const isProbation = userGpa > 0 && userGpa < 2.00;
-        const academicStanding = userGpa === 0 ? 'unknown' : (isProbation ? 'probation' : 'normal');
+        const standingResult = evaluateAcademicStanding(studyPlan?.courses || []);
+        const userGpa = Number(standingResult.currentGPAX || (gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0));
+        const isProbation = standingResult.isProbation;
+        const isHighProbation = standingResult.isHighProbation;
+        const isLowProbation = standingResult.isLowProbation;
+        const isRetired = standingResult.isRetired;
+        const academicStanding = standingResult.standing;
 
         const registrationRules = {
           regularSemester: {
@@ -185,12 +190,15 @@ const ChatBot: React.FC = () => {
           },
           probation: {
             maxCredits: 16,
-            condition: 'นักศึกษาที่มีเกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 2.00 ติดสถานะวิทยาทัณฑ์ (ติดโปร)',
+            condition: 'นักศึกษาที่มีเกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 2.00 ติดสถานะวิทยาทัณฑ์ (โปรต่ำ 1.50-1.74 ติดต่อกันได้ไม่เกิน 4 เทอม, โปรสูง 1.75-1.99 ต้องทำให้ถึง 2.00 จึงจะสำเร็จการศึกษา)',
             petitionGuideline: 'หากมีความจำเป็นต้องลงทะเบียนเรียนเกิน 16 หน่วยกิตเพื่อรักษาสถานภาพหรือเก็บวิชาบังคับตามหลักสูตร ต้องยื่นแบบคำร้องขออนุมัติเป็นกรณีพิเศษผ่านอาจารย์ที่ปรึกษาและเสนอหัวหน้าภาควิชา/คณบดี'
           },
           summerSemester: {
             maxCredits: 6,
             note: 'ภาคเรียนฤดูร้อนลงทะเบียนเรียนได้สูงสุดไม่เกิน 6 หน่วยกิต'
+          },
+          academicDismissal: {
+            condition: 'เกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 1.50 หลังสิ้นสุดภาค 2 ของปี 1 หรือติดสถานะวิทยาทัณฑ์ (GPAX < 2.00) ติดต่อกันครบ 4 ภาคการศึกษาปกติ จะพ้นสภาพนักศึกษา (รีไทร์)'
           }
         };
 
@@ -281,6 +289,13 @@ const ChatBot: React.FC = () => {
 
         const advisingDirectives = {
           currentStudentStatusRule: studentStatusDirective,
+          academicStandingRule: isStudent
+            ? (isRetired
+                ? `CRITICAL: นักศึกษาอยู่ในสถานะ "พ้นสภาพนักศึกษา (รีไทร์)" เนื่องจาก ${standingResult.retireReason} หากนักศึกษาถามเรื่องการเรียน แผนการเรียน หรือลงทะเบียน ให้ชี้แจงสถานะด้วยความสุภาพ แนะนำให้ติดต่ออาจารย์ที่ปรึกษาและสำนักทะเบียนและประมวลผลทันทีเพื่อตรวจสอบสิทธิ์การยื่นคำร้อง ห้ามแนะนำให้ลงทะเบียนตามปกติเด็ดขาด`
+                : (isProbation
+                    ? `STRICT: นักศึกษาอยู่ในสถานะ "${standingResult.standingLabel}" (GPAX ${userGpa.toFixed(2)}) ติดโปรมาแล้ว ${standingResult.consecutiveProbationCount}/4 เทอมติดต่อกัน มีเพดานลงทะเบียนสูงสุดไม่เกิน 16 หน่วยกิต หากถามเรื่องลงทะเบียนเรียน ให้เตือนกฎ 16 หน่วยกิต แนะนำให้ลงวิชาที่ติด F/D เพื่อรีเกรดดึง GPAX สะสม และแจ้งเป้าหมายเกรดเทอมถัดไป: "${standingResult.targetGPANextTerm?.formulaExplanation || ''}"`
+                    : `STRICT: นักศึกษาอยู่ในสถานะปกติ (GPAX ${userGpa.toFixed(2)}) สามารถลงทะเบียนเรียนได้ 9-22 หน่วยกิต`))
+            : '',
           passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
           retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
           directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
@@ -324,20 +339,35 @@ const ChatBot: React.FC = () => {
 
               gpa: isStudent ? userGpa : 0,
               isProbation: isStudent ? isProbation : false,
+              isHighProbation: isStudent ? isHighProbation : false,
+              isLowProbation: isStudent ? isLowProbation : false,
+              isRetired: isStudent ? isRetired : false,
+              retireReason: isStudent ? standingResult.retireReason : undefined,
+              consecutiveProbationCount: isStudent ? standingResult.consecutiveProbationCount : 0,
               academicStanding: isStudent ? academicStanding : 'not_applicable',
-              allowedMaxCredits: isStudent ? (isProbation ? 16 : 22) : 22,
-              allowedMinCredits: isStudent ? 9 : 0,
+              allowedMaxCredits: isStudent ? standingResult.allowedMaxCredits : 22,
+              allowedMinCredits: isStudent ? (isRetired ? 0 : 9) : 0,
+              targetGPANextTerm: isStudent ? standingResult.targetGPANextTerm : null,
               registrationRules: isStudent ? {
                 ...registrationRules,
                 studentStanding: {
                   gpa: userGpa,
+                  standing: standingResult.standing,
+                  standingLabel: standingResult.standingLabel,
                   isProbation,
-                  academicStanding,
-                  allowedMaxCredits: isProbation ? 16 : 22,
-                  allowedMinCredits: 9,
-                  statusSummary: isProbation
-                    ? `สถานะวิทยาทัณฑ์ (ติดโปร - GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้สูงสุดไม่เกิน 16 หน่วยกิต หากจำเป็นต้องลงเกินต้องยื่นคำร้องพิเศษ`
-                    : `สถานะปกติ (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้ 9-22 หน่วยกิต (ยกเว้นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา)`
+                  isHighProbation,
+                  isLowProbation,
+                  isRetired,
+                  retireReason: standingResult.retireReason,
+                  consecutiveProbationCount: standingResult.consecutiveProbationCount,
+                  allowedMaxCredits: standingResult.allowedMaxCredits,
+                  allowedMinCredits: isRetired ? 0 : 9,
+                  targetGPANextTerm: standingResult.targetGPANextTerm,
+                  statusSummary: isRetired
+                    ? `⚠️ [พ้นสภาพนักศึกษา] ${standingResult.retireReason} ต้องติดต่ออาจารย์ที่ปรึกษาและสำนักทะเบียนทันที`
+                    : (isProbation
+                        ? `สถานะ${standingResult.standingLabel} (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้สูงสุดไม่เกิน 16 หน่วยกิต ${standingResult.targetGPANextTerm?.formulaExplanation || ''}`
+                        : `สถานะปกติ (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้ 9-22 หน่วยกิต (ยกเว้นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา)`)
                 }
               } : null,
               completedCredits: isStudent ? (gpaData?.completedCredits ?? studyPlan?.completedCredits ?? 0) : 0,

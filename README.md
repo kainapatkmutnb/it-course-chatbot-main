@@ -157,11 +157,27 @@
 - **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
 
 ### ⚖️ 2. ควบคุมกฎระเบียบวิชาการอัตโนมัติ (Academic Rules & Validation Engine)
-> `Credit Limits Enforcement` · `Probation Guard` · `Graduation Exemption`
+> `Academic Standing Engine` · `Probation Tiers (Low & High)` · `Consecutive Probation Tracker` · `Academic Dismissal (Retirement)` · `GPA Recovery Target Calculator` · `Credit Limits Enforcement` · `Graduation Exemption`
 
-- **ขอบเขตหน่วยกิตภาคปกติ**: ควบคุมการลงทะเบียนให้อยู่ระหว่าง 9 ถึง 22 หน่วยกิต ตามข้อบังคับมหาวิทยาลัย
-- **ระบบเฝ้าระวังภาวะวิทยาทัณฑ์ (Probation Rule)**: นักศึกษาที่มีสถานะวิทยาทัณฑ์จะถูกจำกัดการลงทะเบียนสูงสุดไม่เกิน 16 หน่วยกิต (ต้องผ่านคำร้อง Probation Petition หากมีเหตุจำเป็น)
-- **ภาคฤดูร้อนและภาคจบการศึกษา**: จำกัดการลงทะเบียนภาคฤดูร้อนไม่เกิน 6 หน่วยกิต และเปิดระบบยกเว้น (Graduation Term Exemption) ให้ลงต่ำกว่า 9 หน่วยกิตได้ในภาคเรียนสุดท้าย
+- **ระบบประเมินสถานภาพทางวิชาการและภาวะวิทยาทัณฑ์ (4-Tier Academic Standing Engine)**:
+  ประเมินสถานภาพนักศึกษาจากประวัติผลการเรียนสะสมย้อนหลังตามเส้นเวลาจริง (Time-Series Chronological Calculation) ครอบคลุม 4 ระดับตามข้อบังคับมหาวิทยาลัย:
+  | สถานภาพ (Standing Tier) | เกณฑ์ GPAX สะสม | สิทธิ์และเงื่อนไขตามระเบียบมหาวิทยาลัย |
+  | :--- | :---: | :--- |
+  | **🟢 สถานะปกติ (Normal Standing)** | $\ge 2.00$ | ลงทะเบียนเรียนได้ตามปกติ $9 - 22$ หน่วยกิต |
+  | **🟠 วิทยาทัณฑ์โปรสูง (High Probation)** | $1.75 - 1.99$ | ลงทะเบียนเรียนได้สูงสุดไม่เกิน **16 หน่วยกิต** และต้องสะสม GPAX รวมให้ถึง 2.00 ก่อนสำเร็จการศึกษา |
+  | **🔴 วิทยาทัณฑ์โปรต่ำ (Low Probation)** | $1.50 - 1.74$ | ลงทะเบียนเรียนได้สูงสุดไม่เกิน **16 หน่วยกิต** และติดสถานะวิทยาทัณฑ์ติดต่อกันได้**ไม่เกิน 4 ภาคการศึกษาปกติ** |
+  | **🛑 พ้นสภาพนักศึกษา (Academic Retirement)** | $< 1.50$ หรือติดโปร 4 เทอม | • **GPAX ต่ำกว่า 1.50** หลังสิ้นสุดภาค 2 ของชั้นปีที่ 1 เป็นต้นไป<br />• **ติดสถานะวิทยาทัณฑ์ติดต่อกันครบ 4 ภาคการศึกษาปกติ** (GPAX $< 2.00$) |
+- **ระบบติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง (Consecutive Probation Tracker)**:
+  - นับเฉพาะภาคการศึกษาปกติ (เทอม 1 และ เทอม 2) โดยไม่นับภาคฤดูร้อน (Summer Session) เป็นรอบวิทยาทัณฑ์ (แต่เกรดในภาคฤดูร้อนจะถูกนำไปคำนวณรวมใน GPAX สะสมตามจริง)
+  - มีระบบ **Reset Counter อัตโนมัติ**: เมื่อนักศึกษาสามารถทำผลการเรียนในภาคการศึกษาถัดไปจนดึง GPAX กลับมา $\ge 2.00$ ได้ ตัวนับการติดโปรจะถูกรีเซ็ตกลับเป็น 0 ทันที
+  - **Freshman Buffer**: นักศึกษาใหม่ในภาคการศึกษาแรกสุด (ปี 1 เทอม 1) จะได้รับสถานะเฝ้าระวังเตือน (Warning) โดยเริ่มบังคับใช้เกณฑ์พ้นสภาพ GPAX $< 1.50$ หลังสิ้นสุดภาค 2 ของปี 1 เป็นต้นไป
+- **เครื่องคำนวณเกรดกู้ชีพ (Probation Recovery Target Calculator)**:
+  สำหรับนักศึกษาที่อยู่ในสถานะวิทยาทัณฑ์ ระบบจะคำนวณเกรดเฉลี่ยประจำภาคเรียนถัดไปที่ต้องทำให้ได้ (บนฐานเพดาน 16 หน่วยกิต) โดยอัตโนมัติ เพื่อดึง GPAX รวมให้แตะ 2.00 และปลดสถานะวิทยาทัณฑ์ พร้อมแจ้งเตือนหากเป็นกรณีที่หน่วยกิตสะสมสูงจนต้องวางแผนฟื้นฟูเกรดมากกว่า 1 เทอม
+- **การแจ้งเตือนเชิงรุก 4 มิติ (Proactive Academic Safeguards)**:
+  - **Dashboard Hero Banner**: แถบแจ้งเตือนระดับความเสี่ยงพร้อม **4-Step Stepper** แสดงจำนวนเทอมที่ติดโปร (1 $\rightarrow$ 2 $\rightarrow$ 3 $\rightarrow$ รีไทร์) และจำนวนเทอมโอกาสที่เหลือ
+  - **Study Plan & Report Badges**: แสดงป้ายสถานภาพทางวิชาการและข้อความเตือนในหน้าจัดการแผนและรายงานสรุปผลการเรียน
+  - **AI Chatbot Advising Injection**: ป้อนข้อมูลสถานภาพ (`academicStanding`, `standingLabel`, `consecutiveProbationCount`, `allowedMaxCredits`, `targetGPANextTerm`) เข้าสู่สมองของ AI แชทบอท เพื่อให้คำปรึกษา แนะนำวิชา Retake ดึงเกรด และแจ้งเตือนความเสี่ยงได้อย่างแม่นยำ
+- **ขอบเขตหน่วยกิตภาคปกติและภาคฤดูร้อน**: ควบคุมการลงทะเบียนภาคปกติ $9 - 22$ หน่วยกิต, นักศึกษาติดโปรไม่เกิน 16 หน่วยกิต, ภาคฤดูร้อนไม่เกิน 6 หน่วยกิต และข้อยกเว้นภาคสุดท้ายที่คาดว่าจะสำเร็จการศึกษา (Graduation Term Exemption) ลงต่ำกว่า 9 หน่วยกิตได้
 
 ### 🤖 3. แชทบอทให้คำปรึกษาหลักสูตร (Modern Academic Chat Surface)
 > `n8n Orchestration (v14)` · `Pinecone Vector RAG` · `Deterministic Identity & Status Routing` · `Non-Student Role Isolation` · `Curriculum Duration Guard` · `Sentiment Feedback` · `Native Caret Navigation`
@@ -301,6 +317,9 @@ npm run migrate:curriculum
 ชุดทดสอบด้านล่างตรวจตรรกะในเครื่อง ผลผ่านไม่ได้ยืนยันผลตอบกลับจริงจาก n8n หรือการแสดงผลในเบราว์เซอร์ ซึ่งต้องตรวจแยกเมื่อแก้ส่วนที่เกี่ยวข้อง
 
 ```bash
+# ตรวจสอบการประเมินสถานภาพวิทยาทัณฑ์และการพ้นสภาพนักศึกษา (Academic Standing Engine)
+npx tsx --test tests/study-plan/academicStanding.test.ts
+
 # ตรวจข้อมูลความคืบหน้าและตัวตนรายวิชาของนักศึกษา
 npx tsx --test tests/study-plan/progress.test.ts
 
@@ -380,6 +399,7 @@ it-course-chatbot-main/
 | [ADR-008](docs/adr/ADR-008-multi-turn-curriculum-persistence-and-advising-prerequisite-guard.md) | การคงบริบทหลักสูตรข้ามข้อความ (Multi-Turn Persistence) และระบบป้องกันเงื่อนไขการแนะนำลงทะเบียนวิชาติด F | **Accepted** |
 | [ADR-009](docs/adr/ADR-009-page-grounded-concise-chat-answers.md) | คำตอบแชทบอทแบบกระชับและการอ้างอิงหลักฐานหน้าเอกสาร PDF (Page-Grounded Concise Chat Answers) | **Accepted** |
 | [ADR-010](docs/adr/ADR-010-non-student-role-isolation-and-deterministic-identity-routing.md) | การแยกบทบาทผู้ใช้ที่ไม่ใช่นักศึกษาและระบบเราต์ตัวตนผู้ใช้แบบ Deterministic (Non-Student Role Isolation & Deterministic Identity Routing) | **Accepted** |
+| [ADR-011](docs/adr/ADR-011-academic-standing-tiers-consecutive-probation-and-retirement.md) | ระบบประเมินสถานภาพทางวิชาการ 4 ระดับ การติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง และเกณฑ์การพ้นสภาพนักศึกษา (Four-Tier Academic Standing, Consecutive Probation Tracking, and Retirement Enforcement) | **Accepted** |
 
 ### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
