@@ -25,7 +25,12 @@ import {
   ArrowRightLeft,
   Lightbulb,
   Search,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Layers,
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import {
   calculateGPA,
   getAvailableGrades,
@@ -35,6 +40,7 @@ import {
   isPassingGrade,
 } from '@/utils/gradeUtils';
 import { getCurriculumTotalCredits } from '@/services/departmentService';
+import { computeCategoryCreditAudit } from '@/utils/electiveAuditUtils';
 
 interface CurriculumCourse {
   code: string;
@@ -1023,6 +1029,12 @@ const StudyPlanManager: React.FC = () => {
     });
   }, [studyPlan, curriculumCourses, getCourseDigits]);
 
+  // Category-Level Credit Audit & Waterfall Overflow Summary
+  const categoryCreditAudit = useMemo(() => {
+    if (!studyPlan || curriculumCourses.length === 0) return null;
+    return computeCategoryCreditAudit(curriculumCourses as any, studyPlan.courses || []);
+  }, [studyPlan, curriculumCourses]);
+
   if (error) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
@@ -1565,6 +1577,97 @@ const StudyPlanManager: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* ===== หมวดวิชาและวิชาเลือก (Category Credit Audit & Waterfall Overflow) ===== */}
+      {categoryCreditAudit && (
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <h3 className="text-base font-semibold flex items-center gap-2 text-foreground">
+              <Layers className="w-4 h-4 text-primary" />
+              ความคืบหน้าตามหมวดวิชาและวิชาเลือก
+            </h3>
+            <span className="text-xs">
+              {categoryCreditAudit.isAllSatisfied ? (
+                <span className="text-emerald-600 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> ครบทุกหมวดตามหลักสูตรแล้ว ({categoryCreditAudit.totalCompletedCredits}/{categoryCreditAudit.totalRequiredCredits} นก.)
+                </span>
+              ) : (
+                <span className="text-amber-600 font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> ขาดอีกรวม {categoryCreditAudit.totalRemainingCredits} หน่วยกิต (ผ่านแล้ว {categoryCreditAudit.totalCompletedCredits}/{categoryCreditAudit.totalRequiredCredits} นก.)
+                </span>
+              )}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {categoryCreditAudit.categoryList.map(cat => {
+              const isSatisfied = cat.isSatisfied;
+              return (
+                <Card
+                  key={cat.categoryKey}
+                  className={`academic-panel border transition-all ${
+                    isSatisfied
+                      ? 'border-emerald-200 bg-emerald-50/20 dark:bg-emerald-950/10'
+                      : 'border-border bg-card'
+                  }`}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-sm leading-snug line-clamp-1" title={cat.label}>
+                          {cat.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {cat.passedCount} วิชาที่เรียนผ่าน
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`text-[11px] px-2 py-0.5 shrink-0 ${
+                          isSatisfied
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                        }`}
+                      >
+                        {isSatisfied ? 'ครบแล้ว' : `ขาด ${cat.remainingCredits} นก.`}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">
+                          {cat.completedCredits} / {cat.requiredCredits} หน่วยกิต
+                        </span>
+                        <span className="font-semibold text-muted-foreground">
+                          {cat.percentage}%
+                        </span>
+                      </div>
+                      <Progress
+                        value={cat.percentage}
+                        className={`h-2 ${isSatisfied ? '[&>div]:bg-emerald-600' : '[&>div]:bg-primary'}`}
+                      />
+                    </div>
+
+                    {/* Waterfall Overflow Notice */}
+                    {cat.overflowCredits > 0 && cat.categoryKey !== 'free_elective' && (
+                      <p className="text-[11px] text-purple-700 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded px-2 py-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        เกิน {cat.overflowCredits} นก. โอนไปหมวดเลือกเสรี
+                      </p>
+                    )}
+                    {cat.receivedOverflowCredits !== undefined && cat.receivedOverflowCredits > 0 && (
+                      <p className="text-[11px] text-blue-700 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded px-2 py-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        รวม {cat.receivedOverflowCredits} นก. โอนมาจากวิชาเลือกเกิน
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ===== ปุ่ม แนะนำวิชาที่ควรเรียนต่อ + เพิ่มวิชาเรียน ===== */}
       <div className="space-y-3">

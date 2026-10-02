@@ -58,6 +58,9 @@ _Avoid_: ประวัติการเรียนจริงของน�
 - **PageGroundedChunk**: A retrievable portion of a curriculum document that retains both its source document identity and original PDF page number after splitting.
 - **PassedCourseExclusionRule**: Strict negative constraint preventing any academic subject the student has already passed (recorded in `completedCourseCodes` or `passedCourses` with grades A, B, C, D, S) from being recommended in subsequent semester registration plans.
 - **RetakePrerequisiteBlock**: Academic advising rule where a failed course (Grade F) is prioritized for retake, and any upcoming semester course dependent on that failed course as a prerequisite is strictly classified as blocked from registration until cleared.
+- **ElectiveAuditEngine**: The automated validation service that evaluates a student's completed and in-progress courses against curriculum elective quotas across four designated category buckets: General Education (`gened`), Physical Education (`pe`), Major Electives (`major_elective`), and Free Electives (`free_elective`).
+- **CategoryCreditAudit**: The structured breakdown reporting target required credits, earned credits, remaining deficit credits, and graduation satisfaction status for each curriculum course category.
+- **WaterfallOverflowRule**: The academic credit transfer policy where excess credits earned in General Education (`gened`) or Major Electives (`major_elective`) beyond curriculum quotas automatically cascade downwards to fulfill Free Elective (`free_elective`) requirements without penalizing student graduation progress.
 
 
 ### System Notification Domain

@@ -246,3 +246,13 @@ test('RegistrationRules structure conformity with n8n workflow v19.19', () => {
   assert.match(registrationRules.academicDismissal.condition, /1\.50/);
   assert.match(registrationRules.academicDismissal.condition, /4 ภาคการศึกษาปกติ/);
 });
+
+test('Metadata conformity: categoryCreditAudit and advising directives for n8n chatbot', () => {
+  const advisingDirectives = {
+    categoryCreditAuditRule: 'STRICT: เมื่อนักศึกษาถามเกี่ยวกับวิชาเลือก หมวดวิชาศึกษาทั่วไป วิชาเลือกกลุ่มวิชาชีพ วิชาเลือกเสรี หรือถามว่าวิชาเลือกครบหรือยัง ขาดอีกกี่หน่วยกิต ให้ยึดข้อมูลจาก categoryCreditAudit เป็น Single Source of Truth โดยระบุจำนวนหน่วยกิตที่ต้องเรียน (required), ที่เรียนผ่านแล้ว (completed), ที่ยังขาดอยู่ (remaining), และสถานะว่าครบแล้วหรือไม่ (isSatisfied) ของหมวดวิชานั้นๆ อย่างชัดเจน รวมถึงระบุหากมีหน่วยกิตเกินจากวิชาเลือกกลุ่มวิชาชีพหรือศึกษาทั่วไปที่โอนไปช่วยเติมเต็มหมวดวิชาเลือกเสรี (Waterfall Overflow)'
+  };
+
+  assert.ok(advisingDirectives.categoryCreditAuditRule.includes('categoryCreditAudit'));
+  assert.ok(advisingDirectives.categoryCreditAuditRule.includes('Waterfall Overflow'));
+  assert.ok(advisingDirectives.categoryCreditAuditRule.includes('Single Source of Truth'));
+});

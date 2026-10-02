@@ -10,6 +10,7 @@ import { FeedbackBanner } from './FeedbackBanner';
 import { getCurriculumSummaryCatalog, getAllCurriculumsMap, getCurriculumDurationGuard, getActiveCurriculumRule } from '@/services/curriculumCatalogService';
 import { evaluateAcademicStanding } from '@/utils/gradeUtils';
 import { computeUncompletedCurriculumCourses } from '@/utils/curriculumDeduplicationUtils';
+import { computeCategoryCreditAudit } from '@/utils/electiveAuditUtils';
 
 
 const ChatBot: React.FC = () => {
@@ -247,6 +248,13 @@ const ChatBot: React.FC = () => {
             )
           : [];
 
+        const categoryCreditAudit = isStudent
+          ? computeCategoryCreditAudit(
+              curriculumCourses,
+              studyPlan?.courses || []
+            )
+          : null;
+
         // Authoritative 13-curriculum guard — sourced from CURRICULUM_RULES_CATALOG in curriculumCatalogService
         const curriculumDurationGuard = getCurriculumDurationGuard();
         // Direct lookup for the student's own curriculum (O(1) access for n8n LLM)
@@ -317,6 +325,7 @@ const ChatBot: React.FC = () => {
             : '',
           passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
           uncompletedCoursesAnsweringRule: 'STRICT: เมื่อนักศึกษาถามว่า "ผมเหลือวิชาที่ยังไม่ได้เรียนคือวิชาไร" หรือถามเกี่ยวกับวิชาที่ยังไม่ผ่าน/ยังไม่ได้เรียน ให้ยึดรายการจาก uncompletedCurriculumCourses ใน metadata นี้เป็นแหล่งข้อมูลความจริง (Single Source of Truth) ห้ามนำรหัส wildcard (เช่น 080xxxxxx, 0602333xx, xxxxxxxxx, 080303xxx) หรือวิชาเลือกที่นักศึกษาลงทะเบียนผ่านครบตามโควตาแล้วมาตอบซ้ำ และให้ตอบเฉพาะรายวิชาที่อยู่ใน uncompletedCurriculumCourses เท่านั้น',
+          categoryCreditAuditRule: 'STRICT: เมื่อนักศึกษาถามเกี่ยวกับวิชาเลือก หมวดวิชาศึกษาทั่วไป วิชาเลือกกลุ่มวิชาชีพ วิชาเลือกเสรี หรือถามว่าวิชาเลือกครบหรือยัง ขาดอีกกี่หน่วยกิต ให้ยึดข้อมูลจาก categoryCreditAudit เป็น Single Source of Truth โดยระบุจำนวนหน่วยกิตที่ต้องเรียน (required), ที่เรียนผ่านแล้ว (completed), ที่ยังขาดอยู่ (remaining), และสถานะว่าครบแล้วหรือไม่ (isSatisfied) ของหมวดวิชานั้นๆ อย่างชัดเจน รวมถึงระบุหากมีหน่วยกิตเกินจากวิชาเลือกกลุ่มวิชาชีพหรือศึกษาทั่วไปที่โอนไปช่วยเติมเต็มหมวดวิชาเลือกเสรี (Waterfall Overflow)',
           retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
           directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
           multiTurnCurriculumRetention: 'STRICT: ให้รักษา ActiveConversationCurriculum จากข้อความก่อนหน้า หากผู้ใช้ถามต่อเนื่อง เช่น "บอกมาในแชทนี้เลย" หรือ "มีวิชาอะไรอีก" ให้ตอบตามหลักสูตรเดิมที่คุยค้างไว้',
@@ -410,6 +419,8 @@ const ChatBot: React.FC = () => {
               failedCourses: isStudent ? failedCourses : [],
               failedCourseCodes: isStudent ? failedCourseCodes : [],
               uncompletedCurriculumCourses: isStudent ? uncompletedCurriculumCourses : [],
+              categoryCreditAudit,
+              electiveAuditSummary: categoryCreditAudit,
               studyPlan: isStudent && studyPlan?.courses ? studyPlan.courses.map(c => ({
                 code: c.code,
                 name: c.name,
@@ -489,6 +500,8 @@ const ChatBot: React.FC = () => {
               failedCourses: [],
               failedCourseCodes: [],
               uncompletedCurriculumCourses: [],
+              categoryCreditAudit: null,
+              electiveAuditSummary: null,
               studyPlan: [],
               curriculumCourses: curriculumCourses.map(c => ({
                 code: (c.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/[\*\s]+$/g, '').trim(),

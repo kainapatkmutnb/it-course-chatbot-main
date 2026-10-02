@@ -168,6 +168,10 @@
   - แก้ไขปัญหาหลักสูตรที่มีรหัส Wildcard / Placeholder (เช่น `080xxxxxx`, `0602333xx`, `xxxxxxxxx`, `080303xxx`) ซึ่งเดิมเปรียบเทียบรหัสแบบตรงตัว ทำให้วิชาเลือกที่นักศึกษาเรียนผ่านแล้วไม่ถูกหักลบ และหลุดไปแสดงเป็นวิชาค้างเรียนในแชทบอท
   - ใช้ **Prioritized Multi-Pass Matching**: จัดหมวดหมู่วิชาเลือกเป็น 4 บักเก็ต ได้แก่ พลศึกษา (`pe`), วิชาชีพเลือก (`major_elective`), ศึกษาทั่วไป (`gened`) และเลือกเสรี (`free_elective`) โดยตัดยอดตามความจำเพาะของหมวดก่อน แล้วจึงนำวิชาที่เหลือเข้าตัดยอดวิชาเลือกเสรี
   - รองรับครบทั้ง **13 ฉบับหลักสูตร** พร้อมระบบจัดการคีย์หลักสูตรสหกิจศึกษา (`-COOP` $\rightarrow$ `${year} สหกิจ`) แบบเบ็ดเสร็จ ผ่านการทดสอบระดับระบบ 100%
+- **ระบบตรวจสอบหน่วยกิตระดับหมวดวิชาและการส่งต่อหน่วยกิตวิชาเลือกเกิน (Category-Level Elective Credit Audit & Waterfall Overflow Engine)**:
+  - ตรวจสอบความคืบหน้าหน่วยกิตแยก 4 หมวดหลักตามหลักสูตรอย่างแม่นยำ: (1) หมวดวิชาศึกษาทั่วไป, (2) หมวดวิชาเฉพาะ - บังคับ, (3) หมวดวิชาเฉพาะ - เลือกกลุ่มวิชาชีพ, และ (4) หมวดวิชาเลือกเสรี
+  - **Waterfall Overflow อัตโนมัติ**: เมื่อนักศึกษาเรียนวิชาเลือกกลุ่มวิชาชีพหรือศึกษาทั่วไปเกินเกณฑ์หลักสูตร หน่วยกิตส่วนเกินจะส่งต่อไปเติมเต็มในหมวดวิชาเลือกเสรีโดยอัตโนมัติ ไม่ตัดหน่วยกิตทิ้ง
+  - **Category Progress Cards บนหน้าแดชบอร์ด**: แสดงการ์ดสรุปความคืบหน้า 4 หมวดใต้ KPI Bar พร้อมแถบเปอร์เซ็นต์ (Progress Bar), ป้ายสถานะครบ/ขาด, และ Badge แจ้งเตือนการโอนหน่วยกิตแบบเรียลไทม์
 - **ระบบประเมินผลฝึกงาน/สหกิจศึกษา (S/U Evaluation System)**: รองรับการประเมินผลรายวิชาฝึกงานและสหกิจศึกษาด้วยเกรด `S` (Satisfactory - ผ่าน) และ `U` (Unsatisfactory - ไม่ผ่าน) โดยไม่นำมาถ่วงน้ำหนักแต้มระดับคะแนน (Non-graded credits) ตามข้อบังคับมหาวิทยาลัย
 - **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
 
@@ -215,6 +219,7 @@
 - **มาตรฐานชื่อวิชา (CoursePresentationFormat)**: คำตอบจากบอทจะประกอบด้วย `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` เสมอ ไม่ปล่อยรหัสวิชาลอยๆ ให้นักศึกษาสับสน
 - **ระบบสำรวจความพึงพอใจ 3 ระดับ (FeedbackScale)**: แสดงป้ายประเมินความพึงพอใจ (👎 ไม่ชอบ, 😐 ปานกลาง, 👍 ชอบ) ทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเข้าสู่ Realtime Database
 - **กฎการชี้ขาดวิชาค้างเรียนตามหลักสูตร (Uncompleted Courses Truth Directives)**: เมื่อนักศึกษาถามว่า *"ผมเหลือวิชาที่ยังไม่ได้เรียนคือวิชาไร"* หรือ *"ขาดวิชาอะไรบ้าง"* แชทบอทจะอ้างอิงรายการวิชาจาก `uncompletedCurriculumCourses` ที่คำนวณผ่าน Deduplication Engine เป็น Single Source of Truth โดยตอบเฉพาะวิชาที่ยังไม่ได้เรียนจริงและไม่แสดงรหัส Wildcard ที่ผ่านครบตามโควตาแล้วเด็ดขาด
+- **การให้คำปรึกษาหมวดวิชาและวิชาเลือก (Category Credit Audit Single Source of Truth)**: ป้อนข้อมูล `categoryCreditAudit` และ `electiveAuditSummary` เข้าสู่ metadata ของ n8n Chatbot ทำให้นักศึกษาสามารถสอบถามสถานะวิชาเลือกได้โดยตรง (เช่น *"วิชาเลือกเสรีผมครบยัง ขาดอีกกี่หน่วยกิต"*, *"วิชาเลือกกลุ่มวิชาชีพเรียนครบหรือยัง"*) โดย AI จะตอบโครงสร้างหน่วยกิตที่ต้องเรียน, ที่เรียนผ่านแล้ว, ที่ขาดอยู่, และสถานะว่าครบแล้วหรือไม่ พร้อมแจ้งการส่งต่อหน่วยกิตส่วนเกิน (Waterfall Overflow) อย่างแม่นยำ 100%
 - **แถบเวลาการแจ้งเตือน (Alert Timeout Progress)**: Toast, inline error และข้อความขอบคุณหลังส่ง feedback ที่ปิดอัตโนมัติจะแสดงแถบบางที่ขอบล่างเพื่อบอกเวลาคงเหลือ โดยแถบและการปิดใช้ตัวจับเวลาเดียวกัน
 
 ### 📑 4. รายงานและการบริหารจัดการระดับองค์กร (Reporting & Admin Controls)
@@ -429,6 +434,7 @@ it-course-chatbot-main/
 | [ADR-011](docs/adr/ADR-011-academic-standing-tiers-consecutive-probation-and-retirement.md) | ระบบประเมินสถานภาพทางวิชาการ 4 ระดับ การติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง และเกณฑ์การพ้นสภาพนักศึกษา (Four-Tier Academic Standing, Consecutive Probation Tracking, and Retirement Enforcement) | **Accepted** |
 | [ADR-012](docs/adr/ADR-012-curriculum-wildcard-category-quota-deduplication.md) | ระบบตัดยอดโควตาวิชาเลือกและการหักลบรหัส Wildcard ในหลักสูตร (Curriculum Wildcard Deduplication and Prioritized Category-Quota Matching) | **Accepted** |
 | [ADR-013](docs/adr/ADR-013-n8n-workflow-v19-metadata-and-registration-regulations.md) | การจัดโครงสร้าง Metadata รองรับ n8n Workflow v19.19 และการปรับปรุงระเบียบหน่วยกิตลงทะเบียน (n8n Workflow v19.19 Metadata Alignment & Registration Regulations) | **Accepted** |
+| [ADR-014](docs/adr/ADR-014-category-level-elective-credit-audit-and-waterfall-overflow.md) | ระบบตรวจสอบหน่วยกิตระดับหมวดวิชาและการส่งต่อหน่วยกิตวิชาเลือกเกิน (Category-Level Elective Credit Audit & Waterfall Overflow Engine) | **Accepted** |
 
 ### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
