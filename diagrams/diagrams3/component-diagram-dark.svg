@@ -118,12 +118,12 @@
     <!-- studyPlanIdentity & ViewModel -->
     <g transform="translate(400, 36)" filter="url(#comp-shadow-dark)">
       <rect width="375" height="110" rx="6" fill="#161b22" stroke="#2ea043" stroke-width="1.2" />
-      <text x="12" y="22" class="node-title" font-size="13">studyPlanService &amp; Academic ViewModel</text>
-      <text x="12" y="40" class="node-desc">• คำนวณ GPA รายภาค &amp; GPAX สะสม</text>
-      <text x="12" y="56" class="node-desc">• Prerequisite/Corequisite Validation &amp; Retake Guard</text>
-      <text x="12" y="72" class="node-desc">• S/U Evaluation (ไม่ถ่วงเกรดวิชาฝึกงาน/สหกิจ)</text>
-      <text x="12" y="88" class="node-desc">• ตรวจสอบเพดานหน่วยกิต (9-22, วิทยาทัณฑ์ ≤16)</text>
-      <text x="12" y="104" class="node-code">studyPlanModel.ts / academicRules.ts</text>
+      <text x="12" y="22" class="node-title" font-size="13">studyPlanService &amp; Academic Standing Engine</text>
+      <text x="12" y="40" class="node-desc">• คำนวณ GPA รายภาค, GPAX สะสม &amp; สถานะวิชาการ 4 ระดับ</text>
+      <text x="12" y="56" class="node-desc">• ตรวจโปรต่ำ/โปรสูง, นับ 4 ภาคปกติ &amp; Retirement Guard (&lt;1.50)</text>
+      <text x="12" y="72" class="node-desc">• Prerequisite/Corequisite Validation &amp; Retake Guard (F Block)</text>
+      <text x="12" y="88" class="node-desc">• ตรวจเพดานหน่วยกิต (9-22, วิทยาทัณฑ์ ≤16) &amp; เป้าหมายกู้เกรด</text>
+      <text x="12" y="104" class="node-code">gradeUtils.ts / studyPlanModel.ts / academicRules.ts</text>
     </g>
 
     <!-- Static Master Catalogs (13 variants) -->

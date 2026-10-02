@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram</title>
+  <title>ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Academic Standing &amp; Retirement Guard State Machine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -67,9 +67,9 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      overflow-x: auto;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
     }
     .diagram-view {
       width: 100%;
@@ -80,80 +80,102 @@
       max-width: 1280px;
       width: 100%;
       display: grid;
-      grid-template-columns: 1fr 1.2fr 1fr;
-      gap: 1rem;
-      margin-top: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
     }
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1.25rem;
+      padding: 1.5rem;
     }
     .card h3 {
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 600;
       margin-bottom: 0.5rem;
-      color: var(--accent-blue);
+      color: var(--text-main);
     }
-    .card p, .card li {
-      font-size: 0.85rem;
+    .card p {
+      font-size: 0.875rem;
       color: var(--text-muted);
       line-height: 1.5;
+      margin-bottom: 0.75rem;
     }
     .card ul {
-      padding-left: 1.25rem;
-      margin-top: 0.5rem;
+      list-style-type: none;
+      font-size: 0.875rem;
+      color: var(--text-main);
+    }
+    .card li {
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .card li::before {
+      content: "•";
+      color: var(--accent-blue);
+      font-weight: bold;
     }
   </style>
 </head>
-<body data-theme="light">
+<body>
+
   <div class="header-bar">
     <div>
-      <h1 style="font-size: 1.35rem; font-weight: 700;">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram</h1>
-      <p style="font-size: 0.875rem; color: var(--text-muted);">สถาปัตยกรรมเชิงชั้น (4 Layers): App Shell, Feature Components, Domain Logic &amp; Hybrid Storage, External Runtime</p>
+      <h1 style="font-size: 1.5rem; font-weight: 700;">ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot</h1>
+      <p style="color: var(--text-muted); font-size: 0.875rem;">Academic Standing &amp; Retirement Guard State Machine Diagram</p>
     </div>
     <button class="theme-toggle-btn" id="toggleTheme">
-      <span id="themeIcon">🌙</span> <span id="themeText">สลับเป็น Dark Mode</span>
+      <span id="themeIcon">🌙</span>
+      <span id="themeText">สลับเป็น Dark Mode</span>
     </button>
   </div>
 
   <div class="diagram-container">
     <div id="lightSvgWrapper">
-      <object data="component-diagram-light.svg" type="image/svg+xml" class="diagram-view"></object>
+      <object data="academic-standing-state-machine-light.svg" type="image/svg+xml" class="diagram-view"></object>
     </div>
     <div id="darkSvgWrapper" style="display: none;">
-      <object data="component-diagram-dark.svg" type="image/svg+xml" class="diagram-view"></object>
+      <object data="academic-standing-state-machine-dark.svg" type="image/svg+xml" class="diagram-view"></object>
     </div>
   </div>
 
   <div class="cards-grid">
     <div class="card">
-      <h3>🧩 Presentation &amp; Features</h3>
-      <p>โครงสร้างหน้าจอและเลเยอร์ติดต่อผู้ใช้:</p>
+      <h3>🟢 01 · สถานะปกติ (Normal)</h3>
+      <p>เกณฑ์มาตรฐานและการรักษาสภาพ:</p>
       <ul>
-        <li><b>StudyPlanView:</b> แผนของฉัน vs ผังหลักสูตร</li>
-        <li><b>CurriculumCatalog:</b> ค้นหาและกรองวิชา</li>
-        <li><b>ChatContainer:</b> แชทบอทพร้อม Native Caret &amp; Feedback</li>
+        <li><b>GPAX สะสม:</b> ตั้งแต่ 2.00 ขึ้นไป</li>
+        <li><b>โควตาลงทะเบียน:</b> 9 - 22 หน่วยกิต (ภาคปกติ)</li>
+        <li><b>ตัวนับโปร:</b> รีเซ็ตกลับเป็น 0 ทันทีที่แตะ 2.00</li>
       </ul>
     </div>
     <div class="card">
-      <h3>🔄 Hybrid Precedence Engine</h3>
-      <p>ลำดับความสำคัญของแหล่งข้อมูลรายวิชา:</p>
+      <h3>🔵 02 · โปรสูง (Probation 2)</h3>
+      <p>เฝ้าระวังก่อนสำเร็จการศึกษา:</p>
       <ul>
-        <li><b>1. Curriculum RTDB:</b> ข้อมูลเฉพาะหลักสูตรที่ Staff ปรับปรุง</li>
-        <li><b>2. General Courses RTDB:</b> ดัชนีรวม courses/{id}</li>
-        <li><b>3. Static Master Catalog:</b> แค็ตตาล็อกแม่บท 13 ฉบับ (Fallback)</li>
+        <li><b>GPAX สะสม:</b> 1.75 - 1.99</li>
+        <li><b>โควตาลงทะเบียน:</b> จำกัดไม่เกิน 16 หน่วยกิต</li>
+        <li><b>เกณฑ์สำเร็จการศึกษา:</b> ต้องกู้เกรดให้ถึง 2.00 จึงจะจบได้</li>
       </ul>
     </div>
     <div class="card">
-      <h3>⚙️ Rules &amp; Verification</h3>
-      <p>ตรรกะระเบียบวิชาการอัตโนมัติ:</p>
+      <h3>🟠 03 · โปรต่ำ (Probation 1)</h3>
+      <p>วิทยาทัณฑ์ขั้นวิกฤตระวังรีไทร์:</p>
       <ul>
-        <li><b>Academic Standing (4 Tiers):</b> ปกติ, โปรสูง, โปรต่ำ, รีไทร์</li>
-        <li><b>Credit Bounds:</b> ควบคุม 9-22 หน่วยกิต (ภาคปกติ) / โปร ≤16 นก.</li>
-        <li><b>Retirement Guard:</b> GPAX &lt; 1.50 หรือติดโปรครบ 4 ภาคปกติ</li>
-        <li><b>Retake Guard:</b> ติด F บล็อกวิชาตัวต่อทันที</li>
+        <li><b>GPAX สะสม:</b> 1.50 - 1.74</li>
+        <li><b>โควตาลงทะเบียน:</b> จำกัดไม่เกิน 16 หน่วยกิต</li>
+        <li><b>เงื่อนไขสำคัญ:</b> ติดโปรได้ไม่เกิน 4 ภาคปกติติดต่อกัน</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🔴 04 · พ้นสภาพ (Retired)</h3>
+      <p>ระบบแจ้งเตือนฉุกเฉิน 2 เงื่อนไข:</p>
+      <ul>
+        <li><b>เงื่อนไข 1:</b> GPAX &lt; 1.50 หลังปี 1 เทอม 2 เป็นต้นไป</li>
+        <li><b>เงื่อนไข 2:</b> ติดโปร (GPAX &lt; 2.00) สะสมครบ 4 ภาคปกติ</li>
+        <li><b>Summer Rule:</b> ภาคฤดูร้อนคิด GPAX แต่ไม่นับเทอมโปร</li>
       </ul>
     </div>
   </div>

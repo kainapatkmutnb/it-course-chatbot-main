@@ -58,6 +58,7 @@
 | **Component Diagram** | สถาปัตยกรรมเชิงชั้น 4 เลเยอร์ | [Light](diagrams/diagrams3/component-diagram-light.svg) · [Dark](diagrams/diagrams3/component-diagram-dark.svg) | [Light](diagrams/diagrams3/component-diagram-light.png) · [Dark](diagrams/diagrams3/component-diagram-dark.png) | [component-diagram.html](diagrams/diagrams3/component-diagram.html) |
 | **Data Flow Diagram (DFD L1)** | การไหลของข้อมูลระดับ 1 (Processes & RTDB) | [Light](diagrams/diagrams3/data-flow-diagram-light.svg) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.svg) | [Light](diagrams/diagrams3/data-flow-diagram-light.png) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.png) | [data-flow-diagram.html](diagrams/diagrams3/data-flow-diagram.html) |
 | **Sequence Diagram** | ลำดับการทำงานของนักศึกษา (Session Lifecycle) | [Light](diagrams/diagrams3/sequence-diagram-light.svg) · [Dark](diagrams/diagrams3/sequence-diagram-dark.svg) | [Light](diagrams/diagrams3/sequence-diagram-light.png) · [Dark](diagrams/diagrams3/sequence-diagram-dark.png) | [sequence-diagram.html](diagrams/diagrams3/sequence-diagram.html) |
+| **Academic Standing State Machine** | สถานะวิชาการ 4 ระดับและการพ้นสภาพ (Retirement Guard) | [Light](diagrams/diagrams3/academic-standing-state-machine-light.svg) · [Dark](diagrams/diagrams3/academic-standing-state-machine-dark.svg) | - | [academic-standing-state-machine.html](diagrams/diagrams3/academic-standing-state-machine.html) |
 
 <br />
 
@@ -107,6 +108,16 @@
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/sequence-diagram-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/sequence-diagram-light.svg">
   <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Sequence Diagram" src="diagrams/diagrams3/sequence-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 6. สถานะวิชาการและการพ้นสภาพ · Academic Standing &amp; Retirement Guard State Machine
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/academic-standing-state-machine-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/academic-standing-state-machine-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Academic Standing &amp; Retirement Guard State Machine" src="diagrams/diagrams3/academic-standing-state-machine-light.svg" width="100%">
 </picture>
 
 
