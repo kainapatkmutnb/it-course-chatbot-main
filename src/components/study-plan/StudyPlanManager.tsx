@@ -1,857 +1,1523 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDepartments, useCourses } from '@/hooks/useFirebaseData';
-import { generateCoursesForSemester, courseDatabase } from '@/services/completeCurriculumData';
+import { courseDatabase } from '@/services/completeCurriculumData';
 import { firebaseService } from '@/services/firebaseService';
-import { 
-  getAllCourses, 
-  getCoursesByProgram, 
-  filterCourses, 
-  getAvailablePrograms, 
-  getAvailableCurriculumYears,
-  searchCourses,
-  CourseWithProgram,
-  CourseFilter
-} from '@/services/courseService';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Save, 
-  BookOpen, 
-  GraduationCap, 
-  Calendar, 
-  Search,
+import { serializeStudentCourse } from './studyPlanIdentity';
+import { AcademicAlertDialog, AcademicAlertState } from './AcademicAlertDialog';
+import {
+  BookOpen,
+  Calendar,
   Target,
-  CheckCircle,
-  Clock,
+  Trophy,
+  Pencil,
+  Trash2,
+  PlusCircle,
+  X,
+  Check,
+  ArrowRightLeft,
+  Lightbulb,
+  Search,
+  CheckCircle2,
   AlertCircle,
-  Trophy
+  Sparkles,
+  Layers,
 } from 'lucide-react';
-import { Course, StudentCourse } from '@/types/course';
-import { 
-  calculateGPA, 
-  getGradePoint, 
-  getAvailableGrades, 
-  getGradeColor,
-  getGPAColor 
+import { Progress } from '@/components/ui/progress';
+import {
+  calculateGPA,
+  getAvailableGrades,
+  getGPAColor,
+  countsAsCompletedCredits,
+  isGradeCountedInGPA,
+  isPassingGrade,
 } from '@/utils/gradeUtils';
+import { getCurriculumTotalCredits } from '@/services/departmentService';
+import { computeCategoryCreditAudit } from '@/utils/electiveAuditUtils';
 
-interface CustomCourse {
-  id: string;
-  courseId?: string;
+interface CurriculumCourse {
   code: string;
   name: string;
+  credits: number;
+  category: 'core' | 'major' | 'elective' | 'general' | 'free';
+  mainCategory?: string;
+  subCategory?: string;
+  prerequisites?: string[];
+  year: number;
+  semester: number;
+}
+
+interface StudentCourse {
+  id: string;
+  code: string;
+  originalName: string;
+  customName?: string;
+  customCode?: string;
   credits: number;
   year: number;
   semester: number;
   status: 'planned' | 'in_progress' | 'completed' | 'failed';
   grade?: string;
-  type: 'required' | 'elective' | 'general';
-  category?: string;
-  description?: string;
+  category: 'core' | 'major' | 'elective' | 'general' | 'free';
   mainCategory?: string;
   subCategory?: string;
   prerequisites?: string[];
-  corequisites?: string[];
+  isElective?: boolean;
 }
 
-interface CustomStudyPlan {
+interface StudyPlan {
   id: string;
+  studentId: string;
   studentEmail: string;
-  planName: string;
+  program: string;
+  curriculumYear: string;
+  isLocked: boolean;
+  courses: StudentCourse[];
   totalCredits: number;
-  courses: CustomCourse[];
+  completedCredits?: number;
+  gpa?: number;
+  studentYear?: number;
+  currentYear?: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const StudyPlanManager: React.FC = () => {
   const { user } = useAuth();
-  const { departments, loading: departmentsLoading } = useDepartments();
-  const { courses, loading: coursesLoading } = useCourses();
-  
-  // State for custom study plan
-  const [customPlan, setCustomPlan] = useState<CustomStudyPlan>({
-    id: '',
-    studentEmail: user?.email || '',
-    planName: 'แผนการเรียนของฉัน',
-    totalCredits: 0,
-    courses: [],
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
 
-  // State for course management
-  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<CustomCourse | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterYear, setFilterYear] = useState<string>('all');
-  const [filterSemester, setFilterSemester] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  // Academic Alert & Confirm Dialog State
+  const [academicDialog, setAcademicDialog] = useState<AcademicAlertState | null>(null);
 
-  // New course form state
-  const [newCourse, setNewCourse] = useState<Partial<CustomCourse>>({
-    code: '',
-    name: '',
-    credits: 3,
-    year: 1,
-    semester: 1,
-    status: 'planned',
-    type: 'required',
-    description: ''
-  });
+  const showAlert = useCallback((config: Omit<AcademicAlertState, 'isOpen'>) => {
+    setAcademicDialog({ ...config, isOpen: true });
+  }, []);
 
-  // New state for course selection from curriculum data
-  const [availableCourses, setAvailableCourses] = useState<any[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
-  const [courseSearchTerm, setCourseSearchTerm] = useState('');
-  const [selectedCurriculumYear, setSelectedCurriculumYear] = useState('67');
-  const [selectedProgram, setSelectedProgram] = useState('IT');
-  const [courseSelectionMode, setCourseSelectionMode] = useState<'manual' | 'curriculum'>('curriculum');
-  const [selectedCourseFromCurriculum, setSelectedCourseFromCurriculum] = useState<string>('');
+  const showConfirm = useCallback((config: Omit<AcademicAlertState, 'isOpen' | 'isConfirm'>) => {
+    setAcademicDialog({ ...config, isOpen: true, isConfirm: true });
+  }, []);
+
+  const closeAlert = useCallback(() => {
+    setAcademicDialog(prev => prev ? { ...prev, isOpen: false } : null);
+  }, []);
+
+  // State สำหรับ inline schedule editor
+  const [editingSchedule, setEditingSchedule] = useState<string | null>(null);
+  const [editYear, setEditYear] = useState<number>(1);
+  const [editSemester, setEditSemester] = useState<number>(1);
+  // State สำหรับฟีเจอร์แนะนำวิชาที่ควรเรียนต่อ
+  const [showRecommendPanel, setShowRecommendPanel] = useState<boolean>(false);
+  // ปี+เทอมที่เลือกสำหรับแต่ละวิชาในฟีเจอร์แนะนำ
+  const [recommendSelections, setRecommendSelections] = useState<Record<string, { year: number; semester: number }>>({});
+  // Selected Year for 2-level tabs view (Year 1, 2, 3, 4, ...)
+  const [selectedYearView, setSelectedYearView] = useState<number>(1);
+  const [extraYears, setExtraYears] = useState<number>(4);
+  const [showSummerYear, setShowSummerYear] = useState<Record<number, boolean>>({});
+  // State สำหรับฟีเจอร์เพิ่มวิชาเรียน (manual)
+  const [showAddCourseDialog, setShowAddCourseDialog] = useState<boolean>(false);
+  const [addCourseFilterYear, setAddCourseFilterYear] = useState<string>('1');
+  const [addCourseFilterSem, setAddCourseFilterSem] = useState<string>('all');
+  const [addCourseSearch, setAddCourseSearch] = useState<string>('');
+  const [addCourseSelections, setAddCourseSelections] = useState<Record<string, { year: number; semester: number }>>({}); 
+
+  const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(null);
   const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
   const [availableCurriculumYears, setAvailableCurriculumYears] = useState<string[]>([]);
-  
-  // New state for year and semester filtering
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState<number | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<string>('');
+  const [selectedCurriculumYear, setSelectedCurriculumYear] = useState<string>('');
+  const [curriculumCourses, setCurriculumCourses] = useState<CurriculumCourse[]>([]);
+  const [curriculumSearchTerm, setCurriculumSearchTerm] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize available programs and curriculum years
   useEffect(() => {
-    const programs = Object.keys(courseDatabase);
-    setAvailablePrograms(programs);
-    
-    if (programs.length > 0 && !programs.includes(selectedProgram)) {
-      setSelectedProgram(programs[0]);
+    try {
+      const validDepartments = ['IT', 'INE', 'INET', 'ITI', 'ITT'];
+      const programs = Object.keys(courseDatabase).filter(p => validDepartments.includes(p) && p !== 'INE-COOP');
+      setAvailablePrograms(programs);
+    } catch (err) {
+      console.error('Error loading programs:', err);
+      setError('เกิดข้อผิดพลาดในการโหลดหลักสูตร');
     }
   }, []);
 
-  // Update available curriculum years when program changes
   useEffect(() => {
-    const curriculumYears = Object.keys(courseDatabase[selectedProgram] || {});
-    setAvailableCurriculumYears(curriculumYears);
-    
-    if (curriculumYears.length > 0 && !selectedCurriculumYear) {
-      setSelectedCurriculumYear(curriculumYears[0]);
+    if (selectedProgram) {
+      try {
+        const years = Object.keys(courseDatabase[selectedProgram] || {});
+        setAvailableCurriculumYears(years);
+        if (years.length > 0 && !selectedCurriculumYear) {
+          setSelectedCurriculumYear(years[0]);
+        }
+      } catch (err) {
+        console.error('Error loading curriculum years:', err);
+        setError('เกิดข้อผิดพลาดในการโหลดปีหลักสูตร');
+      }
     }
   }, [selectedProgram]);
 
-  // Update available courses when filters change
   useEffect(() => {
-    const loadCourses = async () => {
-      if (courseSelectionMode === 'curriculum') {
-        const allCourses: any[] = [];
-        
-        // 1. Get courses from curriculum data (completeCurriculumData.ts)
+    if (selectedProgram && selectedCurriculumYear) {
+      try {
+        const courses: CurriculumCourse[] = [];
         const programData = courseDatabase[selectedProgram]?.[selectedCurriculumYear];
+
         if (programData) {
-          // Extract courses from semester-based structure (e.g., "1-1", "1-2", "2-1", "2-2")
-          Object.entries(programData).forEach(([semesterKey, courses]: [string, any]) => {
-            if (Array.isArray(courses)) {
-              const [year, semester] = semesterKey.split('-').map(Number);
-              courses.forEach((course: any) => {
-                allCourses.push({
-                  ...course,
-                  id: course.code || `${course.name}_${Math.random()}`,
-                  year: year,
-                  semester: semester,
-                  semesterKey: semesterKey,
-                  source: 'curriculum'
+          Object.entries(programData)
+            .sort(([a], [b]) => {
+              const [yA, sA] = a.split('-').map(Number);
+              const [yB, sB] = b.split('-').map(Number);
+              return yA !== yB ? yA - yB : sA - sB;
+            })
+            .forEach(([semesterKey, semesterCourses]: [string, any]) => {
+              if (Array.isArray(semesterCourses)) {
+                const [year, semester] = semesterKey.split('-').map(Number);
+                semesterCourses.forEach((course: any) => {
+                  courses.push({
+                    ...course,
+                    year,
+                    semester
+                  });
                 });
-              });
-            }
-          });
+              }
+            });
         }
-        
-        // 2. Get courses from Firebase (added by admin)
-        try {
-          const firebaseCourses = await firebaseService.getCourses(selectedProgram, selectedCurriculumYear);
-          
-          // Add Firebase courses to the list
-          firebaseCourses.forEach((course: any) => {
-            // Check if course already exists in curriculum data
-            const existingCourse = allCourses.find(c => c.code === course.code);
-            
-            if (!existingCourse) {
-              // Add new course from Firebase
-              allCourses.push({
-                ...course,
-                id: course.id || course.code,
-                year: course.year || 1,
-                semester: course.semester || 1,
-                semesterKey: `${course.year || 1}-${course.semester || 1}`,
-                source: 'firebase'
-              });
-            } else {
-              // Update existing course with Firebase data (Firebase takes priority)
-              Object.assign(existingCourse, {
-                ...course,
-                source: 'both'
-              });
-            }
-          });
-        } catch (error) {
-          console.error('Error loading Firebase courses:', error);
-        }
-        
-        setAvailableCourses(allCourses);
-        setFilteredCourses(allCourses);
+
+        setCurriculumCourses(courses);
+      } catch (err) {
+        console.error('Error loading courses:', err);
+        setError('เกิดข้อผิดพลาดในการโหลดรายวิชา');
       }
-    };
-    
-    loadCourses();
-  }, [courseSelectionMode, selectedProgram, selectedCurriculumYear]);
+    }
+  }, [selectedProgram, selectedCurriculumYear]);
 
-  // Filter courses based on search term, year, and semester
-  useEffect(() => {
-    let filtered = [...availableCourses];
-    
-    // Filter by selected year - but allow years 5-8 to see all courses
-    if (selectedYear !== null && selectedYear <= 4) {
-      filtered = filtered.filter(course => course.year === selectedYear);
-    }
-    
-    // Filter by selected semester - but allow years 5-8 to see all semesters
-    if (selectedSemester !== null && selectedYear !== null && selectedYear <= 4) {
-      filtered = filtered.filter(course => course.semester === selectedSemester);
-    }
-    
-    // Filter by search term
-    if (courseSearchTerm.trim() !== '') {
-      const searchLower = courseSearchTerm.toLowerCase();
-      filtered = filtered.filter(course => 
-        course.code?.toLowerCase().includes(searchLower) ||
-        course.name?.toLowerCase().includes(searchLower) ||
-        course.description?.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    setFilteredCourses(filtered);
-  }, [availableCourses, selectedYear, selectedSemester, courseSearchTerm]);
+  const isInternshipCourse = useCallback((course: Pick<StudentCourse, 'code' | 'originalName' | 'subCategory'>): boolean => {
+    const code = (course.code || '').trim();
+    const name = (course.originalName || '').trim();
+    const subCategory = course.subCategory || '';
+    const isInternshipCategory = subCategory === 'กลุ่มวิชาฝึกงาน/สหกิจศึกษา';
+    const looksLikeInternship = name.includes('ฝึกงาน') || name.includes('ฝึกปฏิบัติงาน');
+    const isInternshipCode = code.includes('060233403');
+    const isCoop = name.includes('สหกิจ');
+    const isProject = name.includes('โครงงาน');
+    return (isInternshipCode || (isInternshipCategory && looksLikeInternship)) && !isCoop && !isProject;
+  }, []);
 
-  // Initialize study plan from Firebase or create empty plan
+  const extractCodeToken = useCallback((text: string): { full?: string; digits?: string } | null => {
+    const t = (text || '').trim();
+    if (!t) return null;
+    if (t.includes('โดยความเห็นชอบ')) return null;
+    if (t.includes('ความเห็นชอบของภาควิชา')) return null;
+    if (t.includes('ตามความเห็นชอบ')) return null;
+
+    const full = t.match(/[A-Z]{2,6}-\d{6,9}/)?.[0];
+    const digits = t.match(/\d{6,9}/)?.[0];
+    if (!full && !digits) return null;
+    return { ...(full ? { full } : {}), ...(digits ? { digits } : {}) };
+  }, []);
+
+  const buildCourseIndex = useCallback((courses: StudentCourse[]) => {
+    const byDigits = new Map<string, StudentCourse>();
+    const byFull = new Map<string, StudentCourse>();
+    for (const c of courses) {
+      const code = (c.code || '').trim();
+      if (code) byFull.set(code, c);
+      const digits = code.match(/\d{6,9}/)?.[0];
+      if (digits) byDigits.set(digits, c);
+    }
+    return { byDigits, byFull };
+  }, []);
+
+  const getPrerequisiteIssues = useCallback((course: StudentCourse, allCourses: StudentCourse[]) => {
+    const prerequisites = course.prerequisites || [];
+    if (prerequisites.length === 0) {
+      return { missing: [] as string[], failed: [] as string[] };
+    }
+
+    const { byDigits, byFull } = buildCourseIndex(allCourses);
+    const missing: string[] = [];
+    const failed: string[] = [];
+
+    for (const prereq of prerequisites) {
+      const token = extractCodeToken(prereq);
+      if (!token) continue;
+
+      const target =
+        (token.full ? byFull.get(token.full) : undefined) ||
+        (token.digits ? byDigits.get(token.digits) : undefined);
+
+      if (!target) continue;
+
+      const grade = (target.grade || '').trim().toUpperCase();
+      if (!grade) {
+        missing.push(target.code);
+        continue;
+      }
+      if (grade === 'F' || grade === 'U') {
+        failed.push(target.code);
+      } else if (grade === 'I' || grade === 'W') {
+        missing.push(target.code);
+      }
+    }
+
+    return { missing, failed };
+  }, [buildCourseIndex, extractCodeToken]);
+
   useEffect(() => {
     const loadStudyPlan = async () => {
       if (!user?.id) return;
-      
+
       try {
         const existingPlan = await firebaseService.getStudyPlanByStudentId(user.id);
-        
-        if (existingPlan) {
-          // Load existing plan from Firebase
-          setCustomPlan({
+
+        if (existingPlan && existingPlan.program && existingPlan.curriculumYear) {
+          const convertedCourses: StudentCourse[] = (existingPlan.courses || []).map((course: any) => {
+            let code = course.code || 'N/A';
+            const originalName = course.originalName || course.name || 'N/A';
+
+            // Auto-correct wrong course code for language elective 3 in INE 62
+            if (existingPlan.program === 'INE' &&
+              (existingPlan.curriculumYear === '62' || existingPlan.curriculumYear === '62 สหกิจ') &&
+              course.year === 2 &&
+              course.semester === 1 &&
+              (code.trim() === 'INE-080303xxx' || code.trim() === '080303xxx')) {
+              code = 'INE-080103xxx  ';
+            }
+
+            const subCategory = course.subCategory;
+            const internship = isInternshipCourse({ code, originalName, subCategory });
+            let status = course.status || 'planned';
+            let grade = course.grade || '';
+
+            if (internship) {
+              if (status === 'completed' && !grade) {
+                grade = 'S';
+              } else if (grade !== 'S') {
+                grade = '';
+              }
+            }
+
+            // Sync status with grade if grade is set
+            if (grade) {
+              if (grade === 'F' || grade === 'U') {
+                status = 'failed';
+              } else if (grade === 'I' || grade === 'W') {
+                status = 'in_progress';
+              } else {
+                status = 'completed'; // A, B+, B, C+, C, D+, D, S
+              }
+            } else {
+              // No grade: cannot be completed or failed
+              if (status === 'completed' || status === 'failed') {
+                status = 'planned';
+              }
+            }
+
+            return {
+              id: course.id || `course-${Date.now()}-${Math.random()}`,
+              code,
+              originalName,
+              customName: course.customName,
+              customCode: course.customCode,
+              credits: course.credits || 0,
+              year: course.year || 1,
+              semester: course.semester || 1,
+              status,
+              grade,
+              category: course.category || 'core',
+              mainCategory: course.mainCategory,
+              subCategory,
+              prerequisites: course.prerequisites || [],
+              isElective: course.isElective || course.category === 'elective' || course.category === 'general' || course.category === 'free' || course.subCategory === 'กลุ่มวิชาชีพ' || ((originalName || '').includes('วิชาเลือก'))
+            };
+          });
+          setStudyPlan({
             id: existingPlan.id,
-            studentEmail: user.email || '',
-            planName: 'แผนการเรียนของฉัน',
-            courses: existingPlan.courses.map(course => ({
-              ...course,
-              id: course.id || `course_${Date.now()}_${Math.random()}`,
-              courseId: course.courseId || course.id
-            })),
+            studentId: user.id,
+            studentEmail: existingPlan.studentEmail || user.email || '',
+            program: existingPlan.program,
+            curriculumYear: existingPlan.curriculumYear,
+            isLocked: existingPlan.isLocked !== false,
+            courses: convertedCourses,
             totalCredits: existingPlan.totalCredits || 0,
             createdAt: new Date(existingPlan.createdAt),
             updatedAt: new Date(existingPlan.updatedAt)
           });
-        } else {
-          // Create new empty plan
-          setCustomPlan(prev => ({
-            ...prev,
-            id: `plan_${user.id}_${Date.now()}`,
-            studentEmail: user.email || ''
-          }));
+          // โหลด curriculumCourses สำหรับฟีเจอร์แนะนำวิชา
+          setSelectedProgram(existingPlan.program);
+          setSelectedCurriculumYear(existingPlan.curriculumYear);
         }
-      } catch (error) {
-        console.error('Error loading study plan:', error);
-        // Fallback to empty plan
-        setCustomPlan(prev => ({
-          ...prev,
-          id: `plan_${user.id}_${Date.now()}`,
-          studentEmail: user.email || ''
-        }));
+      } catch (err) {
+        console.error('Error loading study plan:', err);
+        setError('เกิดข้อผิดพลาดในการโหลดแผนการเรียน');
       }
     };
 
     loadStudyPlan();
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, isInternshipCourse]);
 
-  // Save study plan to Firebase whenever customPlan changes
-  useEffect(() => {
-    const saveStudyPlan = async () => {
-      if (!user?.id || !customPlan.id) return;
-      
-      try {
-        const studyPlanData = {
-          studentId: user.id,
-          studentEmail: user.email || '',
-          curriculum: 'default',
-          completedCredits: completedCredits,
-          gpa: gpaResult.gpa || 0,
-          courses: customPlan.courses.map(course => ({
-            id: course.id,
-            courseId: course.courseId || course.id,
-            code: course.code,
-            name: course.name,
-            credits: course.credits,
-            year: course.year,
-            semester: course.semester,
-            status: course.status,
-            grade: course.grade || null,
-            type: course.type === 'general' ? 'elective' : course.type,
-            description: course.description || ''
-          })),
-          totalCredits: customPlan.totalCredits,
-          createdAt: customPlan.createdAt,
-          updatedAt: new Date()
-        };
+  // หา course code digits สำหรับเปรียบเทียบ prerequisite
+  const getCourseDigits = useCallback((code: string): string => {
+    return (code || '').match(/\d{6,9}/)?.[0] || '';
+  }, []);
 
-        // Check if study plan exists
-        const existingPlan = await firebaseService.getStudyPlanByStudentId(user.id);
-        
-        if (existingPlan) {
-          // Update existing plan
-          await firebaseService.updateStudyPlan(existingPlan.id, studyPlanData);
-        } else {
-          // Create new plan
-          await firebaseService.createStudyPlan(studyPlanData);
+  // Cascade clear เกรดวิชาที่ depend กับ courseCode ที่กำหนด (และลูกหลานทั้งหมด)
+  const cascadeClearGrades = useCallback((courses: StudentCourse[], failedCourseCode: string): StudentCourse[] => {
+    const failedDigits = getCourseDigits(failedCourseCode);
+    const failedFull = (failedCourseCode || '').trim();
+
+    // หาวิชาที่ต้องล้างเกรด (depend กับ failedCourseCode)
+    const dependentIds = new Set<string>();
+
+    const collectDependents = (code: string, digits: string) => {
+      courses.forEach(c => {
+        if (dependentIds.has(c.id)) return;
+        const prereqs = c.prerequisites || [];
+        const depends = prereqs.some(p => {
+          const pFull = (p || '').trim();
+          const pDigits = getCourseDigits(p);
+          return (
+            (pFull && pFull === code) ||
+            (pDigits && pDigits === digits)
+          );
+        });
+        if (depends && c.grade) {
+          dependentIds.add(c.id);
+          // recursive: ล้างวิชาที่ depend กับวิชานี้ด้วย
+          collectDependents((c.code || '').trim(), getCourseDigits(c.code));
         }
-      } catch (error) {
-        console.error('Error saving study plan:', error);
-      }
+      });
     };
 
-    // Debounce the save operation to avoid too frequent saves
-    const timeoutId = setTimeout(saveStudyPlan, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [customPlan, user?.id, user?.email]);
+    collectDependents(failedFull, failedDigits);
 
-  // Calculate total credits
-  useEffect(() => {
-    const total = customPlan.courses.reduce((sum, course) => sum + course.credits, 0);
-    setCustomPlan(prev => ({ ...prev, totalCredits: total }));
-  }, [customPlan.courses]);
+    if (dependentIds.size === 0) return courses;
 
-  // Add new course to plan
-  // Modified add course function to handle curriculum selection
-  const addCourse = () => {
-    let courseData: any = {};
+    return courses.map(c => {
+      if (!dependentIds.has(c.id)) return c;
+      return { ...c, grade: '', status: 'planned' as const };
+    });
+  }, [getCourseDigits]);
 
-    if (courseSelectionMode === 'curriculum' && selectedCourseFromCurriculum) {
-      // Find selected course from curriculum data
-      const selectedCourse = filteredCourses.find(c => c.id === selectedCourseFromCurriculum);
-      if (selectedCourse) {
-        courseData = {
-          code: selectedCourse.code,
-          name: selectedCourse.name,
-          credits: selectedCourse.credits,
-          year: selectedCourse.year,
-          semester: selectedCourse.semester,
-          description: selectedCourse.description || '',
-          mainCategory: selectedCourse.mainCategory || '',
-          subCategory: selectedCourse.subCategory || '',
-          prerequisites: selectedCourse.prerequisites || [],
-          corequisites: selectedCourse.corequisites || [],
-          type: selectedCourse.category === 'core' ? 'required' : 
-                selectedCourse.category === 'general' ? 'general' : 'elective'
-        };
+  const updateCourseGrade = useCallback((courseId: string, grade: string) => {
+    if (!studyPlan) return;
+
+    const course = studyPlan.courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    // ========================================================
+    // เช็ค prerequisite เฉพาะเมื่อยังไม่มีเกรด (ใส่ครั้งแรก)
+    // ถ้ามีเกรดแล้ว (กำลังแก้ไข) ให้ข้ามการเช็ค
+    // เพื่อให้แก้เกรดวิชา A เป็น F ได้แม้วิชา B จะมีเกรดอยู่
+    // ========================================================
+    if (!course.grade) {
+      const prereqIssues = getPrerequisiteIssues(course, studyPlan.courses);
+      if (prereqIssues.missing.length > 0) {
+        showAlert({
+          title: 'วิชานี้มีวิชาที่ต้องเรียนก่อน (Prerequisite)',
+          description: 'กรุณาลงทะเบียนและบันทึกเกรดวิชาบังคับก่อนให้ครบถ้วนก่อน จึงจะสามารถกรอกเกรดวิชานี้ได้',
+          highlightItems: prereqIssues.missing.map(code => `วิชาตัวต้น: ${code}`),
+          variant: 'warning',
+          confirmText: 'เข้าใจแล้ว',
+        });
+        return;
       }
-    } else {
-      // Manual input mode
-      if (!newCourse.code || !newCourse.name) return;
-      courseData = {
-        code: newCourse.code,
-        name: newCourse.name,
-        credits: newCourse.credits || 3,
-        year: newCourse.year || 1,
-        semester: newCourse.semester || 1,
-        description: newCourse.description || '',
-        type: newCourse.type || 'required'
-      };
+      if (prereqIssues.failed.length > 0) {
+        showAlert({
+          title: 'ไม่สามารถบันทึกเกรดได้',
+          description: 'ไม่สามารถบันทึกเกรดวิชานี้ได้ เนื่องจากวิชาที่ต้องเรียนก่อนยังไม่ผ่าน (ติดเกรด F หรือ U)\n\nตามเกณฑ์โครงสร้างหลักสูตร นักศึกษาจำเป็นต้องสอบผ่านวิชาบังคับก่อน จึงจะมีสิทธิ์ศึกษาหรือบันทึกผลการเรียนในวิชาตัวต่อได้',
+          highlightItems: prereqIssues.failed.map(code => `${code} (ติด F/U)`),
+          variant: 'destructive',
+          confirmText: 'เข้าใจแล้ว',
+        });
+        return;
+      }
     }
 
-    const course: CustomCourse = {
-      id: `course_${Date.now()}`,
-      courseId: `course_${Date.now()}`,
-      ...courseData,
-      status: newCourse.status || 'planned'
-    };
+    // ==========================================================
+    // 🎓 เงื่อนไขการใส่เกรดวิชาฝึกงาน (Internship (S/U เท่านั้น)
+    // - S = ผ่าน ✅ นับหน่วยกิต (completed) แต่ไม่นับ GPA
+    // - U = ไม่ผ่าน ❌ ไม่นับหน่วยกิต (ไม่ completed) และไม่นับ GPA
+    // ==========================================================
+    if (isInternshipCourse(course) && grade !== '' && grade !== 'S' && grade !== 'U') {
+      showAlert({
+        title: 'เงื่อนไขการใส่เกรดวิชาฝึกงาน / สหกิจศึกษา',
+        description: 'รายวิชาฝึกงานและสหกิจศึกษาสามารถบันทึกได้เฉพาะ 2 ผลการประเมินเท่านั้น:\n\n• S (Satisfactory) = ผ่านการฝึกงาน (นับหน่วยกิต แต่ไม่นำมาคิด GPA)\n• U (Unsatisfactory) = ไม่ผ่าน (ไม่นับหน่วยกิต และไม่นำมาคิด GPA)',
+        variant: 'info',
+        confirmText: 'เข้าใจแล้ว',
+      });
+      return;
+    }
 
-    setCustomPlan(prev => ({
-      ...prev,
-      courses: [...prev.courses, course],
-      updatedAt: new Date()
-    }));
+    // อัพเดทเกรดวิชาตัวเอง
+    let updatedCourses = studyPlan.courses.map(c => {
+      if (c.id !== courseId) return c;
 
-    // Reset form
-    setNewCourse({
-      code: '',
-      name: '',
-      credits: 3,
-      year: 1,
-      semester: 1,
-      status: 'planned',
-      type: 'required',
-      description: ''
-    });
-    setSelectedCourseFromCurriculum('');
-    setIsAddCourseOpen(false);
-  };
+      let status: 'planned' | 'in_progress' | 'completed' | 'failed' = 'planned';
+      let finalGrade = grade;
 
-  const addCourseFromCurriculum = () => {
-    const selectedCourse = availableCourses.find(c => c.id === selectedCourseFromCurriculum);
-    if (selectedCourse) {
-      const newCourse: CustomCourse = {
-        id: `course_${Date.now()}`,
-        courseId: selectedCourse.code,
-        code: selectedCourse.code,
-        name: selectedCourse.name,
-        credits: selectedCourse.credits,
-        year: selectedCourse.year,
-        semester: selectedCourse.semester,
-        type: selectedCourse.category === 'core' ? 'required' : 
-              selectedCourse.category === 'major' ? 'required' :
-              selectedCourse.category === 'general' ? 'general' : 'elective',
-        status: 'planned',
-        description: selectedCourse.description
+      if (grade === 'in_progress') {
+        status = 'in_progress';
+        finalGrade = '';
+      } else if (grade) {
+        if (grade === 'F' || grade === 'U') {
+          status = 'failed';
+        } else if (grade === 'I' || grade === 'W') {
+          status = 'in_progress';
+        } else {
+          status = 'completed'; // A, B+, B, C+, C, D+, D, S — completed
+        }
+      }
+
+      return {
+        ...c,
+        grade: finalGrade,
+        status
       };
-      
-      setCustomPlan(prev => ({
-        ...prev,
-        courses: [...prev.courses, newCourse]
+    });
+
+    // ==========================================================
+    // Cascade clear: ถ้าเกรดใหม่เป็น F, U, W, I หรือว่าง
+    // ให้ล้างเกรดวิชาทุกวิชาที่ depend กับวิชานี้ (และลูกหลาน)
+    // ==========================================================
+    const isFailingGrade = !grade || grade === 'F' || grade === 'U' || grade === 'W' || grade === 'I';
+    if (isFailingGrade) {
+      updatedCourses = cascadeClearGrades(updatedCourses, course.code);
+    }
+
+    const newTotalCredits = updatedCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      totalCredits: newTotalCredits,
+      updatedAt: new Date()
+    } : null);
+
+    saveToFirebase({ courses: updatedCourses, totalCredits: newTotalCredits });
+  }, [studyPlan, isInternshipCourse, getPrerequisiteIssues, cascadeClearGrades]);
+
+  // เปรียบเทียบลำดับเทอม: คืนค่า true ถ้า (y1,s1) อยู่ก่อนหรือเทอมเดียวกับ (y2,s2)
+  const isBeforeOrSame = useCallback((y1: number, s1: number, y2: number, s2: number) =>
+    y1 < y2 || (y1 === y2 && s1 <= s2)
+    , []);
+
+  // ย้ายวิชาไปปี/เทอมใหม่ พร้อม validation prerequisite order
+  const moveCourse = useCallback((courseId: string, newYear: number, newSemester: number) => {
+    if (!studyPlan) return;
+
+    const course = studyPlan.courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    // ถ้าย้ายไป unscheduled (0,0) ข้ามการตรวจ
+    if (newYear === 0 || newSemester === 0) {
+      const updatedCourses = studyPlan.courses.map(c =>
+        c.id === courseId ? { ...c, year: newYear, semester: newSemester } : c
+      );
+      setStudyPlan(prev => prev ? { ...prev, courses: updatedCourses, updatedAt: new Date() } : null);
+      saveToFirebase({ courses: updatedCourses });
+      setEditingSchedule(null);
+      return;
+    }
+
+    const allCourses = studyPlan.courses;
+
+    // ── ตรวจ 1: prerequisite ของวิชานี้ต้องอยู่ก่อนเทอมใหม่ ──
+    const prereqsInConflict: string[] = [];
+    for (const prereq of (course.prerequisites || [])) {
+      const token = extractCodeToken(prereq);
+      if (!token) continue;
+      const prereqCourse = allCourses.find(c => {
+        const code = (c.code || '').trim();
+        const digits = code.match(/\d{6,9}/)?.[0];
+        return (token.full && code === token.full) || (token.digits && digits === token.digits);
+      });
+      if (!prereqCourse || prereqCourse.year === 0 || prereqCourse.semester === 0) continue;
+      // prerequisite ต้องอยู่ก่อน (ไม่ใช่เทอมเดียวกันหรือหลัง)
+      if (!isBeforeOrSame(prereqCourse.year, prereqCourse.semester, newYear - 1, newSemester) &&
+        !(prereqCourse.year < newYear || (prereqCourse.year === newYear && prereqCourse.semester < newSemester))) {
+        prereqsInConflict.push(prereqCourse.code);
+      }
+    }
+
+    if (prereqsInConflict.length > 0) {
+      showAlert({
+        title: 'ไม่สามารถย้ายภาคเรียนได้',
+        description: `วิชาที่เลือกมีวิชาบังคับก่อน (Prerequisite) ที่ต้องเรียนก่อนหน้า\nกรุณาจัดวางให้วิชาตัวต้นอยู่ในภาคเรียนก่อนปีที่ ${newYear} เทอม ${newSemester}`,
+        highlightItems: prereqsInConflict.map(c => `วิชาตัวต้น: ${c}`),
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
+      return;
+    }
+
+    // ── ตรวจ 2: วิชาลูก (dependent) ต้องไม่อยู่ก่อนหรือเทอมเดียวกับเทอมใหม่ ──
+    const dependentsInConflict: string[] = [];
+    for (const other of allCourses) {
+      if (other.id === courseId) continue;
+      if (other.year === 0 || other.semester === 0) continue;
+      const deps = (other.prerequisites || []);
+      const depends = deps.some(p => {
+        const token = extractCodeToken(p);
+        if (!token) return false;
+        const code = (course.code || '').trim();
+        const digits = code.match(/\d{6,9}/)?.[0];
+        return (token.full && code === token.full) || (token.digits && digits === token.digits);
+      });
+      if (depends) {
+        // วิชาลูกต้องอยู่ หลัง เทอมใหม่
+        if (other.year < newYear || (other.year === newYear && other.semester <= newSemester)) {
+          dependentsInConflict.push(other.code);
+        }
+      }
+    }
+
+    if (dependentsInConflict.length > 0) {
+      showAlert({
+        title: 'ไม่สามารถย้ายภาคเรียนได้',
+        description: `มีวิชาอื่นที่ต้องเรียนต่อหลังจากวิชานี้ แต่ปัจจุบันวิชาต่อเหล่านั้นถูกจัดอยู่ในเทอมเดียวกันหรือเทอมก่อนหน้า\nกรุณาย้ายวิชาต่อออกไปก่อน หรือเลือกภาคเรียนที่เร็วกว่านั้น`,
+        highlightItems: dependentsInConflict.map(c => `วิชาต่อ: ${c}`),
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
+      return;
+    }
+
+    const updatedCourses = studyPlan.courses.map(c =>
+      c.id === courseId ? { ...c, year: newYear, semester: newSemester } : c
+    );
+
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      updatedAt: new Date()
+    } : null);
+
+    saveToFirebase({ courses: updatedCourses });
+    setEditingSchedule(null);
+    if (newYear > 0) {
+      setSelectedYearView(newYear);
+      if (newSemester === 3) {
+        setShowSummerYear(prev => ({ ...prev, [newYear]: true }));
+      }
+    }
+  }, [studyPlan, extractCodeToken, isBeforeOrSame]);
+
+
+  // นำวิชาออกจากตาราง → ลบออกจาก array จริงๆ เพื่อให้กลับมาในฟีเจอร์แนะนำ/เพิ่มวิชาได้
+  const removeCourse = useCallback((courseId: string) => {
+    if (!studyPlan) return;
+    const course = studyPlan.courses.find(c => c.id === courseId);
+    if (!course) return;
+    if (course.grade) {
+      showAlert({
+        title: 'ไม่สามารถนำวิชาออกจากตารางได้',
+        description: 'วิชานี้มีผลการเรียนที่บันทึกไว้แล้ว หากต้องการนำวิชานี้ออกจากแผนการเรียน กรุณาล้างเกรดของวิชานี้ให้เป็นช่องว่างก่อน',
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
+      return;
+    }
+    const updatedCourses = studyPlan.courses.filter(c => c.id !== courseId);
+    const newTotalCredits = updatedCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      totalCredits: newTotalCredits,
+      updatedAt: new Date()
+    } : null);
+    // saveToFirebase ถูก define หลัง removeCourse ใน component body
+    // จึง call ผ่าน setTimeout เพื่อหลีกเลี่ยง TDZ crash
+    setTimeout(() => {
+      firebaseService.getStudyPlanByStudentId(studyPlan.studentId).then(existingPlan => {
+        if (!existingPlan) return;
+        const coursesForFirebase = updatedCourses.map(c => ({
+          ...c,
+          name: c.customName || c.originalName,
+          prerequisites: c.prerequisites || []
+        }));
+        firebaseService.updateStudyPlan(existingPlan.id, {
+          courses: coursesForFirebase,
+          totalCredits: newTotalCredits
+        });
+      }).catch(err => console.error('Error saving after remove:', err));
+    }, 0);
+  }, [studyPlan]);
+
+  const updateCustomCourseName = useCallback((courseId: string, customName: string) => {
+    if (!studyPlan) return;
+
+    const updatedCourses = studyPlan.courses.map(c =>
+      c.id === courseId ? { ...c, customName } : c
+    );
+
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      updatedAt: new Date()
+    } : null);
+
+    saveToFirebase({ courses: updatedCourses });
+  }, [studyPlan]);
+
+  const updateCustomCourseCode = useCallback((courseId: string, customCode: string) => {
+    if (!studyPlan) return;
+
+    const updatedCourses = studyPlan.courses.map(c =>
+      c.id === courseId ? { ...c, customCode } : c
+    );
+
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      updatedAt: new Date()
+    } : null);
+
+    saveToFirebase({ courses: updatedCourses });
+  }, [studyPlan]);
+
+  const saveToFirebase = useCallback(async (updates: Partial<StudyPlan>) => {
+    if (!studyPlan) return;
+    try {
+      const coursesForFirebase = (updates.courses || studyPlan.courses).map(course => {
+        const internship = isInternshipCourse(course);
+        const grade = internship ? (course.grade ? 'S' : '') : course.grade;
+        return serializeStudentCourse({ ...course, grade } as any);
+      });
+
+      // Calculate GPA and credits using standard calculateGPA function
+      const gpaResult = calculateGPA(coursesForFirebase as any);
+      const curriculumRequiredTotal = getCurriculumTotalCredits(studyPlan.program, studyPlan.curriculumYear);
+      const sumCoursesCredits = coursesForFirebase.reduce((sum, c) => sum + (c.credits || 0), 0);
+      const totalCredits = Math.max(curriculumRequiredTotal, sumCoursesCredits);
+      const completedCredits = gpaResult.completedCredits;
+      const calculatedGPA = gpaResult.gpa;
+
+      // DEBUG: Log the data being saved
+      console.log('🔍 [StudyPlan Save Debug]', {
+        completedCredits,
+        totalCredits,
+        calculatedGPA,
+        program: studyPlan.program,
+        curriculumYear: studyPlan.curriculumYear,
+        courseCount: coursesForFirebase.length,
+        completedCount: coursesForFirebase.filter(c => c.status === 'completed').length,
+        studentId: studyPlan.studentId
+      });
+
+      // คำนวณชั้นปีปัจจุบันจากรายวิชาจริง (รองรับปี 1 - ปี 8+)
+      const inProgressList = coursesForFirebase.filter(c => c.status === 'in_progress');
+      let calculatedCurrentYear = 1;
+      if (inProgressList.length > 0) {
+        calculatedCurrentYear = Math.max(...inProgressList.map(c => Number(c.year) || 1));
+      } else {
+        const completedList = coursesForFirebase.filter(c => c.status === 'completed' && c.grade && c.grade !== 'F');
+        if (completedList.length > 0) {
+          const maxY = Math.max(...completedList.map(c => Number(c.year) || 1));
+          const maxS = Math.max(...completedList.filter(c => Number(c.year) === maxY).map(c => Number(c.semester) || 1));
+          calculatedCurrentYear = maxS >= 2 ? maxY + 1 : maxY;
+        }
+      }
+
+      // Update study plan in Firebase
+      const planId = studyPlan.id && !studyPlan.id.startsWith('plan-') ? studyPlan.id : null;
+      if (planId) {
+        await firebaseService.updateStudyPlan(planId, {
+          ...updates,
+          program: studyPlan.program,
+          curriculumYear: studyPlan.curriculumYear,
+          curriculum: `${studyPlan.program}-${studyPlan.curriculumYear}`,
+          courses: coursesForFirebase,
+          completedCredits,
+          totalCredits,
+          gpa: calculatedGPA,
+          studentYear: calculatedCurrentYear,
+          currentYear: calculatedCurrentYear
+        });
+        // Sync GPA, credits, and studentYear to Firebase
+        await firebaseService.updateStudentGPAAndCredits(
+          studyPlan.studentId,
+          calculatedGPA,
+          completedCredits
+        );
+        await firebaseService.updateStudentYearAndAcademicProgress(
+          studyPlan.studentId,
+          calculatedCurrentYear
+        );
+        console.log('✅ [GPA/Credits/StudentYear Synced]', { calculatedGPA, completedCredits, calculatedCurrentYear });
+        return;
+      }
+
+      const existingPlan = await firebaseService.getStudyPlanByStudentId(studyPlan.studentId);
+      if (!existingPlan) {
+        console.warn('⚠️ Study plan not found for student:', studyPlan.studentId);
+        return;
+      }
+      await firebaseService.updateStudyPlan(existingPlan.id, {
+        ...updates,
+        program: studyPlan.program,
+        curriculumYear: studyPlan.curriculumYear,
+        curriculum: `${studyPlan.program}-${studyPlan.curriculumYear}`,
+        courses: coursesForFirebase,
+        completedCredits,
+        totalCredits,
+        gpa: calculatedGPA,
+        studentYear: calculatedCurrentYear,
+        currentYear: calculatedCurrentYear
+      });
+      // Update GPA, credits, and studentYear
+      await firebaseService.updateStudentGPAAndCredits(
+        existingPlan.studentId,
+        calculatedGPA,
+        completedCredits
+      );
+      await firebaseService.updateStudentYearAndAcademicProgress(
+        existingPlan.studentId,
+        calculatedCurrentYear
+      );
+      console.log('✅ [GPA/Credits/StudentYear Synced (alternative)]', { calculatedGPA, completedCredits, calculatedCurrentYear });
+    } catch (err) {
+      console.error('Error saving to Firebase:', err);
+    }
+  }, [studyPlan, isInternshipCourse]);
+
+  // ตรวจสถานะ prerequisite สำหรับวิชาแนะนำ
+  const getRecommendPrereqStatus = useCallback((course: CurriculumCourse): 'met' | 'not_met' => {
+    if (!studyPlan) return 'not_met';
+    const meaningfulPrereqs = (course.prerequisites || []).filter(p =>
+      !p.includes('โดยความเห็นชอบ') &&
+      !p.includes('ความเห็นชอบของภาควิชา') &&
+      !p.includes('ตามความเห็นชอบ')
+    );
+    if (meaningfulPrereqs.length === 0) return 'met';
+
+    for (const prereq of meaningfulPrereqs) {
+      const token = extractCodeToken(prereq);
+      if (!token) continue;
+      const prereqCourse = studyPlan.courses.find(c => {
+        const code = (c.code || '').trim();
+        const digits = code.match(/\d{6,9}/)?.[0];
+        return (token.full && code === token.full) || (token.digits && digits === token.digits);
+      });
+      if (!prereqCourse) return 'not_met';
+      const grade = (prereqCourse.grade || '').trim().toUpperCase();
+      if (!grade || grade === 'F' || grade === 'U' || grade === 'I' || grade === 'W') return 'not_met';
+    }
+    return 'met';
+  }, [studyPlan, extractCodeToken]);
+
+  // เพิ่มวิชาจาก curriculum เข้าแผนการเรียน
+  const addRecommendedCourse = useCallback((course: CurriculumCourse, year: number, semester: number) => {
+    if (!studyPlan) return;
+    const newCourse: StudentCourse = {
+      id: `course-${Date.now()}-${Math.random()}`,
+      code: course.code,
+      originalName: course.name,
+      credits: course.credits,
+      year,
+      semester,
+      status: 'planned',
+      category: course.category,
+      mainCategory: course.mainCategory,
+      subCategory: course.subCategory,
+      prerequisites: course.prerequisites || [],
+      isElective: course.category === 'elective' || course.category === 'general' || course.category === 'free' || course.subCategory === 'กลุ่มวิชาชีพ' || (course.name || '').includes('วิชาเลือก')
+    };
+    const updatedCourses = [...studyPlan.courses, newCourse];
+    const newTotalCredits = updatedCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+    setStudyPlan(prev => prev ? {
+      ...prev,
+      courses: updatedCourses,
+      totalCredits: newTotalCredits,
+      updatedAt: new Date()
+    } : null);
+    saveToFirebase({ courses: updatedCourses, totalCredits: newTotalCredits });
+    if (year > 0) {
+      setSelectedYearView(year);
+      if (semester === 3) {
+        setShowSummerYear(prev => ({ ...prev, [year]: true }));
+      }
+    }
+  }, [studyPlan, saveToFirebase]);
+
+  const createStudyPlan = useCallback(async () => {
+    if (!user?.id || !selectedProgram || !selectedCurriculumYear || curriculumCourses.length === 0) {
+      showAlert({
+        title: 'กรุณาเลือกข้อมูลให้ครบถ้วน',
+        description: 'กรุณาเลือกหลักสูตรและปีหลักสูตรให้ครบถ้วนก่อนเริ่มต้นสร้างแผนการเรียน',
+        variant: 'warning',
+        confirmText: 'เข้าใจแล้ว',
+      });
+      return;
+    }
+
+    try {
+      const initialCourses: StudentCourse[] = curriculumCourses
+        .map((course, index) => ({
+          id: `course-${Date.now()}-${index}`,
+          code: course.code,
+          originalName: course.name,
+          credits: course.credits,
+          year: course.year,
+          semester: course.semester,
+          status: 'planned' as const,
+          category: course.category,
+          mainCategory: course.mainCategory,
+          subCategory: course.subCategory,
+          prerequisites: course.prerequisites || [],
+          isElective: course.category === 'elective' || course.category === 'general' || course.category === 'free' || course.subCategory === 'กลุ่มวิชาชีพ' || ((course.name || '').includes('วิชาเลือก'))
+        }));
+
+      const curriculumTotal = getCurriculumTotalCredits(selectedProgram, selectedCurriculumYear);
+
+      const newPlan: StudyPlan = {
+        id: '',
+        studentId: user.id,
+        studentEmail: user.email || '',
+        program: selectedProgram,
+        curriculumYear: selectedCurriculumYear,
+        isLocked: true,
+        courses: initialCourses,
+        totalCredits: curriculumTotal,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const coursesForFirebase = initialCourses.map(course => ({
+        ...course,
+        name: course.originalName,
+        prerequisites: course.prerequisites || []
       }));
-      
-      setSelectedCourseFromCurriculum('');
-      setIsAddCourseOpen(false);
+      const planId = await firebaseService.createStudyPlan({
+        studentId: newPlan.studentId,
+        studentEmail: newPlan.studentEmail,
+        program: newPlan.program,
+        curriculumYear: newPlan.curriculumYear,
+        isLocked: newPlan.isLocked,
+        courses: coursesForFirebase,
+        totalCredits: newPlan.totalCredits
+      });
+      if (!planId) {
+        throw new Error('ไม่สามารถบันทึกแผนการเรียนได้');
+      }
+
+      setStudyPlan({ ...newPlan, id: planId });
+    } catch (err) {
+      console.error('Error creating study plan:', err);
+      showAlert({
+        title: 'เกิดข้อผิดพลาดในการสร้างแผนการเรียน',
+        description: `ไม่สามารถสร้างแผนการเรียนได้ในขณะนี้: ${(err as Error).message}\nกรุณาลองใหม่อีกครั้งหรือติดต่อผู้ดูแลระบบ`,
+        variant: 'destructive',
+        confirmText: 'เข้าใจแล้ว',
+      });
     }
-  };
+  }, [user?.id, user?.email, selectedProgram, selectedCurriculumYear, curriculumCourses, showAlert]);
 
-  // Edit course
-  const editCourse = (course: CustomCourse) => {
-    setEditingCourse(course);
-    setNewCourse(course);
-    setIsAddCourseOpen(true);
-  };
+  const handleConfirmReset = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const ok = await firebaseService.deleteStudyPlansByStudentId(user.id);
+      if (!ok) {
+        showAlert({
+          title: 'รีเซ็ตแผนการเรียนไม่สำเร็จ',
+          description: 'ระบบไม่สามารถลบแผนการเรียนได้ กรุณาลองใหม่อีกครั้ง',
+          variant: 'destructive',
+          confirmText: 'เข้าใจแล้ว',
+        });
+        return;
+      }
 
-  // Update course
-  const updateCourse = () => {
-    if (!editingCourse || !newCourse.code || !newCourse.name) return;
+      setStudyPlan(null);
+      setSelectedProgram('');
+      setSelectedCurriculumYear('');
+      setAvailableCurriculumYears([]);
+      setCurriculumCourses([]);
+      setError(null);
+    } catch (err) {
+      console.error('Error resetting study plan:', err);
+      showAlert({
+        title: 'รีเซ็ตแผนการเรียนไม่สำเร็จ',
+        description: 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง',
+        variant: 'destructive',
+        confirmText: 'เข้าใจแล้ว',
+      });
+    }
+  }, [user?.id, showAlert]);
 
-    setCustomPlan(prev => ({
-      ...prev,
-      courses: prev.courses.map(course => 
-        course.id === editingCourse.id 
-          ? { ...course, ...newCourse } as CustomCourse
-          : course
-      ),
-      updatedAt: new Date()
-    }));
-
-    setEditingCourse(null);
-    setNewCourse({
-      code: '',
-      name: '',
-      credits: 3,
-      year: 1,
-      semester: 1,
-      status: 'planned',
-      type: 'required',
-      description: ''
+  const resetStudyPlan = useCallback(() => {
+    if (!user?.id) return;
+    showConfirm({
+      title: 'ต้องการรีเซ็ตแผนการเรียนใช่ไหม?',
+      description: 'ข้อมูลแผนการเรียนและเกรดที่บันทึกไว้จะถูกลบออกจากระบบ และต้องเลือกหลักสูตรใหม่อีกครั้ง',
+      variant: 'destructive',
+      confirmText: 'ยืนยันการรีเซ็ต',
+      cancelText: 'ยกเลิก',
+      onConfirm: handleConfirmReset,
     });
-    setIsAddCourseOpen(false);
-  };
+  }, [user?.id, showConfirm, handleConfirmReset]);
 
-  // Delete course
-  const deleteCourse = (courseId: string) => {
-    setCustomPlan(prev => ({
-      ...prev,
-      courses: prev.courses.filter(course => course.id !== courseId),
-      updatedAt: new Date()
-    }));
-  };
+  const completedCourses = studyPlan?.courses?.filter(c => c.status === 'completed') || [];
+  const inProgressCourses = studyPlan?.courses?.filter(c => c.status === 'in_progress') || [];
+  const plannedCourses = studyPlan?.courses?.filter(c => c.status === 'planned') || [];
 
-  // Filter courses for display
-  const displayFilteredCourses = customPlan.courses.filter(course => {
-    const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesYear = filterYear === 'all' || course.year.toString() === filterYear;
-    const matchesSemester = filterSemester === 'all' || course.semester.toString() === filterSemester;
-    const matchesStatus = filterStatus === 'all' || course.status === filterStatus;
+  // ==========================================================
+  // Completed credits = เกรดผ่านเท่านั้น (ใช้ function สูตรกลาง)
+  // - ฝึกงาน S → นับหน่วยกิต ✅
+  // - ฝึกงาน U → ไม่นับหน่วยกิต ❌
+  // - A, B+, B, C+, C, D+, D → นับหน่วยกิต ✅
+  // - F, I, W → ไม่นับหน่วยกิต ❌
+  // ==========================================================
+  const completedCredits = (studyPlan?.courses || [])
+    .filter(c => countsAsCompletedCredits(c.grade))
+    .reduce((sum, c) => sum + (c.credits || 0), 0);
 
-    return matchesSearch && matchesYear && matchesSemester && matchesStatus;
-  });
+  // ==========================================================
+  // GPA = คำนวณจากวิชาที่มีเกรดนับ GPA เท่านั้น
+  // - S, U, I, W → ไม่นำเข้าสูตร GPA (ทั้งวิชาฝึกงานและวิชาอื่น)
+  // - A, B+, B, C+, C, D+, D, F → นำเข้าสูตร GPA
+  // ==========================================================
+  const gradeableCourses = (studyPlan?.courses || []).filter(c => c.grade && isGradeCountedInGPA(c.grade));
+  const gpaResult = calculateGPA(gradeableCourses as any);
 
-  // Group courses by year and semester
-  const groupedCourses = displayFilteredCourses.reduce((acc, course) => {
-    const key = `${course.year}-${course.semester}`;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(course);
-    return acc;
-  }, {} as Record<string, CustomCourse[]>);
+  // วิชาที่ยังไม่ได้จัดตาราง (ถูกนำออก หรือ year/semester = 0)
+  const unscheduledCourses = (studyPlan?.courses || []).filter(
+    c => c.year === 0 || c.semester === 0
+  );
 
-  // Calculate statistics
-  const completedCourses = customPlan.courses.filter(c => c.status === 'completed');
-  const inProgressCourses = customPlan.courses.filter(c => c.status === 'in_progress');
-  const plannedCourses = customPlan.courses.filter(c => c.status === 'planned');
-  const completedCredits = completedCourses.reduce((sum, c) => sum + c.credits, 0);
-  const gpaResult = calculateGPA(completedCourses.filter(c => c.grade));
+  const groupedCourses = (studyPlan?.courses || [])
+    .filter(c => c.year > 0 && c.semester > 0)
+    .reduce((acc, course) => {
+      const key = `${course.year}-${course.semester}`;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(course);
+      return acc;
+    }, {} as Record<string, StudentCourse[]>);
 
-  // Function to update course grade
-  const updateCourseGrade = (courseId: string, grade: string) => {
-    setCustomPlan(prev => ({
-      ...prev,
-      courses: prev.courses.map(course => 
-        course.id === courseId 
-          ? { ...course, grade }
-          : course
-      ),
-      updatedAt: new Date()
-    }));
-  };
+  // Dynamic available years for view filter (starts at 1..4, expands up to 8 if courses exist in later years or extra years added)
+  const availableViewYears = useMemo(() => {
+    const courseYears = (studyPlan?.courses || []).map(c => c.year || 0);
+    const maxCourseYear = Math.max(4, extraYears, ...courseYears);
+    const cappedMaxYear = Math.min(8, maxCourseYear);
+    return Array.from({ length: cappedMaxYear }, (_, i) => i + 1);
+  }, [studyPlan?.courses, extraYears]);
 
-  if (departmentsLoading || coursesLoading) {
+  // วิชาในหลักสูตรที่มี prerequisite และยังไม่ได้อยู่ในแผนการเรียน
+  const recommendedCourses = useMemo(() => {
+    if (!studyPlan || curriculumCourses.length === 0) return [];
+    const planCodesFull = new Set(
+      studyPlan.courses.map(c => (c.code || '').trim()).filter(Boolean)
+    );
+    const planCodesDigits = new Set(
+      studyPlan.courses.map(c => getCourseDigits(c.code)).filter(Boolean)
+    );
+    return curriculumCourses.filter(cc => {
+      const meaningfulPrereqs = (cc.prerequisites || []).filter(p =>
+        !p.includes('โดยความเห็นชอบ') &&
+        !p.includes('ความเห็นชอบของภาควิชา') &&
+        !p.includes('ตามความเห็นชอบ')
+      );
+      if (meaningfulPrereqs.length === 0) return false;
+      const ccFull = (cc.code || '').trim();
+      const ccDigits = getCourseDigits(cc.code);
+      const alreadyInPlan =
+        (ccFull && planCodesFull.has(ccFull)) ||
+        (ccDigits && planCodesDigits.has(ccDigits));
+      return !alreadyInPlan;
+    });
+  }, [studyPlan, curriculumCourses, getCourseDigits]);
+
+  // Category-Level Credit Audit & Waterfall Overflow Summary
+  const categoryCreditAudit = useMemo(() => {
+    if (!studyPlan || curriculumCourses.length === 0) return null;
+    return computeCategoryCreditAudit(curriculumCourses as any, studyPlan.courses || []);
+  }, [studyPlan, curriculumCourses]);
+
+  if (error) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2 text-red-600">เกิดข้อผิดพลาด</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              ลองใหม่
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+  if (!studyPlan) {
+    return (
+      <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold">จัดการแผนการเรียน</h2>
-          <p className="text-muted-foreground">สร้างและปรับแต่งแผนการเรียนของคุณเอง</p>
+          <h2 className="academic-title text-2xl font-bold">เลือกหลักสูตรของคุณ</h2>
         </div>
-        <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              เพิ่มรายวิชา
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCourse ? 'แก้ไขรายวิชา' : 'เพิ่มรายวิชาใหม่'}
-              </DialogTitle>
-              <DialogDescription>
-                เลือกรายวิชาจากหลักสูตรหรือกรอกข้อมูลด้วยตนเอง
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="overflow-y-auto max-h-[60vh] pr-2">
-            <Tabs value={courseSelectionMode} onValueChange={(value) => setCourseSelectionMode(value as 'manual' | 'curriculum')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="curriculum">เลือกจากหลักสูตร</TabsTrigger>
-                <TabsTrigger value="manual">กรอกข้อมูลเอง</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="curriculum" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>หลักสูตร</Label>
-                    <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availablePrograms.map((program) => (
-                          <SelectItem key={program} value={program}>
-                            {program}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>ปีหลักสูตร</Label>
-                    <Select value={selectedCurriculumYear} onValueChange={setSelectedCurriculumYear}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableCurriculumYears.map((year) => (
-                          <SelectItem key={year} value={year}>
-                            หลักสูตร {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>ปีการศึกษา</Label>
-                    <Select value={selectedYear?.toString() || 'all'} onValueChange={(value) => setSelectedYear(value === 'all' ? null : parseInt(value))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกปีการศึกษา" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">ทุกปี</SelectItem>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      ปี {year} {year > 4 ? '(เลือกได้ทุกปี/เทอม)' : ''}
-                    </SelectItem>
-                  ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedYear && selectedYear > 4 && (
-                      <p className="text-sm text-muted-foreground">
-                        📝 นักศึกษาปี {selectedYear} สามารถเลือกรายวิชาจากทุกปีและทุกเทอมได้
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>เทอม</Label>
-                    <Select 
-                      value={selectedSemester?.toString() || 'all'} 
-                      onValueChange={(value) => setSelectedSemester(value === 'all' ? null : parseInt(value))}
-                      disabled={selectedYear && selectedYear > 4}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกเทอม" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">ทุกเทอม</SelectItem>
-                        <SelectItem value="1">ภาคเรียนที่ 1</SelectItem>
-                        <SelectItem value="2">ภาคเรียนที่ 2</SelectItem>
-                        <SelectItem value="3">ภาคเรียนที่ 3 (ฝึกงาน)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {selectedYear && selectedYear > 4 && (
-                      <p className="text-sm text-muted-foreground">
-                        🔓 การกรองเทอมถูกปิดใช้งาน - แสดงรายวิชาทุกเทอม
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>ค้นหารายวิชา</Label>
-                  <Input
-                    placeholder="ค้นหาด้วยรหัสวิชา ชื่อวิชา หรือคำอธิบาย..."
-                    value={courseSearchTerm}
-                    onChange={(e) => setCourseSearchTerm(e.target.value)}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>เลือกรายวิชา</Label>
-                  <Select value={selectedCourseFromCurriculum} onValueChange={setSelectedCourseFromCurriculum}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="เลือกรายวิชาจากหลักสูตร" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {filteredCourses.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{course.code} - {course.name}</span>
-                            <span className="text-sm text-muted-foreground">
-                              ปี {course.year} ภาค {course.semester} | {course.credits} หน่วยกิต
-                              {course.mainCategory && ` | ${course.mainCategory}`}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {selectedCourseFromCurriculum && (
-                  <div className="p-4 bg-muted rounded-lg">
-                    {(() => {
-                      const course = availableCourses.find(c => c.id === selectedCourseFromCurriculum);
-                      return course ? (
-                        <div className="space-y-2">
-                          <h4 className="font-medium">{course.code} - {course.name}</h4>
-                          <p className="text-sm text-muted-foreground">{course.description}</p>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline">ปี {course.year} ภาค {course.semester}</Badge>
-                            <Badge variant="outline">{course.credits} หน่วยกิต</Badge>
-                            {course.mainCategory && <Badge variant="secondary">{course.mainCategory}</Badge>}
-                            {course.subCategory && <Badge variant="outline">{course.subCategory}</Badge>}
-                          </div>
 
-                        </div>
-                      ) : null;
-                    })()}
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="manual" className="space-y-4">
-                {/* Original manual input form */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="code">รหัสวิชา</Label>
-                    <Input
-                      id="code"
-                      value={newCourse.code || ''}
-                      onChange={(e) => setNewCourse(prev => ({ ...prev, code: e.target.value }))}
-                      placeholder="เช่น IT-060243102"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="credits">หน่วยกิต</Label>
-                    <Input
-                      id="credits"
-                      type="number"
-                      min="1"
-                      max="6"
-                      value={newCourse.credits || 3}
-                      onChange={(e) => setNewCourse(prev => ({ ...prev, credits: parseInt(e.target.value) }))}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="name">ชื่อวิชา</Label>
-                  <Input
-                    id="name"
-                    value={newCourse.name || ''}
-                    onChange={(e) => setNewCourse(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="เช่น การโปรแกรมคอมพิวเตอร์"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="year">ชั้นปี</Label>
-                    <Select 
-                      value={newCourse.year?.toString() || '1'} 
-                      onValueChange={(value) => setNewCourse(prev => ({ ...prev, year: parseInt(value) }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(year => (
-                          <SelectItem key={year} value={year.toString()}>
-                            ปี {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="semester">ภาคเรียน</Label>
-                    <Select 
-                      value={newCourse.semester?.toString() || '1'} 
-                      onValueChange={(value) => setNewCourse(prev => ({ ...prev, semester: parseInt(value) }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">ภาคเรียนที่ 1</SelectItem>
-                        <SelectItem value="2">ภาคเรียนที่ 2</SelectItem>
-                        <SelectItem value="3">ภาคเรียนที่ 3 (ฝึกงาน)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="type">ประเภทวิชา</Label>
-                    <Select 
-                      value={newCourse.type || 'required'} 
-                      onValueChange={(value) => setNewCourse(prev => ({ ...prev, type: value as any }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="required">วิชาบังคับ</SelectItem>
-                        <SelectItem value="elective">วิชาเลือก</SelectItem>
-                        <SelectItem value="general">ศึกษาทั่วไป</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="status">สถานะ</Label>
-                    <Select 
-                      value={newCourse.status || 'planned'} 
-                      onValueChange={(value) => setNewCourse(prev => ({ ...prev, status: value as any }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="planned">วางแผนเรียน</SelectItem>
-                        <SelectItem value="in_progress">กำลังเรียน</SelectItem>
-                        <SelectItem value="completed">เรียนจบแล้ว</SelectItem>
-                        <SelectItem value="failed">เรียนไม่ผ่าน</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">คำอธิบาย (ไม่บังคับ)</Label>
-                  <Input
-                    id="description"
-                    value={newCourse.description || ''}
-                    onChange={(e) => setNewCourse(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="คำอธิบายเพิ่มเติมเกี่ยวกับรายวิชา"
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-            </div>
-
+        <Card className="academic-panel">
+          <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="status">สถานะการเรียน</Label>
-              <Select 
-                value={newCourse.status || 'planned'} 
-                onValueChange={(value) => setNewCourse(prev => ({ ...prev, status: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
+              <Label>หลักสูตร</Label>
+              <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                <SelectTrigger className="academic-control">
+                  <SelectValue placeholder="เลือกหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="planned">วางแผนเรียน</SelectItem>
-                  <SelectItem value="in_progress">กำลังเรียน</SelectItem>
-                  <SelectItem value="completed">เรียนจบแล้ว</SelectItem>
-                  <SelectItem value="failed">เรียนไม่ผ่าน</SelectItem>
+                  {availablePrograms.map(program => (
+                    <SelectItem key={program} value={program}>
+                      {program}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsAddCourseOpen(false)}>
-                ยกเลิก
-              </Button>
-              <Button 
-                onClick={editingCourse ? updateCourse : addCourse}
-                disabled={courseSelectionMode === 'curriculum' ? !selectedCourseFromCurriculum : (!newCourse.code || !newCourse.name)}
+            <div className="space-y-2">
+              <Label>ปีหลักสูตร</Label>
+              <Select
+                value={selectedCurriculumYear}
+                onValueChange={setSelectedCurriculumYear}
+                disabled={!selectedProgram}
               >
-                <Save className="w-4 h-4 mr-2" />
-                {editingCourse ? 'บันทึกการแก้ไข' : 'เพิ่มรายวิชา'}
-              </Button>
+                <SelectTrigger className="academic-control">
+                  <SelectValue placeholder="เลือกปีหลักสูตร" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCurriculumYears.map(year => (
+                    <SelectItem key={year} value={year}>
+                      หลักสูตร {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </DialogContent>
-        </Dialog>
+
+            <Button
+              onClick={createStudyPlan}
+              disabled={!selectedProgram || !selectedCurriculumYear || curriculumCourses.length === 0}
+              className="academic-control w-full"
+            >
+              ยืนยันและสร้างแผนการเรียน
+            </Button>
+          </CardContent>
+        </Card>
+
+        {curriculumCourses.length > 0 && (() => {
+          const totalCredits = curriculumCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+          const isCoopCurriculum = selectedCurriculumYear.includes('สหกิจ');
+          
+          // Filter courses by search term
+          const filteredCourses = curriculumCourses.filter(c => {
+            if (!curriculumSearchTerm.trim()) return true;
+            const term = curriculumSearchTerm.trim().toLowerCase();
+            return (
+              (c.code || '').toLowerCase().includes(term) ||
+              (c.name || '').toLowerCase().includes(term) ||
+              (c.mainCategory || '').toLowerCase().includes(term)
+            );
+          });
+
+          // Group by semester
+          const groupedBySemester = filteredCourses.reduce((acc, c) => {
+            const key = `${c.year}-${c.semester}`;
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(c);
+            return acc;
+          }, {} as Record<string, CurriculumCourse[]>);
+
+          const sortedSemKeys = Object.keys(groupedBySemester).sort((a, b) => {
+            const [yA, sA] = a.split('-').map(Number);
+            const [yB, sB] = b.split('-').map(Number);
+            return yA !== yB ? yA - yB : sA - sB;
+          });
+
+          return (
+            <Card className="academic-panel shadow-medium border-2">
+              <CardHeader className="pb-3 border-b bg-card">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-xl font-bold flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                      รายชื่อวิชาทั้งหมดในหลักสูตร {selectedProgram} {selectedCurriculumYear}
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      โครงสร้างรายวิชาทั้งหมดตามหลักสูตรอย่างเป็นทางการ สามารถตรวจสอบรายวิชาในแต่ละภาคการศึกษาก่อนยืนยันสร้างแผน
+                    </CardDescription>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-primary/10 text-primary border-primary/30 text-xs px-2.5 py-1">
+                      ครบ {curriculumCourses.length} วิชา
+                    </Badge>
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs px-2.5 py-1">
+                      รวม {totalCredits} หน่วยกิต
+                    </Badge>
+                    <Badge className={isCoopCurriculum ? 'bg-purple-100 text-purple-800 border-purple-300 text-xs px-2.5 py-1' : 'bg-blue-100 text-blue-800 border-blue-300 text-xs px-2.5 py-1'}>
+                      {isCoopCurriculum ? '💼 โครงการสหกิจศึกษา (8 เทอม)' : '📘 โครงการปกติ'}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mt-3 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ค้นหารหัสวิชา หรือชื่อวิชาในหลักสูตรนี้..."
+                    value={curriculumSearchTerm}
+                    onChange={e => setCurriculumSearchTerm(e.target.value)}
+                    className="pl-9 text-sm bg-background"
+                  />
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-4 space-y-6 max-h-[600px] overflow-y-auto">
+                {sortedSemKeys.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    ไม่พบรายวิชาที่ตรงกับ "{curriculumSearchTerm}"
+                  </div>
+                ) : (
+                  sortedSemKeys.map(semKey => {
+                    const [y, s] = semKey.split('-').map(Number);
+                    const semCourses = groupedBySemester[semKey];
+                    const semCredits = semCourses.reduce((sum, c) => sum + (c.credits || 0), 0);
+                    const semLabel = s === 3
+                      ? 'ภาคฤดูร้อน (ฝึกงาน)'
+                      : (isCoopCurriculum && y === 4 && s === 2)
+                        ? 'เทอมที่ 2 (สหกิจศึกษา)'
+                        : `เทอมที่ ${s}`;
+
+                    return (
+                      <div key={semKey} className="space-y-2.5 border-b pb-5 last:border-b-0">
+                        <div className="flex items-center justify-between font-semibold text-sm bg-muted/70 px-3.5 py-2 rounded-md border border-border/50">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            ชั้นปีที่ {y} {semLabel}
+                          </span>
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {semCourses.length} วิชา · {semCredits} หน่วยกิต
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+                          {semCourses.map((course, idx) => {
+                            const cleanCode = (course.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').trim() || course.code;
+                            return (
+                              <div
+                                key={`${course.code}-${y}-${s}-${idx}`}
+                                className="p-3 bg-card border rounded-lg text-xs sm:text-sm flex flex-col justify-between space-y-1.5 hover:border-primary/60 transition-colors shadow-sm"
+                              >
+                                <div className="flex items-start justify-between gap-1.5">
+                                  <span className="font-semibold text-primary font-mono text-xs">
+                                    {cleanCode}
+                                  </span>
+                                  <Badge variant="secondary" className="text-[10px] shrink-0 font-normal">
+                                    {course.credits} หน่วยกิต
+                                  </Badge>
+                                </div>
+                                <div className="font-medium text-foreground leading-snug">
+                                  {course.name}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground flex-wrap pt-0.5">
+                                  {course.mainCategory && (
+                                    <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                                      {course.mainCategory}
+                                    </span>
+                                  )}
+                                  {course.prerequisites && course.prerequisites.length > 0 && (
+                                    <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px]">
+                                      บังคับก่อน: {course.prerequisites.join(', ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+      </div>
+    );
+  }
+
+  const renderCourseCard = (course: StudentCourse) => {
+    return (
+      <div key={course.id} className="border rounded-lg p-3 space-y-2 bg-card hover:border-border/80 transition-colors">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-sm sm:text-base leading-snug">
+              {course.customCode || course.code} - {course.customName || course.originalName}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {course.credits} หน่วยกิต
+              {course.mainCategory && ` | ${course.mainCategory}`}
+            </div>
+            {course.prerequisites && course.prerequisites.length > 0 && (
+              <div className="text-xs text-muted-foreground mt-1">
+                เงื่อนไขก่อนเรียน: {course.prerequisites.join(', ')}
+              </div>
+            )}
+            {(() => {
+              if (!studyPlan) return null;
+              // ตรวจสอบ prerequisite ลงเทอมเดียวกัน
+              const sameSemesterPrereqs: string[] = [];
+              if (course.prerequisites && course.prerequisites.length > 0) {
+                for (const prereq of course.prerequisites) {
+                  const token = extractCodeToken(prereq);
+                  if (!token) continue;
+                  const prereqCourse = studyPlan.courses.find(c => {
+                    const code = (c.code || '').trim();
+                    const digits = code.match(/\d{6,9}/)?.[0];
+                    return (token.full && code === token.full) ||
+                      (token.digits && digits === token.digits);
+                  });
+                  if (
+                    prereqCourse &&
+                    prereqCourse.year === course.year &&
+                    prereqCourse.semester === course.semester &&
+                    prereqCourse.year > 0 && prereqCourse.semester > 0
+                  ) {
+                    sameSemesterPrereqs.push(prereqCourse.code);
+                  }
+                }
+              }
+
+              const issues = getPrerequisiteIssues(course, studyPlan.courses);
+
+              if (sameSemesterPrereqs.length > 0) {
+                return (
+                  <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded px-2 py-1 mt-1">
+                    ⚠️ วิชา {sameSemesterPrereqs.join(', ')} เป็น prerequisite และอยู่ในเทอมเดียวกัน — ต้องเรียนให้จบก่อนจึงจะลงวิชานี้ได้
+                  </div>
+                );
+              }
+              if (issues.missing.length > 0) {
+                return (
+                  <div className="text-xs text-red-600 mt-1">
+                    ต้องใส่เกรดวิชาก่อนเรียนก่อน: {issues.missing.join(', ')}
+                  </div>
+                );
+              }
+              if (issues.failed.length > 0) {
+                return (
+                  <div className="text-xs text-red-600 mt-1">
+                    วิชาก่อนเรียนติด F: {issues.failed.join(', ')}
+                  </div>
+                );
+              }
+              if (!course.grade && course.prerequisites && course.prerequisites.length > 0) {
+                const validPrereqs = course.prerequisites.filter(p =>
+                  !p.includes('โดยความเห็นชอบ') &&
+                  !p.includes('ความเห็นชอบของภาควิชา') &&
+                  !p.includes('ตามความเห็นชอบ')
+                );
+                if (validPrereqs.length > 0) {
+                  return (
+                    <div className="text-xs text-green-600 mt-1 font-medium">
+                      สามารถลงเกรดได้ เนื่องจากผ่านวิชา {validPrereqs.join(', ')} แล้ว
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Badge
+              className={
+                course.status === 'completed' ? 'bg-green-100 text-green-800' :
+                  course.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                    course.status === 'failed' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+              }
+            >
+              {course.status === 'completed' ? 'เรียนจบ' :
+                course.status === 'in_progress' ? 'กำลังเรียน' :
+                  course.status === 'failed' ? 'ไม่ผ่าน' :
+                    'วางแผน'}
+            </Badge>
+            {/* ปุ่มย้ายเทอม */}
+            <button
+              title="ย้ายปี/เทอม"
+              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => {
+                if (editingSchedule === course.id) {
+                  setEditingSchedule(null);
+                } else {
+                  setEditingSchedule(course.id);
+                  setEditYear(course.year);
+                  setEditSemester(course.semester);
+                }
+              }}
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+            </button>
+            {/* ปุ่มนำออกจากตาราง */}
+            <button
+              title={course.grade ? 'ล้างเกรดก่อนนำออก' : 'นำออกจากตาราง'}
+              className={`p-1 rounded transition-colors ${course.grade ? 'opacity-30 cursor-not-allowed' : 'hover:bg-red-100 text-muted-foreground hover:text-red-600'}`}
+              onClick={() => !course.grade && removeCourse(course.id)}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Inline Schedule Editor */}
+        {editingSchedule === course.id && (
+          <div className="border rounded-lg p-2 bg-muted/50 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Pencil className="w-3 h-3" /> ย้ายวิชานี้ไปยัง
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs">ปีที่</Label>
+                <Select value={String(editYear)} onValueChange={v => setEditYear(Number(v))}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(y => (
+                      <SelectItem key={y} value={String(y)}>ปีที่ {y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs">เทอมที่</Label>
+                <Select value={String(editSemester)} onValueChange={v => setEditSemester(Number(v))}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3].map(s => (
+                      <SelectItem key={s} value={String(s)}>เทอมที่ {s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end gap-1 pb-0">
+                <Button
+                  size="sm"
+                  className="h-8"
+                  onClick={() => moveCourse(course.id, editYear, editSemester)}
+                >
+                  <Check className="w-3.5 h-3.5 mr-1" />ย้าย
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8"
+                  onClick={() => setEditingSchedule(null)}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          {(course.isElective || course.subCategory === 'กลุ่มวิชาชีพ' || (course.originalName || '').includes('วิชาเลือก')) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-muted/30 p-2 rounded border border-dashed border-muted-foreground/30">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">รหัสวิชา (ถ้าต้องการแก้ไข)</Label>
+                <Input
+                  value={course.customCode || ''}
+                  onChange={(e) => updateCustomCourseCode(course.id, e.target.value)}
+                  placeholder={course.code}
+                  className="h-8 text-sm bg-background"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">ชื่อวิชา (ถ้าต้องการแก้ไข)</Label>
+                <Input
+                  value={course.customName || ''}
+                  onChange={(e) => updateCustomCourseName(course.id, e.target.value)}
+                  placeholder="ใส่ชื่อวิชา"
+                  className="h-8 text-sm bg-background"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-1 max-w-xs">
+            <Label className="text-xs">สถานะ / เกรด</Label>
+            <Select
+              value={
+                course.status === 'in_progress' && !course.grade
+                  ? 'in_progress'
+                  : isInternshipCourse(course)
+                    ? (course.grade === 'S' || course.grade === 'U' ? course.grade : (course.status === 'in_progress' ? 'in_progress' : 'none'))
+                    : (course.grade || (course.status === 'in_progress' ? 'in_progress' : 'none'))
+              }
+              onValueChange={(value) => {
+                if (isInternshipCourse(course)) {
+                  if (value === 'in_progress') {
+                    updateCourseGrade(course.id, 'in_progress');
+                  } else if (value === 'none') {
+                    updateCourseGrade(course.id, '');
+                  } else {
+                    updateCourseGrade(course.id, value); // 'S' or 'U'
+                  }
+                  return;
+                }
+                updateCourseGrade(course.id, value === 'none' ? '' : value);
+              }}
+            >
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder="เลือกสถานะ/เกรด" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">- (วางแผน)</SelectItem>
+                <SelectItem value="in_progress">กำลังเรียน</SelectItem>
+                {isInternshipCourse(course) ? (
+                  <>
+                    <SelectItem value="S">S (ผ่าน)</SelectItem>
+                    <SelectItem value="U">U (ไม่ผ่าน)</SelectItem>
+                  </>
+                ) : (
+                  getAvailableGrades().map(grade => (
+                    <SelectItem key={grade} value={grade}>
+                      {grade}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">จัดการแผนการเรียน</h2>
+          <p className="text-muted-foreground">
+            หลักสูตร: {studyPlan.program} | ปีหลักสูตร: {studyPlan.curriculumYear}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="destructive" size="sm" onClick={resetStudyPlan}>
+            รีเซ็ตหลักสูตร
+          </Button>
+        </div>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -859,7 +1525,7 @@ const StudyPlanManager: React.FC = () => {
               <BookOpen className="w-5 h-5 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">รายวิชาทั้งหมด</p>
-                <p className="text-2xl font-bold">{customPlan.courses.length}</p>
+                <p className="text-2xl font-bold">{studyPlan.courses?.length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -916,220 +1582,725 @@ const StudyPlanManager: React.FC = () => {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ค้นหาและกรองรายวิชา</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="search">ค้นหา</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="ค้นหารายวิชา..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {/* ===== หมวดวิชาและวิชาเลือก (Category Credit Audit & Waterfall Overflow) ===== */}
+      {categoryCreditAudit && (
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <h3 className="text-base font-semibold flex items-center gap-2 text-foreground">
+              <Layers className="w-4 h-4 text-primary" />
+              ความคืบหน้าตามหมวดวิชาและวิชาเลือก
+            </h3>
+            <span className="text-xs">
+              {categoryCreditAudit.isAllSatisfied ? (
+                <span className="text-emerald-600 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> ครบทุกหมวดตามหลักสูตรแล้ว ({categoryCreditAudit.totalCompletedCredits}/{categoryCreditAudit.totalRequiredCredits} นก.)
+                </span>
+              ) : (
+                <span className="text-amber-600 font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> ขาดอีกรวม {categoryCreditAudit.totalRemainingCredits} หน่วยกิต (ผ่านแล้ว {categoryCreditAudit.totalCompletedCredits}/{categoryCreditAudit.totalRequiredCredits} นก.)
+                </span>
+              )}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {categoryCreditAudit.categoryList.map(cat => {
+              const isSatisfied = cat.isSatisfied;
+              return (
+                <Card
+                  key={cat.categoryKey}
+                  className={`academic-panel border transition-all ${
+                    isSatisfied
+                      ? 'border-emerald-200 bg-emerald-50/20 dark:bg-emerald-950/10'
+                      : 'border-border bg-card'
+                  }`}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="space-y-0.5">
+                        <p className="font-semibold text-sm leading-snug line-clamp-1" title={cat.label}>
+                          {cat.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {cat.passedCount} วิชาที่เรียนผ่าน
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`text-[11px] px-2 py-0.5 shrink-0 ${
+                          isSatisfied
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                        }`}
+                      >
+                        {isSatisfied ? 'ครบแล้ว' : `ขาด ${cat.remainingCredits} นก.`}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-foreground">
+                          {cat.completedCredits} / {cat.requiredCredits} หน่วยกิต
+                        </span>
+                        <span className="font-semibold text-muted-foreground">
+                          {cat.percentage}%
+                        </span>
+                      </div>
+                      <Progress
+                        value={cat.percentage}
+                        className={`h-2 ${isSatisfied ? '[&>div]:bg-emerald-600' : '[&>div]:bg-primary'}`}
+                      />
+                    </div>
+
+                    {/* Waterfall Overflow Notice */}
+                    {cat.overflowCredits > 0 && cat.categoryKey !== 'free_elective' && (
+                      <p className="text-[11px] text-purple-700 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded px-2 py-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        เกิน {cat.overflowCredits} นก. โอนไปหมวดเลือกเสรี
+                      </p>
+                    )}
+                    {cat.receivedOverflowCredits !== undefined && cat.receivedOverflowCredits > 0 && (
+                      <p className="text-[11px] text-blue-700 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded px-2 py-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        รวม {cat.receivedOverflowCredits} นก. โอนมาจากวิชาเลือกเกิน
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ===== ปุ่ม แนะนำวิชาที่ควรเรียนต่อ + เพิ่มวิชาเรียน ===== */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button
+            variant="outline"
+            className="academic-control gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+            onClick={() => {
+              if (!showRecommendPanel) {
+                const defaults: Record<string, { year: number; semester: number }> = {};
+                recommendedCourses.forEach(c => { defaults[c.code] = { year: c.year, semester: c.semester }; });
+                setRecommendSelections(defaults);
+              }
+              setShowRecommendPanel(prev => !prev);
+            }}
+          >
+            <Lightbulb className="w-4 h-4" />
+            แนะนำวิชาที่ควรเรียนต่อ{(() => { const n = recommendedCourses.filter(c => getRecommendPrereqStatus(c) === 'met').length; return n > 0 ? ` (${n} วิชา)` : ''; })()}
+          </Button>
+          <Button
+            variant="outline"
+            className="academic-control gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            onClick={() => {
+              setAddCourseSearch('');
+              setAddCourseFilterYear('1');
+              setAddCourseFilterSem('all');
+              setAddCourseSelections({});
+              setShowAddCourseDialog(true);
+            }}
+          >
+            <PlusCircle className="w-4 h-4" />
+            เพิ่มวิชาเรียน
+          </Button>
+        </div>
+
+        {showRecommendPanel && (
+          <Card className="academic-panel border-purple-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-purple-600" />
+                  วิชาต่อเนื่องที่พร้อมลงทะเบียน
+                </span>
+                <button onClick={() => setShowRecommendPanel(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </button>
+              </CardTitle>
+              <CardDescription>
+                ค่าเริ่มต้นปี/เทอมอิงตามหลักสูตร สามารถปรับเปลี่ยนได้ก่อนกดเพิ่ม
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(() => {
+                const metCourses = recommendedCourses.filter(c => getRecommendPrereqStatus(c) === 'met');
+
+                const renderRow = (cc: CurriculumCourse) => {
+                  const key = cc.code;
+                  const sel = recommendSelections[key] || { year: cc.year, semester: cc.semester };
+
+                  // หาวิชา prerequisite ที่ผ่านแล้วพร้อมชื่อ+เกรด
+                  const meaningfulPrereqs = (cc.prerequisites || []).filter(p =>
+                    !p.includes('โดยความเห็นชอบ') &&
+                    !p.includes('ความเห็นชอบของภาควิชา') &&
+                    !p.includes('ตามความเห็นชอบ')
+                  );
+                  const passedPrereqs = meaningfulPrereqs
+                    .map(prereq => {
+                      const token = extractCodeToken(prereq);
+                      if (!token) return null;
+                      const found = studyPlan?.courses.find(c => {
+                        const code = (c.code || '').trim();
+                        const digits = code.match(/\d{6,9}/)?.[0];
+                        return (token.full && code === token.full) || (token.digits && digits === token.digits);
+                      });
+                      if (!found) return null;
+                      return { name: found.customName || found.originalName, grade: found.grade };
+                    })
+                    .filter((x): x is { name: string; grade: string | undefined } => x !== null);
+
+                  return (
+                    <div key={key} className="flex items-center gap-3 p-2 rounded-lg border bg-muted/30">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{cc.code} - {cc.name}</div>
+                        <div className="text-xs text-muted-foreground">{cc.credits} หน่วยกิต{cc.mainCategory && ` | ${cc.mainCategory}`}</div>
+                        {passedPrereqs.length > 0 && (
+                          <div className="text-xs text-green-600 mt-0.5">
+                            คุณผ่านวิชา {passedPrereqs.map(p => `${p.name}${p.grade ? ` (เกรด ${p.grade})` : ''}`).join(', ')} แล้ว จึงสามารถลงเรียนวิชานี้ได้
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Select
+                          value={String(sel.year)}
+                          onValueChange={v => setRecommendSelections(prev => ({ ...prev, [key]: { ...sel, year: Number(v) } }))}
+                        >
+                          <SelectTrigger className="h-8 w-20 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(y => <SelectItem key={y} value={String(y)}>ปีที่ {y}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={String(sel.semester)}
+                          onValueChange={v => setRecommendSelections(prev => ({ ...prev, [key]: { ...sel, semester: Number(v) } }))}
+                        >
+                          <SelectTrigger className="h-8 w-20 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3].map(s => <SelectItem key={s} value={String(s)}>เทอม {s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          className="h-8 text-xs"
+                          onClick={() => addRecommendedCourse(cc, sel.year, sel.semester)}
+                        >
+                          <Check className="w-3 h-3 mr-1" />เพิ่ม
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                };
+
+                return (
+                  <>
+                    {metCourses.length > 0 ? (
+                      <div className="space-y-2">
+                        {metCourses.map(renderRow)}
+                      </div>
+                    ) : recommendedCourses.length === 0 ? (
+                      <div className="flex flex-col items-center gap-2 py-6 text-center">
+                        <span className="text-3xl">🎉</span>
+                        <p className="text-sm font-semibold text-green-700">
+                          ครบถ้วนแล้ว! คุณได้เพิ่มวิชาต่อเนื่องครบตามหลักสูตรแล้ว
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          ไม่มีวิชาที่ต้องเพิ่มเข้าแผนการเรียนอีก
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        {curriculumCourses.length === 0
+                          ? 'กำลังโหลดข้อมูลหลักสูตร...'
+                          : 'ยังไม่มีวิชาต่อเนื่องที่พร้อมลงทะเบียน — โปรดระบุผลการเรียนวิชาก่อนหน้าให้ผ่านก่อน'}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* ===== 2-Level Tabs: Year Selector Bar & Side-by-Side Semesters ===== */}
+      {(() => {
+        const term1Courses = groupedCourses[`${selectedYearView}-1`] || [];
+        const term2Courses = groupedCourses[`${selectedYearView}-2`] || [];
+        const term3Courses = groupedCourses[`${selectedYearView}-3`] || [];
+
+        const term1Credits = term1Courses.reduce((sum, c) => sum + (c.credits || 0), 0);
+        const term2Credits = term2Courses.reduce((sum, c) => sum + (c.credits || 0), 0);
+        const term3Credits = term3Courses.reduce((sum, c) => sum + (c.credits || 0), 0);
+        const totalYearCredits = term1Credits + term2Credits + term3Credits;
+
+        return (
+          <div className="space-y-4">
+            {/* Year Selector Tabs */}
+            <div className="academic-panel flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-3 rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin">
+                <span className="text-sm font-semibold text-muted-foreground mr-1 shrink-0">เลือกชั้นปี:</span>
+                <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-lg">
+                  {availableViewYears.map(y => {
+                    const yCredits = [1, 2, 3].reduce((sum, sem) => {
+                      const cList = groupedCourses[`${y}-${sem}`] || [];
+                      return sum + cList.reduce((s, c) => s + (c.credits || 0), 0);
+                    }, 0);
+                    const isSelected = selectedYearView === y;
+
+                    return (
+                      <button
+                        key={y}
+                        type="button"
+                        onClick={() => setSelectedYearView(y)}
+                        className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-all shrink-0 flex items-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
+                        }`}
+                      >
+                        <span>ปีที่ {y}</span>
+                        <span
+                          className={`academic-number text-xs px-1.5 py-0.5 rounded-full ${
+                            isSelected
+                              ? 'bg-primary-foreground/20 text-primary-foreground'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {yCredits} นก.
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {availableViewYears.length < 8 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="academic-control h-8 text-xs shrink-0"
+                    onClick={() => {
+                      const nextYear = availableViewYears.length + 1;
+                      setExtraYears(nextYear);
+                      setSelectedYearView(nextYear);
+                    }}
+                  >
+                    + เพิ่มปีที่ {availableViewYears.length + 1}
+                  </Button>
+                )}
+              </div>
+
+              <div className="text-xs text-muted-foreground sm:text-right shrink-0">
+                รวมปีที่ {selectedYearView}: <strong className="academic-number text-foreground">{totalYearCredits} หน่วยกิต</strong>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="filterYear">ชั้นปี</Label>
-              <Select value={filterYear} onValueChange={setFilterYear}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทุกชั้นปี</SelectItem>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      ปี {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Side-by-Side Semesters Grid (Term 1 & Term 2) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Term 1 Card */}
+              <Card className="academic-panel flex flex-col border shadow-sm">
+                <CardHeader className="pb-3 border-b bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                      ภาคเรียนที่ 1
+                    </CardTitle>
+                    <Badge variant="secondary" className="academic-number font-normal text-xs">
+                      {term1Courses.length} วิชา | {term1Credits} หน่วยกิต
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3.5 space-y-3 flex-1">
+                  {term1Courses.length > 0 ? (
+                    term1Courses.map(course => renderCourseCard(course))
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground text-sm flex flex-col items-center gap-1">
+                      <span>ไม่มีรายวิชาในภาคเรียนที่ 1</span>
+                      <span className="text-xs text-muted-foreground/70">สามารถเพิ่มวิชาหรือย้ายวิชามายังเทอมนี้ได้</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Term 2 Card */}
+              <Card className="academic-panel flex flex-col border shadow-sm">
+                <CardHeader className="pb-3 border-b bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+                      ภาคเรียนที่ 2
+                    </CardTitle>
+                    <Badge variant="secondary" className="academic-number font-normal text-xs">
+                      {term2Courses.length} วิชา | {term2Credits} หน่วยกิต
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3.5 space-y-3 flex-1">
+                  {term2Courses.length > 0 ? (
+                    term2Courses.map(course => renderCourseCard(course))
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground text-sm flex flex-col items-center gap-1">
+                      <span>ไม่มีรายวิชาในภาคเรียนที่ 2</span>
+                      <span className="text-xs text-muted-foreground/70">สามารถเพิ่มวิชาหรือย้ายวิชามายังเทอมนี้ได้</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="filterSemester">ภาคเรียน</Label>
-              <Select value={filterSemester} onValueChange={setFilterSemester}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทุกภาคเรียน</SelectItem>
-                  <SelectItem value="1">ภาคเรียนที่ 1</SelectItem>
-                  <SelectItem value="2">ภาคเรียนที่ 2</SelectItem>
-                  <SelectItem value="3">ภาคเรียนที่ 3 (ฝึกงาน)</SelectItem>
-                </SelectContent>
-              </Select>
+
+            {/* Summer Semester (ภาคเรียนฤดูร้อน) */}
+            {term3Courses.length > 0 || showSummerYear[selectedYearView] ? (
+              <Card className="academic-panel border-amber-200/80 bg-amber-50/10 shadow-sm">
+                <CardHeader className="pb-3 border-b border-amber-200/50 bg-amber-50/40">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2 text-amber-900">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+                      ภาคเรียนฤดูร้อน (Summer) — ปีที่ {selectedYearView}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="font-normal text-xs bg-amber-100 text-amber-800 border-amber-300">
+                        {term3Courses.length} วิชา | {term3Credits} หน่วยกิต
+                      </Badge>
+                      {term3Courses.length === 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowSummerYear(prev => ({ ...prev, [selectedYearView]: false }))}
+                        >
+                          ซ่อน
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3.5 space-y-3">
+                  {term3Courses.length > 0 ? (
+                    term3Courses.map(course => renderCourseCard(course))
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      ไม่มีรายวิชาในภาคเรียนฤดูร้อน (Summer)
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-amber-700"
+                  onClick={() => setShowSummerYear(prev => ({ ...prev, [selectedYearView]: true }))}
+                >
+                  ☀️ แสดงภาคเรียนฤดูร้อน (Summer) ปีที่ {selectedYearView}
+                </Button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ===== Section: วิชาที่ยังไม่ได้จัดตาราง ===== */}
+      {unscheduledCourses.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-xl font-semibold border-b pb-2 flex items-center gap-2 text-orange-700">
+            <ArrowRightLeft className="w-5 h-5" />
+            คลังวิชา — ยังไม่ได้จัดตาราง ({unscheduledCourses.length} วิชา)
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            วิชาด้านล่างถูกนำออกจากตาราง กดปุ่ม "จัดตาราง" เพื่อนำวิชากลับไปใส่ในภาคเรียนที่ต้องการ
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {unscheduledCourses.map(course => (
+              <div key={course.id} className="border border-orange-200 bg-orange-50 rounded-lg p-3 space-y-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{course.customCode || course.code} - {course.customName || course.originalName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {course.credits} หน่วยกิต
+                      {course.mainCategory && ` | ${course.mainCategory}`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Inline Schedule Editor for unscheduled */}
+                {editingSchedule === course.id ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">ปีที่</Label>
+                        <Select value={String(editYear)} onValueChange={v => setEditYear(Number(v))}>
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(y => (
+                              <SelectItem key={y} value={String(y)}>ปีที่ {y}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">เทอมที่</Label>
+                        <Select value={String(editSemester)} onValueChange={v => setEditSemester(Number(v))}>
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3].map(s => (
+                              <SelectItem key={s} value={String(s)}>เทอมที่ {s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="flex-1 h-8" onClick={() => moveCourse(course.id, editYear, editSemester)}>
+                        <Check className="w-3.5 h-3.5 mr-1" />จัดตาราง
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-8" onClick={() => setEditingSchedule(null)}>
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full h-8 text-xs border-orange-300 hover:bg-orange-100"
+                    onClick={() => {
+                      setEditingSchedule(course.id);
+                      setEditYear(1);
+                      setEditSemester(1);
+                    }}
+                  >
+                    <Pencil className="w-3 h-3 mr-1" />จัดตาราง
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* ===== Dialog เพิ่มวิชาเรียน (manual) ===== */}
+      <Dialog open={showAddCourseDialog} onOpenChange={setShowAddCourseDialog}>
+        <DialogContent className="academic-dialog max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusCircle className="w-5 h-5 text-blue-600" />
+              เพิ่มวิชาเรียน
+            </DialogTitle>
+            <DialogDescription>
+              เลือกวิชาจากหลักสูตรเพื่อเพิ่มเข้าแผนการเรียน
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* ตัวกรองและค้นหา */}
+          <div className="space-y-3 border-b pb-3">
+            <div className="flex gap-2 flex-wrap">
+              <div className="flex-1 min-w-[140px] space-y-1">
+                <Label className="text-xs">กรองตามปี (หลักสูตร)</Label>
+                <Select value={addCourseFilterYear} onValueChange={setAddCourseFilterYear}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1,2,3,4].map(y => <SelectItem key={y} value={String(y)}>ปีที่ {y}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 min-w-[140px] space-y-1">
+                <Label className="text-xs">กรองตามเทอม (หลักสูตร)</Label>
+                <Select value={addCourseFilterSem} onValueChange={setAddCourseFilterSem}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทุกเทอม</SelectItem>
+                    {[1,2,3].map(s => <SelectItem key={s} value={String(s)}>เทอม {s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="filterStatus">สถานะ</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">ทุกสถานะ</SelectItem>
-                  <SelectItem value="planned">วางแผนเรียน</SelectItem>
-                  <SelectItem value="in_progress">กำลังเรียน</SelectItem>
-                  <SelectItem value="completed">เรียนจบแล้ว</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="relative">
+              <Search className="absolute left-2 top-2 w-4 h-4 text-muted-foreground" />
+              <Input
+                className="h-8 pl-8 text-sm"
+                placeholder="ค้นหาชื่อวิชาหรือรหัสวิชา..."
+                value={addCourseSearch}
+                onChange={e => setAddCourseSearch(e.target.value)}
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Course List */}
-      {customPlan.courses.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <GraduationCap className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">ยังไม่มีรายวิชาในแผนการเรียน</h3>
-            <p className="text-muted-foreground mb-4">
-              เริ่มต้นสร้างแผนการเรียนของคุณโดยการเพิ่มรายวิชาแรก
-            </p>
-            <Button onClick={() => setIsAddCourseOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              เพิ่มรายวิชาแรก
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {Object.entries(groupedCourses).sort().map(([key, courses]) => {
-            const [year, semester] = key.split('-');
-            return (
-              <Card key={key}>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="w-5 h-5" />
-                    <span>ปีที่ {year} ภาคเรียนที่ {semester}</span>
-                    <Badge variant="outline">{courses.length} รายวิชา</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {courses.map((course) => (
-                      <div key={course.id} className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h4 className="font-medium">{course.name}</h4>
-                            <Badge 
-                              variant={
-                                course.status === 'completed' ? 'default' :
-                                course.status === 'in_progress' ? 'secondary' :
-                                'outline'
-                              }
-                            >
-                              {course.status === 'completed' ? 'เรียนจบแล้ว' :
-                               course.status === 'in_progress' ? 'กำลังเรียน' :
-                               'วางแผนเรียน'}
-                            </Badge>
-                            {course.grade && (
-                              <Badge 
-                                variant="outline" 
-                                className={getGradeColor(course.grade)}
-                              >
-                                เกรด {course.grade}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">{course.code}</p>
-                          {course.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{course.description}</p>
-                          )}
-                          
-                          {/* Prerequisites and Corequisites Display */}
-                          {((course.prerequisites && course.prerequisites.length > 0) || 
-                            (course.corequisites && course.corequisites.length > 0)) && (
-                            <div className="mt-2 space-y-1">
-                              {course.prerequisites && course.prerequisites.length > 0 && (
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-xs font-medium text-orange-600">วิชาที่ต้องเรียนมาก่อน:</span>
-                                  <div className="flex flex-wrap gap-1">
-                                    {course.prerequisites.map((prereq, index) => (
-                                      <Badge key={`${course.id}-pre-${prereq}`} variant="outline" className="text-xs bg-orange-50 border-orange-200 text-orange-700">
-                                        {prereq}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              {course.corequisites && course.corequisites.length > 0 && (
-                                <div className="flex items-center space-x-2">
-                                  <span className="text-xs font-medium text-blue-600">วิชาที่ต้องเรียนพร้อมกัน:</span>
-                                  <div className="flex flex-wrap gap-1">
-                                    {course.corequisites.map((coreq, index) => (
-                                      <Badge key={`${course.id}-co-${coreq}`} variant="outline" className="text-xs bg-blue/10 border-blue/20">
-                                        {coreq}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+          {/* รายการวิชา */}
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="space-y-2 pr-2">
+              {(() => {
+                try {
+                  const q = addCourseSearch.trim().toLowerCase();
+                  const filtered = curriculumCourses.filter(c => {
+                    const yearOk = String(c.year) === addCourseFilterYear;
+                    const semOk = addCourseFilterSem === 'all' || String(c.semester) === addCourseFilterSem;
+                    const textOk = !q || c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q);
+                    return yearOk && semOk && textOk;
+                  });
+
+                  if (filtered.length === 0) {
+                    return <p className="text-sm text-muted-foreground text-center py-6">ไม่พบวิชาที่ตรงกัน</p>;
+                  }
+
+                  return filtered.map(cc => {
+                    const existing = studyPlan?.courses.find(sc => {
+                      const scCode = (sc.code || '').trim();
+                      const ccCode = (cc.code || '').trim();
+                      const scDigits = scCode.match(/\d{6,9}/)?.[0];
+                      const ccDigits = ccCode.match(/\d{6,9}/)?.[0];
+                      return scCode === ccCode || (scDigits && ccDigits && scDigits === ccDigits);
+                    });
+
+                    return (
+                      <div key={cc.code} className={`flex items-start gap-3 p-2 rounded-lg border ${existing ? 'bg-muted/60' : 'bg-background'}`}>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{cc.code} - {cc.name}</div>
+                          <div className="text-xs text-muted-foreground">{cc.credits} หน่วยกิต | ปีที่ {cc.year} เทอม {cc.semester}{cc.mainCategory ? ` | ${cc.mainCategory}` : ''}</div>
+                          {existing && (
+                            <div className="text-xs text-amber-600 mt-0.5">
+                              ⚠️ มีอยู่ในแผนแล้ว — ปีที่ {existing.year} เทอม {existing.semester}{existing.grade ? ` (เกรด ${existing.grade})` : ' (ยังไม่มีเกรด)'}
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline">{course.credits} หน่วยกิต</Badge>
-                          <Badge variant="outline">
-                            {course.type === 'required' ? 'บังคับ' :
-                             course.type === 'elective' ? 'เลือก' : 'ศึกษาทั่วไป'}
-                          </Badge>
-                          
-                          {/* Grade Input for completed courses */}
-                          {course.status === 'completed' && (
-                            <Select
-                              value={course.grade || ''}
-                              onValueChange={(grade) => updateCourseGrade(course.id, grade)}
-                            >
-                              <SelectTrigger className="w-20">
-                                <SelectValue placeholder="เกรด" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {getAvailableGrades().map((grade) => (
-                                  <SelectItem key={grade} value={grade}>
-                                    {grade}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => editCourse(course)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteCourse(course.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        {!existing && (() => {
+                          const sel = addCourseSelections[cc.code] ?? { year: cc.year, semester: cc.semester };
+
+                          const meaningfulPrereqs = (cc.prerequisites || []).filter(p =>
+                            !p.includes('โดยความเห็นชอบ') &&
+                            !p.includes('ความเห็นชอบของภาควิชา') &&
+                            !p.includes('ตามความเห็นชอบ')
+                          );
+
+                          // Check 1: prerequisite ยังไม่ผ่าน (ไม่มีในแผน / ไม่มีเกรด / เกรด F)
+                          const unmetMessages: string[] = [];
+                          for (const prereq of meaningfulPrereqs) {
+                            const token = extractCodeToken(prereq);
+                            if (!token) continue;
+                            const prereqCourse = studyPlan?.courses.find(c => {
+                              const code = (c.code || '').trim();
+                              const digits = code.match(/\d{6,9}/)?.[0];
+                              return (token.full && code === token.full) || (token.digits && digits === token.digits);
+                            });
+                            if (!prereqCourse) {
+                              const fromCurr = curriculumCourses.find(c => {
+                                const code = (c.code || '').trim();
+                                const digits = code.match(/\d{6,9}/)?.[0];
+                                return (token.full && code === token.full) || (token.digits && digits === token.digits);
+                              });
+                              unmetMessages.push(`ยังไม่ได้เพิ่มวิชา "${fromCurr?.name || prereq}" เข้าแผน`);
+                            } else {
+                              const grade = (prereqCourse.grade || '').trim().toUpperCase();
+                              if (!grade) {
+                                unmetMessages.push(`ยังไม่ได้ใส่เกรดวิชา "${prereqCourse.customName || prereqCourse.originalName}"`);
+                              } else if (['F', 'U', 'I', 'W'].includes(grade)) {
+                                unmetMessages.push(`ไม่ผ่านวิชา "${prereqCourse.customName || prereqCourse.originalName}" (เกรด ${grade})`);
+                              }
+                            }
+                          }
+                          const hasUnmet = unmetMessages.length > 0;
+
+                          // Check 2: prerequisite อยู่เทอมเดียวกันหรือหลังกว่า sel
+                          const conflictingPrereqs: string[] = [];
+                          if (!hasUnmet) {
+                            for (const prereq of meaningfulPrereqs) {
+                              const token = extractCodeToken(prereq);
+                              if (!token) continue;
+                              const prereqCourse = studyPlan?.courses.find(c => {
+                                const code = (c.code || '').trim();
+                                const digits = code.match(/\d{6,9}/)?.[0];
+                                return (token.full && code === token.full) || (token.digits && digits === token.digits);
+                              });
+                              if (prereqCourse && prereqCourse.year > 0 && prereqCourse.semester > 0) {
+                                const tooLate =
+                                  prereqCourse.year > sel.year ||
+                                  (prereqCourse.year === sel.year && prereqCourse.semester >= sel.semester);
+                                if (tooLate) {
+                                  conflictingPrereqs.push(`${prereqCourse.customName || prereqCourse.originalName} (ปีที่ ${prereqCourse.year} เทอม ${prereqCourse.semester})`);
+                                }
+                              }
+                            }
+                          }
+                          const hasConflict = conflictingPrereqs.length > 0;
+
+                          return (
+                            <div className="flex flex-col items-end gap-1 shrink-0 mt-0.5">
+                              <div className="flex items-center gap-1">
+                                <Select value={String(sel.year)} onValueChange={v => setAddCourseSelections(prev => ({ ...prev, [cc.code]: { ...sel, year: Number(v) } }))}>
+                                  <SelectTrigger className="h-7 w-20 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {[1,2,3,4,5,6,7,8].map(y => <SelectItem key={y} value={String(y)}>ปีที่ {y}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                                <Select value={String(sel.semester)} onValueChange={v => setAddCourseSelections(prev => ({ ...prev, [cc.code]: { ...sel, semester: Number(v) } }))}>
+                                  <SelectTrigger className="h-7 w-16 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {[1,2,3].map(s => <SelectItem key={s} value={String(s)}>เทอม {s}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  size="sm"
+                                  className="h-7 text-xs px-2"
+                                  disabled={hasUnmet || hasConflict}
+                                  onClick={() => {
+                                    try {
+                                      addRecommendedCourse(cc, sel.year, sel.semester);
+                                    } catch (e) {
+                                      console.error('Error adding course:', e);
+                                    }
+                                  }}
+                                >
+                                  <Check className="w-3 h-3 mr-1" />เพิ่ม
+                                </Button>
+                              </div>
+                              {hasUnmet && (
+                                <div className="text-xs text-orange-600 text-right max-w-[280px] space-y-0.5">
+                                  {unmetMessages.map((msg, i) => (
+                                    <div key={i}>⚠️ {msg}</div>
+                                  ))}
+                                </div>
+                              )}
+                              {!hasUnmet && hasConflict && (
+                                <div className="text-xs text-red-600 text-right max-w-[280px]">
+                                  ⛔ วิชาก่อนเรียน {conflictingPrereqs.join(', ')} ต้องอยู่ก่อนเทอมที่เลือก
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                    );
+                  });
+                } catch (e) {
+                  return <p className="text-sm text-red-500 text-center py-6">เกิดข้อผิดพลาดในการโหลดรายวิชา</p>;
+                }
+              })()}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Academic Alert and Confirmation Dialog */}
+      <AcademicAlertDialog dialog={academicDialog} onClose={closeAlert} />
     </div>
   );
 };
 
 export default StudyPlanManager;
+

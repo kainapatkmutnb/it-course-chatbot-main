@@ -1,100 +1,747 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import '@n8n/chat/style.css';
 import { createChat } from '@n8n/chat';
+import './ChatBot.css';
+import { useAuth } from '@/contexts/AuthContext';
+import { StudyMode } from '@/types/auth';
+import { useStudyPlan, useStudentGPAAndCredits } from '@/hooks/useFirebaseData';
+import { Course } from '@/types/course';
+import { FeedbackBanner } from './FeedbackBanner';
+import { getCurriculumSummaryCatalog, getAllCurriculumsMap, getCurriculumDurationGuard, getActiveCurriculumRule } from '@/services/curriculumCatalogService';
+import { evaluateAcademicStanding } from '@/utils/gradeUtils';
+import { computeUncompletedCurriculumCourses } from '@/utils/curriculumDeduplicationUtils';
+import { computeCategoryCreditAudit } from '@/utils/electiveAuditUtils';
+
 
 const ChatBot: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [curriculumCourses, setCurriculumCourses] = useState<Course[]>([]);
+  const [curriculumLoading, setCurriculumLoading] = useState(false);
+  // BUG-05 fix: track whether chat has been initialized to prevent re-initialization
+  const chatInitializedRef = useRef(false);
+
+  const { user, isLoading: authLoading } = useAuth();
+  const { studyPlan, loading: studyPlanLoading } = useStudyPlan(user?.id || '');
+  const { data: gpaData, loading: gpaLoading } = useStudentGPAAndCredits(user?.id || '');
+
+  // DEBUG: Log GPA and credits data
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('📊 [ChatBot Debug]', {
+        userId: user.id,
+        gpaData,
+        studyPlan: {
+          id: studyPlan?.id,
+          studentId: studyPlan?.studentId,
+          completedCredits: studyPlan?.completedCredits,
+          totalCredits: studyPlan?.totalCredits,
+          courseCount: studyPlan?.courses?.length
+        }
+      });
+    }
+  }, [gpaData, studyPlan, user, authLoading]);
+
+  // Fetch standard curriculum courses (for student, admin, or guest)
+  useEffect(() => {
+    if (authLoading || (user && studyPlanLoading)) {
+      return;
+    }
+
+    const fetchCurriculum = async () => {
+      try {
+        setCurriculumLoading(true);
+        let program = 'IT';
+        let curriculumYear = '67';
+
+        if (studyPlan?.curriculum) {
+          const parts = studyPlan.curriculum.split('-');
+          program = parts[0] || 'IT';
+          curriculumYear = parts[1] || '67';
+        } else if (user?.department) {
+          program = user.department;
+        }
+
+        const { getCoursesByProgram } = await import('@/services/courseService');
+        const courses = await getCoursesByProgram(program, curriculumYear);
+        setCurriculumCourses(courses);
+      } catch (error) {
+        console.error('Error fetching curriculum courses:', error);
+      } finally {
+        setCurriculumLoading(false);
+      }
+    };
+
+    fetchCurriculum();
+  }, [authLoading, studyPlanLoading, user?.id, user?.department, studyPlan?.curriculum]);
+
+  // Only consider study plan & gpa & curriculum loading when there is a logged-in user
+  const dataIsLoading = authLoading || (!!user && (studyPlanLoading || gpaLoading || curriculumLoading));
+
+  // Session ID for conversation grouping
+  const sessionIdRef = useRef<string>('');
+  if (!sessionIdRef.current) {
+    sessionIdRef.current = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  }
 
   useEffect(() => {
+    // BUG-05 fix: only initialize once when data loading is complete
+    if (dataIsLoading) return;
+    const cleanupChat = () => {
+      const container = document.getElementById('n8n-chat');
+      if (container) {
+        container.innerHTML = '';
+      }
+      const shadowRoots = document.querySelectorAll('n8n-chat');
+      shadowRoots.forEach(el => el.remove());
+      chatInitializedRef.current = false;
+    };
+
     const initializeChat = async () => {
       try {
-        setIsLoading(true);
+        setIsInitializing(true);
         setChatError(null);
+        cleanupChat();
         
-        // Check if webhook is available before initializing chat
         const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/dd7276e3-4e2c-48c0-a7b7-ca3647acf777/chat';
-        
-        // Test webhook connectivity
-        try {
-          const response = await fetch(webhookUrl, { 
-            method: 'HEAD',
-            signal: AbortSignal.timeout(3000) // 3 second timeout
-          });
-          
-          // If webhook is not available, show warning but still initialize chat
-          if (!response.ok) {
-            console.warn('Webhook service may not be available, but initializing chat anyway');
+
+        const initialMessages = user 
+          ? [
+              `สวัสดีครับ คุณ ${user.name} 👋`,
+              'ผมคือ AI Assistant ของภาควิชาเทคโนโลยีสารสนเทศ มีอะไรให้ช่วยไหมครับ?',
+              '🔒 *ระบบมีการบันทึกประวัติการสนทนาเพื่อพัฒนาการให้บริการตามนโยบาย PDPA*'
+            ]
+          : [
+              'สวัสดีครับ 👋 ยินดีต้อนรับสู่ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศ',
+              'ผมคือ AI Assistant มีอะไรให้ช่วยเหลือเกี่ยวกับหลักสูตรและรายวิชาไหมครับ?',
+              '🔒 *ระบบมีการบันทึกประวัติการสนทนาเพื่อพัฒนาการให้บริการตามนโยบาย PDPA*'
+            ];
+
+        // Extract completed course codes (grades D and above, including S for internship)
+        const completedCourseCodes = studyPlan?.courses
+          ?.filter(c => c.status === 'completed' && c.grade && {
+            'A': true, 'A-': true, 'A+': true,
+            'B': true, 'B+': true, 'B-': true,
+            'C': true, 'C+': true, 'C-': true,
+            'D': true, 'D+': true, 'D-': true,
+            'S': true  // Success grade for internship (ฝึกงาน)
+          }[c.grade.trim().toUpperCase()])
+          .map(c => c.code) || [];
+
+        // Extract passed courses with detailed attributes
+        const passedCourses = studyPlan?.courses
+          ?.filter(c => c.status === 'completed' && c.grade && {
+            'A': true, 'A-': true, 'A+': true,
+            'B': true, 'B+': true, 'B-': true,
+            'C': true, 'C+': true, 'C-': true,
+            'D': true, 'D+': true, 'D-': true,
+            'S': true
+          }[c.grade.trim().toUpperCase()])
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            year: c.year,
+            semester: c.semester,
+            grade: c.grade,
+            status: 'completed'
+          })) || [];
+
+        // Extract in-progress courses (currently enrolled / กำลังศึกษา)
+        const inProgressCourses = studyPlan?.courses
+          ?.filter(c => c.status === 'in_progress')
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            year: c.year,
+            semester: c.semester,
+            grade: c.grade || 'IP',
+            status: 'in_progress'
+          })) || [];
+        const inProgressCourseCodes = inProgressCourses.map(c => c.code);
+
+        // Extract failed courses (Grade F or status failed)
+        const failedCourses = studyPlan?.courses
+          ?.filter(c => c.status === 'failed' || (c.grade && c.grade.trim().toUpperCase() === 'F'))
+          .map(c => ({
+            code: c.code,
+            name: c.name,
+            credits: c.credits,
+            year: c.year,
+            semester: c.semester,
+            grade: c.grade || 'F',
+            status: 'failed'
+          })) || [];
+        const failedCourseCodes = failedCourses.map(c => c.code);
+
+        const standingResult = evaluateAcademicStanding(studyPlan?.courses || []);
+        const userGpa = Number(standingResult.currentGPAX || (gpaData?.gpa ?? (studyPlan as any)?.gpa ?? 0));
+        const isProbation = standingResult.isProbation;
+        const isHighProbation = standingResult.isHighProbation;
+        const isLowProbation = standingResult.isLowProbation;
+        const isRetired = standingResult.isRetired;
+        const academicStanding = standingResult.standing;
+
+        const registrationRules = {
+          regularSemester: {
+            minCredits: 9,
+            maxCredits: 22,
+            exception: 'สามารถลงทะเบียนเรียนต่ำกว่า 9 หน่วยกิตได้ หากเป็นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา'
+          },
+          specialEveningSemester: {
+            minCredits: 6,
+            maxCredits: 18,
+            exception: 'สำหรับนักศึกษาโครงการจัดการศึกษาภาคพิเศษ/สมทบ'
+          },
+          probation: {
+            creditRange: { min: 15, max: 16 },
+            maxCredits: 16,
+            condition: 'นักศึกษาที่มีเกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 2.00 ติดสถานะวิทยาทัณฑ์ (โปรต่ำ 1.50-1.74, โปรสูง 1.75-1.99)',
+            petitionGuideline: 'หากมีความจำเป็นต้องลงทะเบียนเรียนเกิน 15-16 หน่วยกิต ต้องได้รับอนุมัติจากอาจารย์ที่ปรึกษาและคณบดี'
+          },
+          summerSemester: {
+            maxCredits: 9,
+            note: 'ภาคเรียนฤดูร้อนลงทะเบียนได้ไม่เกิน 9 หน่วยกิต'
+          },
+          academicDismissal: {
+            condition: 'เกรดเฉลี่ยสะสม (GPAX) ต่ำกว่า 1.50 (หลังสิ้นสุดภาค 2 ปี 1) หรือติดสถานะวิทยาทัณฑ์ (GPAX < 2.00) ติดต่อกันครบ 4 ภาคการศึกษาปกติ จะพ้นสภาพนักศึกษา (รีไทร์)'
           }
-        } catch (fetchError) {
-          console.warn('Webhook service is not available, but initializing chat anyway:', fetchError);
-          // Don't throw error, just log warning and continue
+        };
+
+        const isStudent = user?.role === 'student';
+        const studyMode: StudyMode = (user as any)?.studyMode || 'regular';
+        const isSpecialEvening = studyMode === 'special_evening';
+        const defaultMinCredits = isSpecialEvening ? 6 : 9;
+        const defaultMaxCredits = isSpecialEvening ? 18 : 22;
+
+        const isCreditLimitAuthorized = Boolean(
+          (studyPlan as any)?.registrationCreditLimitAuthorized ??
+          (user as any)?.registrationCreditLimitAuthorized ??
+          false
+        );
+
+        const allowedMaxCredits = isStudent
+          ? (isRetired ? 0 : (isProbation ? 16 : defaultMaxCredits))
+          : 22;
+        const allowedMinCredits = isStudent
+          ? (isRetired ? 0 : defaultMinCredits)
+          : 0;
+
+        const curriculumSummaryCatalog = getCurriculumSummaryCatalog();
+        const allCurriculums = getAllCurriculumsMap();
+        const enrolledCurr = isStudent
+          ? (studyPlan?.curriculum 
+              ? studyPlan.curriculum 
+              : (studyPlan?.program && studyPlan?.curriculumYear 
+                  ? `${studyPlan.program}-${studyPlan.curriculumYear}` 
+                  : (user?.department ? `${user.department}-67` : '')))
+          : '';
+
+        const uncompletedCurriculumCourses = isStudent
+          ? computeUncompletedCurriculumCourses(
+              curriculumCourses,
+              studyPlan?.courses || [],
+              failedCourseCodes
+            )
+          : [];
+
+        const categoryCreditAudit = isStudent
+          ? computeCategoryCreditAudit(
+              curriculumCourses,
+              studyPlan?.courses || []
+            )
+          : null;
+
+        // Authoritative 13-curriculum guard — sourced from CURRICULUM_RULES_CATALOG in curriculumCatalogService
+        const curriculumDurationGuard = getCurriculumDurationGuard();
+        // Direct lookup for the student's own curriculum (O(1) access for n8n LLM)
+        const activeCurriculumRule = isStudent && enrolledCurr ? getActiveCurriculumRule(enrolledCurr) : null;
+
+        // คำนวณชั้นปีและภาคเรียนปัจจุบันของนักศึกษาอย่างแม่นยำ (ครอบคลุมทุกปี: ปี 1 ถึงปี 8+ รวมถึงนักศึกษาตกค้าง / ขยายเวลาเรียน)
+        let currentStudentYear: number | null = null;
+        let currentStudentSemester: number | null = null;
+        let isExtendedYears = false;
+        let standardDuration = 4;
+        let currentStudentAcademicTerm = '';
+
+        if (isStudent) {
+          currentStudentYear = 1;
+          currentStudentSemester = 1;
+
+          if (inProgressCourses.length > 0) {
+            // Tier 1: ดูจากรายวิชาที่กำลังลงทะเบียนเรียนอยู่จริง (in_progress)
+            currentStudentYear = Math.max(...inProgressCourses.map(c => Number(c.year) || 1));
+            currentStudentSemester = Math.max(...inProgressCourses.filter(c => Number(c.year) === currentStudentYear).map(c => Number(c.semester) || 1));
+          } else if (passedCourses.length > 0) {
+            // Tier 2: ถัดจากเทอมสูงสุดที่สอบผ่านแล้ว
+            const maxPassedYear = Math.max(...passedCourses.map(c => Number(c.year) || 1));
+            const maxPassedSem = Math.max(...passedCourses.filter(c => Number(c.year) === maxPassedYear).map(c => Number(c.semester) || 1));
+            if (maxPassedSem >= 2) {
+              currentStudentYear = maxPassedYear + 1;
+              currentStudentSemester = 1;
+            } else {
+              currentStudentYear = maxPassedYear;
+              currentStudentSemester = 2;
+            }
+          } else if (user?.studentId && /^\d{2}/.test(user.studentId.trim())) {
+            // Tier 3: คำนวณจากรหัสนักศึกษา 2 ตัวแรก (ปีการศึกษาที่เข้าศึกษา พ.ศ.) เทียบกับปีการศึกษาปัจจุบัน (2569)
+            const admissionYearBE = parseInt(user.studentId.trim().substring(0, 2), 10);
+            const currentAcademicYearBE = 69; // พ.ศ. 2569
+            const diffYears = (currentAcademicYearBE - admissionYearBE) + 1;
+            currentStudentYear = Math.max(1, diffYears);
+            currentStudentSemester = 1;
+          }
+
+          standardDuration = activeCurriculumRule?.durationYears || 4;
+          isExtendedYears = currentStudentYear > standardDuration;
+          currentStudentAcademicTerm = enrolledCurr
+            ? `ปี ${currentStudentYear} เทอม ${currentStudentSemester}`
+            : 'ยังไม่ได้เลือกหลักสูตร/สาขาวิชา';
+        } else {
+          currentStudentAcademicTerm = user?.role === 'admin'
+            ? 'ผู้ดูแลระบบ (System Administrator)'
+            : user?.role === 'instructor'
+              ? 'อาจารย์ผู้สอน (Instructor)'
+              : 'เจ้าหน้าที่ (Staff)';
         }
+
+        const studentStatusDirective = isStudent
+          ? (enrolledCurr
+              ? `STRICT: ข้อมูลสถานะและชั้นปีปัจจุบันของนักศึกษาคือ "${currentStudentAcademicTerm}" (กำลังศึกษาอยู่ชั้นปีที่ ${currentStudentYear} ภาคการศึกษาที่ ${currentStudentSemester}${isExtendedYears ? ` ซึ่งเป็นนักศึกษาเกินระยะเวลาตามแผนการเรียนปกติ / ตกค้าง เกินหลักสูตร ${standardDuration} ปี` : ''}) โดยมีวิชาที่กำลังศึกษาในเทอมปัจจุบัน (in_progress) จำนวน ${inProgressCourses.length} วิชา ได้แก่ [${inProgressCourseCodes.join(', ')}] ห้ามตอบผิดว่าเป็นปี 4 หรือเทอม 4-2 หรือชั้นปีอื่นโดยเด็ดขาด ให้ยึดถือข้อมูลสถานะนี้เป็นจริงเสมอ`
+              : `STRICT: นักศึกษาชื่อ "${user?.name}" ยังไม่ได้เลือกสาขาวิชาหรือสร้างแผนการเรียนในระบบ หากถามว่าเรียนหลักสูตรอะไร ให้แจ้งว่ายังไม่ได้เลือกหลักสูตร/สาขาวิชา และแนะนำให้ไปเลือกที่เมนูจัดการแผนการเรียนหรือโปรไฟล์`)
+          : `STRICT: ผู้ใช้งานปัจจุบันชื่อ "${user?.name}" มีบทบาทในระบบเป็น "${user?.role}" (${currentStudentAcademicTerm}) ไม่ใช่นักศึกษา จึงไม่มีข้อมูลการศึกษา ชั้นปี หรือหลักสูตรที่กำลังศึกษาในระบบเด็ดขาด หากผู้ใช้ถามว่า "ผมชื่ออะไรตอนนี้ผมเรียนหลักสูตรอะไร" หรือถามเกี่ยวกับสถานะการเรียนของตนเอง ให้ตอบว่าผู้ใช้งานชื่อ "${user?.name}" มีบทบาทเป็น ${currentStudentAcademicTerm} และไม่ได้เป็นนักศึกษา จึงไม่มีข้อมูลหลักสูตรที่กำลังศึกษาหรือสถานะการเรียน ห้ามตอบว่ากำลังศึกษา IT-67 หรือหลักสูตรใด ๆ โดยเด็ดขาด`;
+
+        const advisingDirectives = {
+          currentStudentStatusRule: studentStatusDirective,
+          academicStandingRule: isStudent
+            ? (isRetired
+                ? `CRITICAL: นักศึกษาอยู่ในสถานะ "พ้นสภาพนักศึกษา (รีไทร์)" เนื่องจาก ${standingResult.retireReason} หากนักศึกษาถามเรื่องการเรียน แผนการเรียน หรือลงทะเบียน ให้ชี้แจงสถานะด้วยความสุภาพ แนะนำให้ติดต่ออาจารย์ที่ปรึกษาและสำนักทะเบียนและประมวลผลทันทีเพื่อตรวจสอบสิทธิ์การยื่นคำร้อง ห้ามแนะนำให้ลงทะเบียนตามปกติเด็ดขาด`
+                : (isProbation
+                    ? `STRICT: นักศึกษาอยู่ในสถานะ "${standingResult.standingLabel}" (GPAX ${userGpa.toFixed(2)}) ติดโปรมาแล้ว ${standingResult.consecutiveProbationCount}/4 เทอมติดต่อกัน มีเพดานลงทะเบียนช่วง 15-16 หน่วยกิต (เว้นแต่ได้รับอนุมัติเป็นกรณีพิเศษ) หากถามเรื่องลงทะเบียนเรียน ให้เตือนเกณฑ์ 15-16 หน่วยกิต แนะนำให้ลงวิชาที่ติด F/D เพื่อรีเกรดดึง GPAX สะสม และแจ้งเป้าหมายเกรดเทอมถัดไป: "${standingResult.targetGPANextTerm?.formulaExplanation || ''}"`
+                    : `STRICT: นักศึกษาอยู่ในสถานะปกติ (GPAX ${userGpa.toFixed(2)}) สามารถลงทะเบียนเรียนได้ ${defaultMinCredits}-${defaultMaxCredits} หน่วยกิต`))
+            : '',
+          passedCourseExclusionRule: 'STRICT: ห้ามนำรายวิชาที่อยู่ใน completedCourseCodes หรือ passedCourses ไปใส่ในแผนการลงทะเบียนเรียนที่แนะนำโดยเด็ดขาด ให้นักศึกษาลงเฉพาะวิชาที่ยังไม่ผ่านเท่านั้น',
+          uncompletedCoursesAnsweringRule: 'STRICT: เมื่อนักศึกษาถามว่า "ผมเหลือวิชาที่ยังไม่ได้เรียนคือวิชาไร" หรือถามเกี่ยวกับวิชาที่ยังไม่ผ่าน/ยังไม่ได้เรียน ให้ยึดรายการจาก uncompletedCurriculumCourses ใน metadata นี้เป็นแหล่งข้อมูลความจริง (Single Source of Truth) ห้ามนำรหัส wildcard (เช่น 080xxxxxx, 0602333xx, xxxxxxxxx, 080303xxx) หรือวิชาเลือกที่นักศึกษาลงทะเบียนผ่านครบตามโควตาแล้วมาตอบซ้ำ และให้ตอบเฉพาะรายวิชาที่อยู่ใน uncompletedCurriculumCourses เท่านั้น',
+          categoryCreditAuditRule: 'STRICT: เมื่อนักศึกษาถามเกี่ยวกับวิชาเลือก หมวดวิชาศึกษาทั่วไป วิชาเลือกกลุ่มวิชาชีพ วิชาเลือกเสรี หรือถามว่าวิชาเลือกครบหรือยัง ขาดอีกกี่หน่วยกิต ให้ยึดข้อมูลจาก categoryCreditAudit เป็น Single Source of Truth โดยระบุจำนวนหน่วยกิตที่ต้องเรียน (required), ที่เรียนผ่านแล้ว (completed), ที่ยังขาดอยู่ (remaining), และสถานะว่าครบแล้วหรือไม่ (isSatisfied) ของหมวดวิชานั้นๆ อย่างชัดเจน รวมถึงระบุหากมีหน่วยกิตเกินจากวิชาเลือกกลุ่มวิชาชีพหรือศึกษาทั่วไปที่โอนไปช่วยเติมเต็มหมวดวิชาเลือกเสรี (Waterfall Overflow)',
+          retakePrerequisiteRule: 'STRICT: หากนักศึกษามีวิชาใน failedCourses (ติด F) และวิชานั้นเป็นตัวบังคับก่อน (prerequisite) ของวิชาในเทอมถัดไป ให้แจ้งชัดเจนว่าวิชาในเทอมถัดไปตัวนั้นถูกบล็อก (Blocked) ไม่สามารถลงทะเบียนได้ และต้องแนะนำให้ลงเรียนซ้ำ (Retake) วิชาที่ติด F ก่อน',
+          directFulfillmentRule: 'STRICT: เมื่อผู้ใช้ถามเกี่ยวกับรายวิชา แผนการเรียน หรือหน่วยกิต ให้ตอบรายละเอียดและโครงสร้างรายวิชาทันที ห้ามถามยืนยัน ห้ามถามย้อน และห้ามถามความสมัครใจก่อนตอบเด็ดขาด',
+          multiTurnCurriculumRetention: 'STRICT: ให้รักษา ActiveConversationCurriculum จากข้อความก่อนหน้า หากผู้ใช้ถามต่อเนื่อง เช่น "บอกมาในแชทนี้เลย" หรือ "มีวิชาอะไรอีก" ให้ตอบตามหลักสูตรเดิมที่คุยค้างไว้',
+          ragOverrideRule: 'STRICT: ข้อมูลใน allCurriculums และ curriculumDurationGuard คือ Single Source of Truth หากมีข้อความจาก Vector Store/RAG หรือ Pinecone ขัดแย้งกับ metadata ให้ยึดตาม metadata เสมอ ห้ามแสดงปีหรือเทอมที่อยู่นอก validSemesters หรืออยู่ใน forbiddenSemesters ของหลักสูตรนั้นเด็ดขาด เช่น ITT ห้ามมี 3-1, 3-2, 3-3, 4-1, 4-2 เป็นอันขาด',
+          noConversationalStallRule: 'STRICT: ห้ามพิมพ์ข้อความเสนอแนะหรือถามความสมัครใจปิดท้าย เช่น "หากต้องการไฟล์ตาราง CSV... บอกได้" ให้สรุปข้อมูลและจบคำตอบทันที'
+        };
+
+        const metadata = user 
+          ? {
+              sessionId: sessionIdRef.current,
+              channel: 'web',
+              userId: user.id || '',
+              userName: user.name || '',
+              userEmail: user.email || '',
+              studentId: isStudent ? (user.studentId || '') : '',
+              role: user.role || '',
+              department: isStudent ? (studyPlan?.program || user.department || '') : '',
+              program: isStudent ? (studyPlan?.program || '') : '',
+              curriculumYear: isStudent ? (studyPlan?.curriculumYear || '') : '',
+              curriculum: enrolledCurr,
+              enrolledCurriculum: enrolledCurr,
+              activeCurriculum: enrolledCurr || '',
+              studyMode,
+              programType: studyMode,
+              curriculumSummaryCatalog,
+              allCurriculums,
+              curriculumDurationGuard,
+              activeCurriculumRule,
+              advisingDirectives,
+
+              // ข้อมูลสถานะและชั้นปีปัจจุบัน (Universal Year Engine)
+              studentYear: currentStudentYear,
+              year: currentStudentYear,
+              academicYear: currentStudentYear,
+              currentStudentYear,
+              currentStudentSemester,
+              currentStudentAcademicTerm,
+              isExtendedYears,
+              standardDurationYears: standardDuration,
+              inProgressCourses: isStudent ? inProgressCourses : [],
+              inProgressCourseCodes: isStudent ? inProgressCourseCodes : [],
+
+              gpa: isStudent ? userGpa : 0,
+              isProbation: isStudent ? isProbation : false,
+              isHighProbation: isStudent ? isHighProbation : false,
+              isLowProbation: isStudent ? isLowProbation : false,
+              isRetired: isStudent ? isRetired : false,
+              retireReason: isStudent ? standingResult.retireReason : undefined,
+              consecutiveProbationCount: isStudent ? standingResult.consecutiveProbationCount : 0,
+              consecutiveBelow2Terms: isStudent ? (standingResult.consecutiveBelow2Terms ?? standingResult.consecutiveProbationCount ?? 0) : 0,
+              probationCreditRange: { min: 15, max: 16 },
+              registrationCreditLimitAuthorized: isCreditLimitAuthorized,
+              ...(isCreditLimitAuthorized ? { creditLimitSource: 'approved' as const } : {}),
+              academicStanding: isStudent ? academicStanding : 'not_applicable',
+              allowedMaxCredits,
+              allowedMinCredits,
+              targetGPANextTerm: isStudent ? standingResult.targetGPANextTerm : null,
+              registrationRules: isStudent ? {
+                ...registrationRules,
+                studentStanding: {
+                  gpa: userGpa,
+                  standing: standingResult.standing,
+                  standingLabel: standingResult.standingLabel,
+                  isProbation,
+                  isHighProbation,
+                  isLowProbation,
+                  isRetired,
+                  retireReason: standingResult.retireReason,
+                  consecutiveProbationCount: standingResult.consecutiveProbationCount,
+                  consecutiveBelow2Terms: standingResult.consecutiveBelow2Terms ?? standingResult.consecutiveProbationCount ?? 0,
+                  studyMode,
+                  programType: studyMode,
+                  probationCreditRange: { min: 15, max: 16 },
+                  registrationCreditLimitAuthorized: isCreditLimitAuthorized,
+                  ...(isCreditLimitAuthorized ? { creditLimitSource: 'approved' as const } : {}),
+                  allowedMaxCredits,
+                  allowedMinCredits,
+                  targetGPANextTerm: standingResult.targetGPANextTerm,
+                  statusSummary: isRetired
+                    ? `⚠️ [พ้นสภาพนักศึกษา] ${standingResult.retireReason} ต้องติดต่ออาจารย์ที่ปรึกษาและสำนักทะเบียนทันที`
+                    : (isProbation
+                        ? `สถานะ${standingResult.standingLabel} (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้ในช่วง 15-16 หน่วยกิต (เว้นแต่ได้รับอนุมัติ) ${standingResult.targetGPANextTerm?.formulaExplanation || ''}`
+                        : `สถานะปกติ (GPAX ${userGpa.toFixed(2)}) ลงทะเบียนได้ ${defaultMinCredits}-${defaultMaxCredits} หน่วยกิต (ยกเว้นภาคการศึกษาสุดท้ายที่คาดว่าจะสำเร็จการศึกษา)`)
+                }
+              } : null,
+              completedCredits: isStudent ? (gpaData?.completedCredits ?? studyPlan?.completedCredits ?? 0) : 0,
+              totalCredits: isStudent ? (studyPlan?.totalCredits || gpaData?.totalCredits || 0) : 0,
+              gradePassingThreshold: 'D',  // D and above counts as passing
+              completedCourseCodes: isStudent ? completedCourseCodes : [],  // List of passed course codes
+              passedCourses: isStudent ? passedCourses : [],
+              failedCourses: isStudent ? failedCourses : [],
+              failedCourseCodes: isStudent ? failedCourseCodes : [],
+              uncompletedCurriculumCourses: isStudent ? uncompletedCurriculumCourses : [],
+              categoryCreditAudit,
+              electiveAuditSummary: categoryCreditAudit,
+              studyPlan: isStudent && studyPlan?.courses ? studyPlan.courses.map(c => ({
+                code: c.code,
+                name: c.name,
+                credits: c.credits,
+                year: c.year,
+                semester: c.semester,
+                status: c.status,
+                grade: c.grade || 'N/A'
+              })) : [],
+              curriculumCourses: curriculumCourses.map(c => ({
+                code: (c.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/[\*\s]+$/g, '').trim(),
+                name: (c.name || '').trim(),
+                credits: c.credits,
+                category: c.category,
+                year: c.year,
+                semester: c.semester,
+                prerequisites: (c.prerequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim()),
+                corequisites: (c.corequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim())
+              }))
+            }
+          : {
+              sessionId: sessionIdRef.current,
+              channel: 'web',
+              userId: 'guest',
+              userName: 'Guest',
+              studentId: 'guest',
+              role: 'guest',
+              department: 'guest',
+              enrolledCurriculum: 'none',
+              activeCurriculum: 'IT-67',
+              studyMode: 'regular',
+              programType: 'regular',
+              consecutiveProbationCount: 0,
+              consecutiveBelow2Terms: 0,
+              probationCreditRange: { min: 15, max: 16 },
+              registrationCreditLimitAuthorized: false,
+              curriculumSummaryCatalog,
+              allCurriculums,
+              curriculumDurationGuard,
+              activeCurriculumRule: null,
+              advisingDirectives,
+
+              // สถานะผู้เยี่ยมชม (Guest)
+              currentStudentYear: 1,
+              currentStudentSemester: 1,
+              currentStudentAcademicTerm: 'ทั่วไป / Guest',
+              isExtendedYears: false,
+              standardDurationYears: 4,
+              inProgressCourses: [],
+              inProgressCourseCodes: [],
+
+              gpa: 0,
+              isProbation: false,
+              academicStanding: 'guest',
+              allowedMaxCredits: 22,
+              allowedMinCredits: 9,
+              registrationRules: {
+                ...registrationRules,
+                studentStanding: {
+                  gpa: 0,
+                  isProbation: false,
+                  academicStanding: 'guest',
+                  studyMode: 'regular',
+                  programType: 'regular',
+                  consecutiveProbationCount: 0,
+                  consecutiveBelow2Terms: 0,
+                  probationCreditRange: { min: 15, max: 16 },
+                  registrationCreditLimitAuthorized: false,
+                  allowedMaxCredits: 22,
+                  allowedMinCredits: 9,
+                  statusSummary: 'ผู้เยี่ยมชม (Guest) แสดงกฎระเบียบการลงทะเบียนทั่วไป: ภาคปกติ 9-22 หน่วยกิต, ภาคพิเศษ/สมทบ 6-18 หน่วยกิต, ติดโปร 15-16 หน่วยกิต, ภาคฤดูร้อนไม่เกิน 9 หน่วยกิต'
+                }
+              },
+              completedCredits: 0,
+              totalCredits: 0,
+              passedCourses: [],
+              failedCourses: [],
+              failedCourseCodes: [],
+              uncompletedCurriculumCourses: [],
+              categoryCreditAudit: null,
+              electiveAuditSummary: null,
+              studyPlan: [],
+              curriculumCourses: curriculumCourses.map(c => ({
+                code: (c.code || '').replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/[\*\s]+$/g, '').trim(),
+                name: (c.name || '').trim(),
+                credits: c.credits,
+                category: c.category,
+                year: c.year,
+                semester: c.semester,
+                prerequisites: (c.prerequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim()),
+                corequisites: (c.corequisites || []).map((p: string) => p.replace(/^(ITT|ITI|INET|INE|IT)-/i, '').replace(/\*/g, '').trim())
+              }))
+            };
 
         createChat({
           webhookUrl,
           mode: 'window',
           showWelcomeScreen: true,
           defaultLanguage: 'en',
-          initialMessages: [
-            'สวัสดีครับ 👋',
-            'ผมคือ AI Assistant ของภาควิชาเทคโนโลยีสารสนเทศ มีอะไรให้ช่วยไหมครับ?'
-          ],
+          initialMessages,
+          metadata,
           i18n: {
             en: {
               title: 'IT Course Assistant 👋',
               subtitle: 'ยินดีต้อนรับสู่ระบบแชทบอทของภาควิชาเทคโนโลยีสารสนเทศ',
-              footer: 'Powered by n8n',
+              footer: '',
               getStarted: 'เริ่มการสนทนา',
               inputPlaceholder: 'พิมพ์คำถามของคุณ...',
               closeButtonTooltip: 'ปิดแชทบอท',
             },
           },
-          loadPreviousSession: true,
+          loadPreviousSession: false, // Set to false to prevent caching old session memories
           enableStreaming: false,
         });
+
+        chatInitializedRef.current = true;
       } catch (error) {
         console.error('Chat initialization error:', error);
         setChatError('ขออภัย ระบบแชทบอทไม่สามารถเชื่อมต่อได้ในขณะนี้');
       } finally {
-        setIsLoading(false);
+        setIsInitializing(false);
       }
     };
 
     initializeChat();
-  }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">กำลังโหลดแชทบอท...</p>
-        </div>
-      </div>
-    );
-  }
+    // Clean up chat elements upon unmount
+    return () => {
+      cleanupChat();
+    };
+  }, [
+    dataIsLoading,
+    user?.id,
+    gpaData?.gpa,
+    gpaData?.completedCredits,
+    studyPlan?.courses?.length,
+    (studyPlan?.updatedAt as any)?.toString?.()
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (chatError) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
-          <div className="text-yellow-600 mb-2">
-            <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+  // Periodic feedback banner states
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [currentMessageCount, setCurrentMessageCount] = useState(0);
+
+  // Monitor chat messages and trigger feedback every 5 messages
+  useEffect(() => {
+    if (dataIsLoading || isInitializing) return;
+
+    let prevUserMsgCount = 0;
+
+    const checkMessages = () => {
+      const container = document.getElementById('n8n-chat');
+      if (!container) return;
+
+      const chatWindowEl = container.querySelector('.chat-window');
+      const open = !!chatWindowEl && window.getComputedStyle(chatWindowEl).display !== 'none';
+
+      const userMsgElements = container.querySelectorAll(
+        '.chat-message-from-user, [class*="chat-message-from-user"], [class*="userMessage"], [data-role="user"]'
+      );
+      const count = userMsgElements.length;
+
+      if (count > prevUserMsgCount) {
+        const diff = count - prevUserMsgCount;
+        prevUserMsgCount = count;
+
+        const currentStored = parseInt(sessionStorage.getItem('chatFeedbackMsgCount') || '0', 10);
+        const newStored = currentStored + diff;
+        sessionStorage.setItem('chatFeedbackMsgCount', String(newStored));
+        setCurrentMessageCount(newStored);
+
+        const lastFeedback = parseInt(sessionStorage.getItem('chatLastFeedbackCount') || '0', 10);
+        if (newStored - lastFeedback >= 5 && open) {
+          setShowFeedback(true);
+        }
+      } else if (!open) {
+        setShowFeedback(false);
+      }
+    };
+
+    const targetNode = document.getElementById('n8n-chat');
+    if (!targetNode) return;
+
+    const observer = new MutationObserver(() => {
+      checkMessages();
+    });
+
+    observer.observe(targetNode, {
+      childList: true,
+      subtree: true,
+    });
+
+    const intervalId = setInterval(checkMessages, 1000);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(intervalId);
+    };
+  }, [dataIsLoading, isInitializing]);
+
+  // Fix cursor navigation with arrow keys in @n8n/chat textarea
+  useEffect(() => {
+    if (dataIsLoading || isInitializing) return;
+
+    const navKeys = new Set([
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown'
+    ]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (navKeys.has(e.key)) {
+        // Stop bubbling to parent .chat-input so @n8n/chat's handler
+        // never calls e.preventDefault() on arrow keys!
+        e.stopPropagation();
+      }
+    };
+
+    const attachListener = (el: Element | null) => {
+      if (!el || !(el instanceof HTMLTextAreaElement)) return;
+      if ((el as any)._arrowNavAttached) return;
+      (el as any)._arrowNavAttached = true;
+      el.addEventListener('keydown', handleKeyDown);
+    };
+
+    const scanAndAttach = () => {
+      const container = document.getElementById('n8n-chat');
+      if (!container) return;
+      const textareas = container.querySelectorAll('textarea');
+      textareas.forEach(attachListener);
+    };
+
+    // 1. Immediately scan and attach
+    scanAndAttach();
+
+    // 2. Catch dynamically mounted textarea on focus
+    const container = document.getElementById('n8n-chat');
+    const handleFocusIn = (e: FocusEvent) => {
+      if (e.target instanceof HTMLTextAreaElement) {
+        attachListener(e.target);
+      }
+    };
+
+    if (container) {
+      container.addEventListener('focusin', handleFocusIn, true);
+    }
+
+    // 3. MutationObserver for open/close and dynamic mounts
+    const observer = new MutationObserver(() => {
+      scanAndAttach();
+    });
+
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true });
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('focusin', handleFocusIn, true);
+      }
+      observer.disconnect();
+      if (container) {
+        const textareas = container.querySelectorAll('textarea');
+        textareas.forEach((el) => {
+          el.removeEventListener('keydown', handleKeyDown);
+          delete (el as any)._arrowNavAttached;
+        });
+      }
+    };
+  }, [dataIsLoading, isInitializing]);
+
+  const handleDismissFeedback = () => {
+    setShowFeedback(false);
+    const currentStored = parseInt(sessionStorage.getItem('chatFeedbackMsgCount') || '0', 10);
+    sessionStorage.setItem('chatLastFeedbackCount', String(currentStored));
+  };
+
+  const statePanel = (dataIsLoading || isInitializing) ? (
+      <div data-chatbot-state className="chatbot-state chatbot-state--loading" role="status" aria-live="polite">
+        <div className="chatbot-state__panel">
+          <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
+          <div className="chatbot-state__skeleton" aria-hidden="true">
+            <span />
+            <span />
+            <span />
           </div>
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">แชทบอทไม่พร้อมใช้งาน</h3>
-          <p className="text-yellow-700 text-sm mb-4">{chatError}</p>
-          <p className="text-yellow-600 text-xs">
-            กรุณาติดต่อผู้ดูแลระบบหรือลองใหม่อีกครั้งในภายหลัง
-          </p>
+          <p>กำลังเตรียมผู้ช่วยแนะนำหลักสูตร</p>
         </div>
       </div>
-    );
-  }
+  ) : chatError ? (
+      <div data-chatbot-state className="chatbot-state chatbot-state--error" role="alert">
+        <div className="chatbot-state__panel">
+          <span className="chatbot-state__eyebrow">IT COURSE ASSISTANT</span>
+          <h3>ยังเชื่อมต่อผู้ช่วยไม่ได้</h3>
+          <p>{chatError}</p>
+          <p className="chatbot-state__hint">โปรดลองใหม่อีกครั้งในภายหลัง หรือติดต่อผู้ดูแลระบบ</p>
+        </div>
+      </div>
+  ) : null;
 
-  return <div id="n8n-chat"></div>;
+  return (
+    <>
+      <div id="n8n-chat"></div>
+      {statePanel}
+      {showFeedback && (
+        <FeedbackBanner
+          sessionId={sessionIdRef.current}
+          userId={user?.id || 'guest'}
+          userName={user?.name}
+          studentId={user?.studentId}
+          curriculum={studyPlan?.curriculum}
+          messageCount={currentMessageCount}
+          onDismiss={handleDismissFeedback}
+        />
+      )}
+    </>
+  );
 };
 
 export default ChatBot;

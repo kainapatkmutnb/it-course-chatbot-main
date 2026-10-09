@@ -1,10 +1,12 @@
 export type UserRole = 'student' | 'instructor' | 'staff' | 'admin';
+export type StudyMode = 'regular' | 'special_evening';
 
 export interface User {
   id: string;
   email: string;
   name: string;
   role: UserRole;
+  studyMode?: StudyMode;
   profilePicture?: string;
   phone?: string; // Optional phone number
   studentId?: string; // For students
@@ -14,6 +16,8 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
+  studentYear?: number;
+  year?: number;
 }
 
 export interface AuthContextType {

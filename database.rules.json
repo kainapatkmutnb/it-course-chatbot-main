@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users/' + auth.uid + '/role').val() === 'admin')"
+      }
+    },
+    "courses": {
+      ".read": true,
+      ".write": "auth != null && (root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('users/' + auth.uid + '/role').val() === 'staff')"
+    },
+    "curriculum": {
+      ".read": true,
+      ".write": "auth != null && (root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('users/' + auth.uid + '/role').val() === 'staff')"
+    },
+    "studyPlans": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "auditLogs": {
+      ".read": "auth != null && root.child('users/' + auth.uid + '/role').val() === 'admin'",
+      ".write": "auth != null"
+    },
+    "chatLogs": {
+      ".read": "auth != null && (root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('users/' + auth.uid + '/role').val() === 'staff')",
+      ".write": true,
+      ".indexOn": ["userId", "timestamp", "intent", "isSuccess", "sessionId"]
+    },
+    "chatSessions": {
+      ".read": "auth != null && (root.child('users/' + auth.uid + '/role').val() === 'admin' || root.child('users/' + auth.uid + '/role').val() === 'staff')",
+      ".write": true,
+      ".indexOn": ["userId", "startTime"]
+    }
+  }
+}

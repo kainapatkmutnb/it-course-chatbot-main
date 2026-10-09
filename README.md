@@ -1,283 +1,492 @@
-# IT Assistant - ระบบช่วยเหลือด้านเทคโนโลยีสารสนเทศ
+<div align="center">
 
-ระบบช่วยเหลือและจัดการหลักสูตรสำหรับนักศึกษาและบุคลากรคณะเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
+# 🎓 IT Assistant
+### ผู้ช่วยวางแผนการเรียนและสืบค้นข้อมูลหลักสูตรอัจฉริยะ
+**ภาควิชาเทคโนโลยีสารสนเทศ · คณะเทคโนโลยีและการจัดการอุตสาหกรรม**  
+**มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)**
 
-## ✨ ฟีเจอร์หลัก
+<br />
 
-### 🔐 ระบบการยืนยันตัวตน
-- เข้าสู่ระบบด้วย Google Account (@kmutnb.ac.th)
-- เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน
-- ระบบจัดการบทบาทผู้ใช้ 4 ประเภท: นักศึกษา, อาจารย์, บุคลากร, ผู้ดูแลระบบ
+[![React](https://img.shields.io/badge/React_18.3-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite_5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_3.4-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8)](https://tailwindcss.com)
+[![Firebase](https://img.shields.io/badge/Firebase_RTDB-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
+[![n8n](https://img.shields.io/badge/n8n_Workflow-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io)
+[![Quality](https://img.shields.io/badge/Audit_Pass_Rate-100%25-059669?style=for-the-badge&logo=checkmarx&logoColor=white)](docs/audits/firebase-crud-credit-audit.md)
+[![Unit Tests](https://img.shields.io/badge/Unit_Tests-86%20Passed%20(100%25)-059669?style=for-the-badge&logo=vitest&logoColor=white)](tests/)
 
-### ✨ ฟีเจอร์หลัก
+<br />
 
-### 🔐 ระบบยืนยันตัวตนและการจัดการบทบาท
-- **นักศึกษา**: ดูแผนการเรียน, จัดการรายวิชาส่วนตัว, บันทึกปีการศึกษา, ใช้ระบบแผนภูมิหลักสูตร
-- **อาจารย์**: ดูข้อมูลนักศึกษา, จัดการรายวิชาที่สอน, ดูรายละเอียดนักศึกษา, แก้ไขข้อมูลนักศึกษา, ติดตามความก้าวหน้าของนักศึกษา
-- **บุคลากร**: จัดการข้อมูลรายวิชา, กำหนดเงื่อนไขรายวิชา (Prerequisites และ Corequisites), จัดการหลักสูตร
-- **ผู้ดูแลระบบ**: จัดการผู้ใช้, สถิติระบบ, ประวัติการใช้งาน (Audit Logs), จัดการข้อมูลรายวิชา, จัดการเงื่อนไขรายวิชา
+| 🏛️ **5 สาขาวิชาที่รองรับ** | 📚 **13 ชุดกฎหลักสูตร** | 🎯 **9 Pinecone Retrieval Namespaces** |
+| :---: | :---: | :---: |
+| **IT • INE • INET • ITI • ITT**<br />ครอบคลุมทั้งภาควิชาไอที มจพ. | **4 ปี • สหกิจ • ต่อเนื่อง • เทียบโอน**<br />ข้อมูลอ้างอิง `CurriculumMasterCatalog` | **Metadata Guard + RAG**<br />Pinecone Vector + GPT-5 nano |
 
-### 📚 ระบบจัดการหลักสูตรและรายวิชา
-- ข้อมูลรายวิชาครบถ้วน (รหัสวิชา, ชื่อวิชา, หน่วยกิต, คำอธิบาย, หมวดหมู่)
-- การจัดหมวดหมู่รายวิชา (วิชาทั่วไป, วิชาเฉพาะ, วิชาเลือก, วิชาเสรี)
-- ระบบเงื่อนไขรายวิชา (Prerequisites และ Corequisites) แบบ Real-time
-- แผนการเรียนตามหลักสูตรหลายปีการศึกษา
-- ระบบค้นหาและกรองรายวิชาขั้นสูง
-- การจัดการรายวิชาแบบ CRUD (Create, Read, Update, Delete)
+<br />
 
-### 📊 ระบบแผนภูมิหลักสูตร (Curriculum Flowchart)
-- **แผนภูมิแบบ Grid**: แสดงรายวิชาจัดเรียงตามปีและภาคการศึกษา
-- **แผนภูมิแบบ Timeline**: แสดงความต่อเนื่องของหลักสูตรตามเวลา
-- **เส้นเชื่อมโยงเงื่อนไขวิชา**: แสดงความสัมพันธ์ระหว่างรายวิชาแบบ Visual
-- **การอัปเดตแบบ Real-time**: เมื่อมีการเปลี่ยนแปลงเงื่อนไขวิชาจะอัปเดตทันที
-- **ระบบกรองตามหลักสูตร**: เลือกดูหลักสูตรและปีการศึกษาที่ต้องการ
-- **สรุปข้อมูลหลักสูตร**: แสดงจำนวนหน่วยกิตรวม, จำนวนวิชา, และสถิติต่างๆ
+[`📖 ภาพรวม`](#ภาพรวมระบบ) • [`🏗️ สถาปัตยกรรม`](#สถาปัตยกรรมระบบ) • [`🗺️ ขอบเขตหลักสูตร`](#ขอบเขตหลักสูตรที่รองรับ) • [`✨ ฟีเจอร์เด่น`](#ฟีเจอร์เด่น-bento-grid) • [`👥 บทบาทผู้ใช้`](#บทบาทและสิทธิ์ผู้ใช้งาน) • [`⚡ การติดตั้ง`](#การติดตั้งและเริ่มใช้งาน) • [`📜 วิศวกรรม & ADR`](#มาตรฐานวิศวกรรมและการตัดสินใจ-adr) • [`🛡️ ความปลอดภัย`](#ความปลอดภัยและการปกป้องข้อมูล)
 
-### 🎯 ระบบแผนการเรียนส่วนบุคคล
-- สร้างและจัดการแผนการเรียนส่วนบุคคล
-- ติดตามความคืบหน้าการเรียนแบบ Real-time
-- คำนวณ GPA และหน่วยกิตสะสมอัตโนมัติ
-- สถานะรายวิชา (วางแผน, กำลังเรียน, ผ่านแล้ว, ไม่ผ่าน, ถอน)
-- **ระบบกรองข้อมูล**: Dropdown filters สำหรับกรองรายวิชาตามปีและภาคการศึกษา
-- **การบันทึกข้อมูล**: บันทึกปีการศึกษาของนักศึกษาแบบถาวร
-- **การคำนวณเกรด**: ระบบคำนวณเกรดและ GPA ตามมาตรฐาน KMUTNB
+</div>
 
-### 👨‍🎓 ระบบจัดการนักศึกษา
-- ดูรายละเอียดนักศึกษาแบบละเอียด (ข้อมูลส่วนตัว, แผนการเรียน, ผลการเรียน)
-- แก้ไขและบันทึกปีการศึกษาของนักศึกษา
-- ติดตามแผนการเรียนของนักศึกษาแบบ Real-time
-- ระบบกรองและค้นหานักศึกษา
-- การจัดการข้อมูลนักศึกษาแบบ Batch
+---
 
-### 🤖 ระบบ Chatbot AI
-- ระบบแชทบอทสำหรับตอบคำถามเกี่ยวกับหลักสูตรและรายวิชา
-- การให้คำแนะนำการวางแผนการเรียน
-- ระบบค้นหาข้อมูลรายวิชาผ่าน Natural Language
+## ภาพรวมระบบ
 
-### 📈 ระบบรายงานและสถิติ
-- สถิติผู้ใช้งานระบบแบบ Real-time
-- รายงานการใช้งาน (Audit Logs) พร้อมระบบค้นหา
-- ข้อมูลสถิติรายวิชาและนักศึกษา
-- Dashboard แสดงข้อมูลสำคัญของระบบ
-- ระบบ Export ข้อมูลเป็น CSV/Excel
+**IT Assistant** เป็นเว็บแพลตฟอร์มสำหรับบริหารจัดการการศึกษา วางแผนการเรียน 4 ปี และตรวจสอบเงื่อนไขหลักสูตรแบบเรียลไทม์ ออกแบบเฉพาะสำหรับนักศึกษา อาจารย์ที่ปรึกษา และบุคลากร ภาควิชาเทคโนโลยีสารสนเทศ มจพ. ปราศจากปัญหาข้อความกำกวมด้วยการผสานเทคโนโลยี **AI Advising Assistant** ผ่าน n8n Workflow และ Pinecone Vector Database เพื่อให้คำปรึกษาหลักสูตรที่ถูกต้อง แม่นยำ และสอดคล้องกับระเบียบมหาวิทยาลัย 100%
 
-## 🛠️ เทคโนโลยีที่ใช้
+ตัวระบบถูกสร้างขึ้นบนรากฐานภาษาโมเดลโดเมน [CONTEXT.md](CONTEXT.md) ตามมาตรฐานวิศวกรรมซอฟต์แวร์ ควบคุมการทำงานด้วยระเบียบหน่วยกิตและภาวะวิทยาทัณฑ์ (Academic Standing Rules) พร้อมอินเทอร์เฟซระดับพรีเมียมโทนสีกรมท่า น้ำเงิน และขาว (KMUTNB Institutional Palette) ใช้งานได้อย่างลื่นไหลบนทุกขนาดหน้าจอ
 
-### Frontend
-- **React 18** - UI Framework
-- **TypeScript** - Type Safety
-- **Vite** - Build Tool และ Development Server
-- **Tailwind CSS** - Styling Framework
-- **shadcn/ui** - UI Components Library (Radix UI)
-- **React Router DOM** - Navigation และ Routing
-- **Lucide React** - Icon Library
-- **React Hook Form** - Form Management
-- **Zod** - Schema Validation
-- **Recharts** - Data Visualization และ Charts
-- **html2canvas & jsPDF** - Export และ PDF Generation
+<div align="center">
 
-### Backend & Database
-- **Firebase** - Backend as a Service
-  - **Firebase Authentication** - ระบบยืนยันตัวตน
-  - **Firebase Realtime Database** - ฐานข้อมูลแบบ Real-time
-  - **Firebase Hosting** - Web Hosting
+<img src="public/images/academic-course-preview.webp" alt="ตัวอย่างหน้าจอสำรวจและค้นหาข้อมูลหลักสูตร IT Assistant" width="90%" style="border-radius: 12px; border: 1px solid rgba(11, 22, 55, 0.12); box-shadow: 0 8px 24px rgba(11, 22, 55, 0.12);" />
 
-### State Management & Data Fetching
-- **TanStack React Query** - Data Fetching และ State Management
-- **React Context API** - Global State Management
+*ตัวอย่างหน้าจอสำรวจและค้นหารายวิชาในหลักสูตร (Curriculum Catalog) แสดงผลข้อมูลจริงพร้อมฟอนต์ภาษาไทยคมชัด*
 
-### UI/UX Libraries
-- **Radix UI** - Headless UI Components
-- **Class Variance Authority (CVA)** - Component Variants
-- **Tailwind Merge** - CSS Class Merging
-- **Sonner** - Toast Notifications
-- **Next Themes** - Theme Management
-- **Embla Carousel** - Carousel Components
+</div>
 
-### Development Tools
-- **ESLint** - Code Linting
-- **TypeScript ESLint** - TypeScript Linting
-- **Autoprefixer** - CSS Prefixing
-- **PostCSS** - CSS Processing
+---
 
-## 🚀 การติดตั้งและใช้งาน
+## สถาปัตยกรรมระบบปัจจุบัน
 
-### ข้อกำหนดเบื้องต้น
-- **Node.js** (เวอร์ชัน 18 หรือใหม่กว่า)
-- **npm** หรือ **yarn** Package Manager
-- **Firebase Project** พร้อม Realtime Database และ Authentication
+ระบบเป็น React + TypeScript browser SPA ใช้ Firebase Authentication สำหรับ sign-in และ Firebase Realtime Database สำหรับข้อมูล runtime ส่วนการให้คำปรึกษา AI เรียก n8n ผ่าน webhook เพื่อทำ RAG และคืนคำตอบ
 
-### ขั้นตอนการติดตั้ง
+แผนภาพสถาปัตยกรรมด้านล่างถูกออกแบบในรูปแบบเวกเตอร์ความละเอียดสูง รองรับการสลับโหมด **GitHub Light &amp; Dark Mode** อัตโนมัติตามธีมของผู้ใช้ พร้อมลิงก์เปิดดูแบบ Interactive:
 
-1. **Clone Repository**
+| ไดอะแกรม (Diagram) | มุมมองสถาปัตยกรรม | ภาพเวกเตอร์ (SVG) | ภาพความละเอียดสูง (PNG) | พรีวิวสลับธีม (HTML) |
+| --- | --- | --- | --- | --- |
+| **System Context Diagram** | บริบทระบบภาพรวมและสถาปัตยกรรมคลาวด์/AI | [Light](diagrams/diagrams3/system-context-diagram-light.svg) · [Dark](diagrams/diagrams3/system-context-diagram-dark.svg) | [Light](diagrams/diagrams3/system-context-diagram-light.png) · [Dark](diagrams/diagrams3/system-context-diagram-dark.png) | [system-context-diagram.html](diagrams/diagrams3/system-context-diagram.html) |
+| **Context Diagram (DFD L0)** | ภาพรวมกระบวนการ 0.0 และการไหลของข้อมูล | [Light](diagrams/diagrams3/context-diagram-light.svg) · [Dark](diagrams/diagrams3/context-diagram-dark.svg) | [Light](diagrams/diagrams3/context-diagram-light.png) · [Dark](diagrams/diagrams3/context-diagram-dark.png) | [context-diagram.html](diagrams/diagrams3/context-diagram.html) |
+| **Component Diagram** | สถาปัตยกรรมเชิงชั้น 4 เลเยอร์ | [Light](diagrams/diagrams3/component-diagram-light.svg) · [Dark](diagrams/diagrams3/component-diagram-dark.svg) | [Light](diagrams/diagrams3/component-diagram-light.png) · [Dark](diagrams/diagrams3/component-diagram-dark.png) | [component-diagram.html](diagrams/diagrams3/component-diagram.html) |
+| **Data Flow Diagram (DFD L1)** | การไหลของข้อมูลระดับ 1 (Processes & RTDB) | [Light](diagrams/diagrams3/data-flow-diagram-light.svg) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.svg) | [Light](diagrams/diagrams3/data-flow-diagram-light.png) · [Dark](diagrams/diagrams3/data-flow-diagram-dark.png) | [data-flow-diagram.html](diagrams/diagrams3/data-flow-diagram.html) |
+| **Sequence Diagram** | ลำดับการทำงานของนักศึกษา (Session Lifecycle) | [Light](diagrams/diagrams3/sequence-diagram-light.svg) · [Dark](diagrams/diagrams3/sequence-diagram-dark.svg) | [Light](diagrams/diagrams3/sequence-diagram-light.png) · [Dark](diagrams/diagrams3/sequence-diagram-dark.png) | [sequence-diagram.html](diagrams/diagrams3/sequence-diagram.html) |
+| **Academic Standing State Machine** | สถานะวิชาการ 4 ระดับและการพ้นสภาพ (Retirement Guard) | [Light](diagrams/diagrams3/academic-standing-state-machine-light.svg) · [Dark](diagrams/diagrams3/academic-standing-state-machine-dark.svg) | - | [academic-standing-state-machine.html](diagrams/diagrams3/academic-standing-state-machine.html) |
+
+<br />
+
+### 1. บริบทระบบ · System Context Diagram (C4 Level 1)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/system-context-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/system-context-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · System Context Diagram" src="diagrams/diagrams3/system-context-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 2. Context Diagram (DFD Level 0)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/context-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/context-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Context Diagram" src="diagrams/diagrams3/context-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 3. ส่วนประกอบเชิงชั้น · Component Diagram
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/component-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/component-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Component Diagram" src="diagrams/diagrams3/component-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 4. การไหลของข้อมูล · Data Flow Diagram (DFD Level 1)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/data-flow-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/data-flow-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Data Flow Diagram (DFD Level 1)" src="diagrams/diagrams3/data-flow-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 5. ลำดับการทำงาน · Sequence Diagram
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/sequence-diagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/sequence-diagram-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Sequence Diagram" src="diagrams/diagrams3/sequence-diagram-light.svg" width="100%">
+</picture>
+
+<br />
+
+### 6. สถานะวิชาการและการพ้นสภาพ · Academic Standing &amp; Retirement Guard State Machine
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagrams/diagrams3/academic-standing-state-machine-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="diagrams/diagrams3/academic-standing-state-machine-light.svg">
+  <img alt="ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยีสารสนเทศด้วย Chatbot · Academic Standing &amp; Retirement Guard State Machine" src="diagrams/diagrams3/academic-standing-state-machine-light.svg" width="100%">
+</picture>
+
+
+### ข้อเท็จจริงที่ใช้ร่วมกันในแผนภาพ
+
+- แหล่งข้อมูลรายวิชาแบบ Hybrid ให้ข้อมูล RTDB ของหลักสูตรเฉพาะมาก่อน `courses/{id}` ทั่วไป และใช้ Static master catalog เป็น fallback; เพิ่มวิชาใหม่ในมุมมองหลักสูตรจากข้อมูลเฉพาะหลักสูตร
+- มี rule-catalog 13 รูปแบบหลักสูตร ขณะที่ Pinecone ใช้ 9 retrieval namespaces — เป็นคนละชุดข้อมูลและคนละหน้าที่
+- Workflow ใน n8n เป็นผู้เขียน `chatLogs/{pushId}`; หน้าเว็บเขียน `chatFeedback/{pushId}` ผ่าน `chatLogService.saveFeedback()`
+- `database.rules.json` ที่เช็กอินใน repository ยังไม่ประกาศ path `chatFeedback`; จึงไม่ถือเป็นหลักฐานว่ากฎที่ deploy อนุญาตการเขียน
+- RTDB paths ที่แสดงประกอบด้วย `users/{uid}`, `courses/{id}`, `curriculum/{program}/{curriculumYear}/{year}/{semester}/courses/{id}`, `studyPlans/{pushId}`, `auditLogs/{pushId}`, `chatLogs/{pushId}` และ `chatFeedback/{pushId}`
+
+## ขอบเขตหลักสูตรที่รองรับ
+
+ระบบบรรจุฐานข้อมูล **CurriculumMasterCatalog** ครบถ้วนทั้ง 5 สาขาวิชา รวม 13 ฉบับหลักสูตรของภาควิชาเทคโนโลยีสารสนเทศ ขจัดปัญหาการตอบผิดพลาดของ AI (Hallucination) ด้วยการอ้างอิงโครงสร้างหลักสูตรและจำนวนหน่วยกิตที่รับรองอย่างเป็นทางการ:
+
+| สาขาวิชา (Program) | รหัส | ฉบับหลักสูตรที่รองรับ (Curricula) | ระยะเวลาศึกษา | หน่วยกิตรวม |
+| :--- | :---: | :--- | :---: | :---: |
+| **เทคโนโลยีสารสนเทศ**<br />_Information Technology_ | `IT` | • หลักสูตร พ.ศ. 2562 (`IT-62`)<br />• หลักสูตร พ.ศ. 2562 สหกิจศึกษา (`IT-62-COOP`)<br />• หลักสูตร พ.ศ. 2567 (`IT-67`)<br />• หลักสูตร พ.ศ. 2567 สหกิจศึกษา (`IT-67-COOP`) | 4 ปี | 120 – 127 |
+| **วิศวกรรมสารสนเทศและเครือข่าย**<br />_Information and Network Engineering_ | `INE` | • หลักสูตร พ.ศ. 2562 (`INE-62`)<br />• หลักสูตร พ.ศ. 2562 สหกิจศึกษา (`INE-62-COOP`)<br />• หลักสูตร พ.ศ. 2567 (`INE-67`)<br />• หลักสูตร พ.ศ. 2567 สหกิจศึกษา (`INE-67-COOP`) | 4 ปี | 125 – 135 |
+| **เทคโนโลยีสารสนเทศและเครือข่าย**<br />_Information and Network Engineering_ | `INET` | • หลักสูตร พ.ศ. 2562 (`INET-62`)<br />• หลักสูตร พ.ศ. 2567 (`INET-67`) | 3 ปี | 102 – 103 |
+| **เทคโนโลยีสารสนเทศ (ต่อเนื่อง)**<br />_Information Technology (Continuing)_ | `ITI` | • หลักสูตร พ.ศ. 2561 (`ITI-61`)<br />• หลักสูตร พ.ศ. 2566 (`ITI-66`) | 2 ปี | 78 – 81 |
+| **เทคโนโลยีสารสนเทศ (เทียบโอน)**<br />_Information Technology (Transfer)_ | `ITT` | • หลักสูตร พ.ศ. 2567 (`ITT-67`) | 2 ปี | 84 |
+
+---
+
+## ฟีเจอร์เด่น (Bento Grid)
+
+ระบบถูกออกแบบโดยแยกฟังก์ชันการทำงานหลักออกเป็น 4 ขุมพลังสำคัญ เพื่อประสบการณ์การใช้งานที่ราบรื่น:
+
+### 🧭 1. จัดทำแผนการเรียนและผังวิชาอัจฉริยะ (Curriculum & Study Plan Engine)
+> `Interactive Flowchart` · `Dual-View Progress` · `Anti-Collision Multi-Lane Routing` · `Prerequisites Path Tracing` · `GPAX Calculator` · `S/U Internship Evaluation` · `Academic Alert Dialogs` · `All-Curricula Progress KPI`
+
+- **Visual Course Flowchart**: แสดงผังรายวิชาพร้อมเส้นเชื่อมโยงวิชาบังคับก่อน (Prerequisites) และวิชาบังคับร่วม (Corequisites) ด้วยสีสันที่แยกแยะสถานะชัดเจน
+- **แผนการเรียน 4 ปี (Study Plan)**: จัดการรายวิชาตามชั้นปีและภาคการศึกษา พร้อมระบบจำลองเกรดเพื่อคำนวณ GPA รายภาคและ GPAX สะสม
+- **มุมมองความคืบหน้าสองรูปแบบ (Dual-View Student Progress & Personal Timeline)**: รองรับการสลับมุมมองระหว่าง "แผนของฉัน (Personal Plan Timeline)" ที่ประมวลผลตำแหน่ง ชื่อ รหัส เกรด และหน่วยกิตจากข้อมูลที่นักศึกษาบันทึกไว้จริงตามรายภาคเรียนโดยตรง ร่วมกับ "โครงสร้างหลักสูตร (Curriculum Flowchart)" พร้อมระบบคำนวณ KPI และความคืบหน้าหน่วยกิตที่แม่นยำตรงตามรายงานผลการเรียน
+- **แดชบอร์ดสรุปความคืบหน้ารายวิชาและหน่วยกิต (All 13 Curricula Progress KPI Dashboard)**: สรุปจำนวนวิชาและหน่วยกิตที่ผ่านเทียบกับเกณฑ์รวมของหลักสูตรอย่างละเอียด (เช่น `INE 62: 47/50 วิชา · 126/135 หน่วยกิต`) พร้อมป้ายสถานะระบุวิชาและหน่วยกิตที่ขาดอย่างชัดเจน (เช่น `ขาดอีก 3 วิชา · 9 หน่วยกิต` หรือ `ครบตามเกณฑ์หลักสูตรแล้ว`) รองรับครบทุก 13 ฉบับหลักสูตร และอัปเดตแบบเรียลไทม์เมื่อสลับแทร็กแผนการเรียน
+- **ระบบสลับผังหลักสูตรและแทร็กสหกิจศึกษาอัตโนมัติ (Curriculum Track Switcher & Coop Auto-Selection)**: ปรับผังโครงสร้างหลักสูตรให้เป็นมาตรฐานทางการ พร้อมตรวจจับแทร็กของนักศึกษาเพื่อแสดงผลผังหลักสูตรแบบสหกิจศึกษา (Co-op) เป็นค่าเริ่มต้นโดยอัตโนมัติ และเปิดให้สลับมุมมองระหว่างแผนปกติและแผนสหกิจได้อย่างอิสระ
+- **ระบบแจ้งเตือนและกล่องยืนยันธีมวิชาการ (Academic Alert & Confirmation Modal Dialogs)**: ยกระดับการแจ้งเตือนจาก Native Browser Dialog (`alert()`, `window.confirm()`) สู่ `AcademicAlertDialog` บน Radix UI Primitives สอดคล้องกับ Academic Design System ป้องกันความผิดพลาดในการลงทะเบียน เช่น วิชาบังคับก่อนไม่ผ่าน (ติด F/U), การย้ายภาคเรียนที่ขัดแย้งกับ Prerequisite, ข้อกำหนดเกรดฝึกงาน S/U และกล่องยืนยันการรีเซ็ตแผนการเรียนพร้อมปุ่มยืนยันสีแดงพรีเมียม
+- **ระบบผังเส้นทางวิชาต่อเนื่องแบบลดการทับซ้อน (Anti-Collision Multi-Lane Flowchart Routing & Smooth Rounded Corners)**:
+  - **Multi-Lane Track Allocator**: จัดสรรเลนย่อย (Offset $\pm 5\text{px}$ ถึง $\pm 6\text{px}$) สำหรับเส้นที่วิ่งขนานกันในร่องเดียวกันทั้งแนวนอนและแนวตั้ง ป้องกันเส้นทับซ้อนกันเป็นเส้นเดียวในหลักสูตรที่มีความซับซ้อนสูง (เช่น INE 62, INE 67, IT 62, INET 62)
+  - **Multi-Port Spreading**: สำหรับวิชาที่มีวิชาตัวต่อหลายตัว (เช่น `060233108` มีวิชาต่อ 5 ตัว) จุดส่งออกของลูกศรบนขอบขวาของการ์ดจะกระจายตัวในแนวตั้งตามจำนวนเส้น ไม่กระจุกตัวที่จุดกึ่งกลาง
+  - **Bottom Bus Channel (ทางด่วนข้ามเทอมระยะไกล $\ge 3$ เทอม)**: เส้นทางที่ข้ามภาคเรียนไกลๆ จะถูกนำทางอ้อมผ่านช่องทางรอบนอกด้านล่างตาราง ทำให้ไม่วิ่งผ่าตัดผ่านกลางแถววิชาของเทอมตรงกลาง ตารางวิชาจึงสะอาดและอ่านง่าย
+  - **Smooth Rounded Corners**: แปลงมุมเลี้ยวหักฉาก 90 องศาเป็นมุมโค้งมน (Quadratic Bezier Fillet Arc Radius 7px) ช่วยให้อ่านและติดตามสายวิชาได้อย่างลื่นไหล
+  - **Interactive Tracing & Focus Mode**: เลื่อนเมาส์ชี้ที่เส้น (Hover Tooltip) เพื่อดูคู่ความต่อเนื่อง คลิกเลือกวิชาเพื่อไฮไลต์สายวิชาบังคับก่อน (สีน้ำเงิน) และวิชาเรียนต่อได้ (สีม่วง) พร้อมปุ่มเปิด/ปิด "โหมดโฟกัส" (Focus Mode)
+  - **Master Catalog Fallback**: รองรับและผ่านการตรวจสอบความถูกต้อง 100% ครอบคลุมครบทั้ง 13 ฉบับหลักสูตร
+- **ระบบคงความถูกต้องของข้อมูลรายวิชา (Identity & Origin Preservation)**: ป้องกันการเขียนทับรหัสวิชาตั้งต้นด้วย `customCode` และป้องกันข้อมูลสูญหายเมื่อมีการแก้ไขชื่อหรือย้ายภาคเรียน ผ่าน `serializeStudentCourse`
+- **ระบบตัดยอดโควตาวิชาเลือกและการหักลบ Wildcard อัจฉริยะ (Category-Quota Deduplication Engine & Prioritized Bucket Matching)**:
+  - แก้ไขปัญหาหลักสูตรที่มีรหัส Wildcard / Placeholder (เช่น `080xxxxxx`, `0602333xx`, `xxxxxxxxx`, `080303xxx`) ซึ่งเดิมเปรียบเทียบรหัสแบบตรงตัว ทำให้วิชาเลือกที่นักศึกษาเรียนผ่านแล้วไม่ถูกหักลบ และหลุดไปแสดงเป็นวิชาค้างเรียนในแชทบอท
+  - ใช้ **Prioritized Multi-Pass Matching**: จัดหมวดหมู่วิชาเลือกเป็น 4 บักเก็ต ได้แก่ พลศึกษา (`pe`), วิชาชีพเลือก (`major_elective`), ศึกษาทั่วไป (`gened`) และเลือกเสรี (`free_elective`) โดยตัดยอดตามความจำเพาะของหมวดก่อน แล้วจึงนำวิชาที่เหลือเข้าตัดยอดวิชาเลือกเสรี
+  - รองรับครบทั้ง **13 ฉบับหลักสูตร** พร้อมระบบจัดการคีย์หลักสูตรสหกิจศึกษา (`-COOP` $\rightarrow$ `${year} สหกิจ`) แบบเบ็ดเสร็จ ผ่านการทดสอบระดับระบบ 100%
+- **ระบบตรวจสอบหน่วยกิตระดับหมวดวิชาและการส่งต่อหน่วยกิตวิชาเลือกเกิน (Category-Level Elective Credit Audit & Waterfall Overflow Engine)**:
+  - **การจำแนก 4 หมวดหลักตามโครงสร้างหลักสูตร (4 Primary Category Buckets)**:
+    1. **หมวดวิชาศึกษาทั่วไป (`gened`)**: กลุ่มวิชาศึกษาทั่วไป (มนุษยศาสตร์, สังคมศาสตร์, ภาษา, วิทยาศาสตร์กับคณิตศาสตร์)
+    2. **หมวดวิชาเฉพาะ - บังคับ (`core_required`)**: วิชาแกน บังคับทางวิชาชีพ บังคับร่วม และวิชาเตรียม/ฝึกงาน/สหกิจศึกษา
+    3. **หมวดวิชาเฉพาะ - เลือกกลุ่มวิชาชีพ (`major_elective`)**: วิชาเลือกเฉพาะด้าน/กลุ่มวิชาชีพตามแทร็กความเชี่ยวชาญ
+    4. **หมวดวิชาเลือกเสรี (`free_elective`)**: วิชาเลือกเสรีที่เปิดกว้างสำหรับทุกหมวดวิชา
+  - **กลไก Waterfall Overflow อัตโนมัติ (Waterfall Cascade Rule)**:
+    - ตามข้อบังคับการศึกษาของมหาวิทยาลัย หากนักศึกษาลงทะเบียนเรียนวิชาในหมวดศึกษาทั่วไปหรือหมวดวิชาชีพเลือกเกินกว่าเกณฑ์ขั้นต่ำที่หลักสูตรกำหนด หน่วยกิตส่วนเกินดังกล่าวจะไม่สูญเปล่า แต่จะถูกส่งต่อ (Cascade) ไปนับชดเชยเป็น "หมวดวิชาเลือกเสรี" โดยอัตโนมัติ:
+    ```
+    ┌───────────────────────────┐      ┌───────────────────────────┐
+    │  หมวดวิชาศึกษาทั่วไป (GenEd) │      │ วิชาชีพเลือก (Major Elec) │
+    └─────────────┬─────────────┘      └─────────────┬─────────────┘
+                  │ ส่วนเกิน (Surplus Credits)        │ ส่วนเกิน (Surplus Credits)
+                  └───────────────────┬───────────────┘
+                                      ▼
+                        ┌───────────────────────────┐
+                        │ หมวดวิชาเลือกเสรี (Free)   │
+                        │ (รับ Waterfall ชดเชยครบ)   │
+                        └───────────────────────────┘
+    ```
+    - **การคำนวณแบบ Multi-Pass**: ตัดยอดวิชาบังคับและวิชาเฉพาะก่อน เมื่อหมวด `major_elective` มีหน่วยกิตเกินเกณฑ์ จะโอนเข้า `free_elective` และหากหมวด `gened` มีหน่วยกิตเกินเกณฑ์ ก็จะโอนเข้า `free_elective` เพิ่มเติมจนเต็มเกณฑ์
+  - **Category Progress Cards บนหน้าแดชบอร์ด**:
+    - แสดงการ์ดสรุปความคืบหน้า 4 หมวดหมู่ย่อยใต้ KPI Bar ของหน้าจัดการแผนการเรียนแบบเรียลไทม์
+    - มีแถบเปอร์เซ็นต์ความคืบหน้า (Progress Bar), ป้ายสถานะชัดเจน (`ครบตามเกณฑ์` สีเขียวมรกต หรือ `ขาดอีก X นก.` สีกรมท่า), และ Badge แจ้งเตือนการโอนหน่วยกิตแบบชัดเจน เช่น `+3 นก. โอนจากวิชาชีพเลือก` หรือ `+3 นก. โอนจากศึกษาทั่วไป`
+  - **Single Source of Truth สำหรับ AI Chatbot**:
+    - ส่งโครงสร้าง `categoryCreditAudit` และคำสั่ง `advisingDirectives.categoryCreditAuditRule` สู่ n8n metadata ทำให้แชทบอทสามารถวิเคราะห์และตอบคำถามสถานะวิชาเลือกได้อย่างแม่นยำ 100% เช่น *"วิชาเลือกเสรีผมครบยัง ขาดอีกกี่หน่วยกิต"* หรือ *"วิชาเลือกกลุ่มวิชาชีพเรียนเกินจะเอาไปนับเป็นเลือกเสรีได้ไหม"*
+- **ระบบประเมินผลฝึกงาน/สหกิจศึกษา (S/U Evaluation System)**: รองรับการประเมินผลรายวิชาฝึกงานและสหกิจศึกษาด้วยเกรด `S` (Satisfactory - ผ่าน) และ `U` (Unsatisfactory - ไม่ผ่าน) โดยไม่นำมาถ่วงน้ำหนักแต้มระดับคะแนน (Non-graded credits) ตามข้อบังคับมหาวิทยาลัย
+- **ระบบค้นหาความเร็วสูง**: กรองวิชาตามกลุ่มวิชาศึกษาทั่วไป วิชาเฉพาะ และวิชาเลือกเสรี พร้อมค้นหาได้ทั้งรหัสวิชาและชื่อภาษาไทย/อังกฤษ
+
+### ⚖️ 2. ควบคุมกฎระเบียบวิชาการอัตโนมัติ (Academic Rules & Validation Engine)
+> `Academic Standing Engine` · `Probation Tiers (Low & High)` · `Consecutive Probation Tracker` · `Academic Dismissal (Retirement)` · `GPA Recovery Target Calculator` · `Credit Limits Enforcement` · `Graduation Exemption`
+
+- **ระบบประเมินสถานภาพทางวิชาการและภาวะวิทยาทัณฑ์ (4-Tier Academic Standing Engine)**:
+  ประเมินสถานภาพนักศึกษาจากประวัติผลการเรียนสะสมย้อนหลังตามเส้นเวลาจริง (Time-Series Chronological Calculation) ครอบคลุม 4 ระดับตามข้อบังคับมหาวิทยาลัย:
+  | สถานภาพ (Standing Tier) | เกณฑ์ GPAX สะสม | สิทธิ์และเงื่อนไขตามระเบียบมหาวิทยาลัย |
+  | :--- | :---: | :--- |
+  | **🟢 สถานะปกติ (Normal Standing)** | $\ge 2.00$ | ลงทะเบียนเรียนได้ตามปกติ $9 - 22$ หน่วยกิต (โครงการจัดการศึกษาภาคพิเศษ/สมทบ $6 - 18$ หน่วยกิต) |
+  | **🟠 วิทยาทัณฑ์โปรสูง (High Probation / P2)** | $1.75 - 1.99$ | ลงทะเบียนเรียนได้ในช่วง **15 - 16 หน่วยกิต** (เว้นแต่ได้รับอนุมัติกรณีพิเศษ) และต้องสะสม GPAX รวมให้ถึง 2.00 ก่อนสำเร็จการศึกษา |
+  | **🔴 วิทยาทัณฑ์โปรต่ำ (Low Probation / P1)** | $1.50 - 1.74$ | ลงทะเบียนเรียนได้ในช่วง **15 - 16 หน่วยกิต** (เว้นแต่ได้รับอนุมัติกรณีพิเศษ) และติดสถานะวิทยาทัณฑ์ติดต่อกันได้**ไม่เกิน 4 ภาคการศึกษาปกติ** (ไม่รีไทร์ทันทีก่อนครบเกณฑ์) |
+  | **🛑 พ้นสภาพนักศึกษา (Academic Retirement)** | $< 1.50$ หรือติดโปร 4 เทอม | • **GPAX ต่ำกว่า 1.50** หลังสิ้นสุดภาค 2 ของชั้นปีที่ 1 เป็นต้นไป<br />• **ติดสถานะวิทยาทัณฑ์ติดต่อกันครบ 4 ภาคการศึกษาปกติ** (GPAX $< 2.00$) |
+- **ระบบติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง (Consecutive Probation Tracker)**:
+  - นับเฉพาะภาคการศึกษาปกติ (เทอม 1 และ เทอม 2) โดยไม่นับภาคฤดูร้อน (Summer Session) เป็นรอบวิทยาทัณฑ์ (แต่เกรดในภาคฤดูร้อนจะถูกนำไปคำนวณรวมใน GPAX สะสมตามจริง)
+  - มีระบบ **Reset Counter อัตโนมัติ**: เมื่อนักศึกษาสามารถทำผลการเรียนในภาคการศึกษาถัดไปจนดึง GPAX กลับมา $\ge 2.00$ ได้ ตัวนับการติดโปรจะถูกรีเซ็ตกลับเป็น 0 ทันที
+  - **Freshman Buffer**: นักศึกษาใหม่ในภาคการศึกษาแรกสุด (ปี 1 เทอม 1) จะได้รับสถานะเฝ้าระวังเตือน (Warning) โดยเริ่มบังคับใช้เกณฑ์พ้นสภาพ GPAX $< 1.50$ หลังสิ้นสุดภาค 2 ของปี 1 เป็นต้นไป
+- **เครื่องคำนวณเกรดกู้ชีพ (Probation Recovery Target Calculator)**:
+  สำหรับนักศึกษาที่อยู่ในสถานะวิทยาทัณฑ์ ระบบจะคำนวณเกรดเฉลี่ยประจำภาคเรียนถัดไปที่ต้องทำให้ได้ (บนฐานเพดาน 16 หน่วยกิต) โดยอัตโนมัติ เพื่อดึง GPAX รวมให้แตะ 2.00 และปลดสถานะวิทยาทัณฑ์ พร้อมแจ้งเตือนหากเป็นกรณีที่หน่วยกิตสะสมสูงจนต้องวางแผนฟื้นฟูเกรดมากกว่า 1 เทอม
+- **การแจ้งเตือนเชิงรุก 4 มิติ (Proactive Academic Safeguards)**:
+  - **Dashboard Hero Banner**: แถบแจ้งเตือนระดับความเสี่ยงพร้อม **4-Step Stepper** แสดงจำนวนเทอมที่ติดโปร (1 $\rightarrow$ 2 $\rightarrow$ 3 $\rightarrow$ รีไทร์) และจำนวนเทอมโอกาสที่เหลือ
+  - **Study Plan & Report Badges**: แสดงป้ายสถานภาพทางวิชาการและข้อความเตือนในหน้าจัดการแผนและรายงานสรุปผลการเรียน
+  - **AI Chatbot Advising Injection**: ป้อนข้อมูลสถานภาพ (`academicStanding`, `standingLabel`, `consecutiveBelow2Terms`, `consecutiveProbationCount`, `probationCreditRange`, `allowedMaxCredits`, `targetGPANextTerm`) เข้าสู่สมองของ AI แชทบอท เพื่อให้คำปรึกษา แนะนำวิชา Retake ดึงเกรด และแจ้งเตือนความเสี่ยงได้อย่างแม่นยำ
+- **ขอบเขตหน่วยกิตภาคปกติและภาคฤดูร้อน**: ควบคุมการลงทะเบียนภาคปกติ $9 - 22$ หน่วยกิต (ภาคพิเศษ/สมทบ $6 - 18$ หน่วยกิต), นักศึกษาติดโปรช่วง 15–16 หน่วยกิต (เว้นแต่ได้รับอนุมัติ), ภาคฤดูร้อนไม่เกิน 9 หน่วยกิต (ทั้ง 2 รูปแบบ) และข้อยกเว้นภาคสุดท้ายที่คาดว่าจะสำเร็จการศึกษา (Graduation Term Exemption) ลงต่ำกว่าเกณฑ์ขั้นต่ำได้
+
+### 🤖 3. แชทบอทให้คำปรึกษาหลักสูตร (Modern Academic Chat Surface)
+> `n8n Orchestration (v19.19)` · `Pinecone Vector RAG` · `Deterministic Identity & Status Routing` · `Non-Student Role Isolation` · `Curriculum Duration Guard` · `Registration Metadata Alignment` · `Sentiment Feedback` · `Native Caret Navigation`
+
+- **การจัดโครงสร้าง Metadata รองรับ n8n Workflow v19.19 (Canonical Metadata Alignment)**: ส่งออก ground-truth metadata ครอบคลุมฟิลด์มาตรฐาน `consecutiveBelow2Terms` (ควบคู่ `consecutiveProbationCount` สำหรับ backward compatibility), `probationCreditRange: { min: 15, max: 16 }`, รองรับรูปแบบการศึกษา `studyMode` และ `programType` (`regular` / `special_evening`), เพดานภาคฤดูร้อน 9 หน่วยกิต, และแฟล็กการขออนุมัติลงทะเบียนเกินเพดาน `registrationCreditLimitAuthorized` (`creditLimitSource: 'approved'`) โดยไม่ทำการ Intent Classification ด้วย Regex ในฝั่ง Frontend ปล่อยให้ n8n ประมวลผลอย่างอิสระ
+
+- **การนำทางเคอร์เซอร์ด้วยปุ่มลูกศร (Native Caret & Arrow Key Navigation)**: แก้ไขปัญหาช่องพิมพ์ของ `@n8n/chat` ดักจับคีย์บอร์ดที่ Container แม่แล้วเรียก `preventDefault()` อัตโนมัติ โดยทำการตัดการกระจายอีเวนต์ (Stop Propagation) ในระดับ Textarea ทำให้ผู้ใช้สามารถใช้งานปุ่มลูกศร (`ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`), `Home`, `End`, `PageUp`, `PageDown`, การเลื่อนเคอร์เซอร์ข้ามบรรทัด และการคลุมเลือกข้อความ (`Shift + Arrow` / `Ctrl + Arrow`) ในช่องพิมพ์ได้อย่างสมบูรณ์ 100%
+- **ระบบชี้ขาดตัวตนผู้ใช้และการแยกสิทธิ์ Non-Student อัตโนมัติ (Deterministic User Identity & Role Isolation)**: แยกแยะระหว่างนักศึกษาและบุคลากร (`admin`, `instructor`, `staff`) อย่างเด็ดขาด ดักจับคำถามเกี่ยวกับชื่อ ตัวตน หรือหลักสูตรที่ศึกษา (เช่น *"ผมชื่ออะไรตอนนี้ผมเรียนหลักสูตรอะไร"*, *"ผมเรียนสาขาอะไร"*, *"ฉันเป็นใคร"*) แล้วตอบกลับทันทีแบบ Deterministic (Bypass LLM 0 ms) โดยสำหรับบัญชีที่ไม่ใช่นักศึกษา ระบบจะระบุบทบาทอย่างถูกต้อง (เช่น ผู้ดูแลระบบ / อาจารย์ผู้สอน / เจ้าหน้าที่) และระบุว่าไม่มีข้อมูลหลักสูตรที่กำลังศึกษาในระบบ ป้องกัน AI นำหลักสูตร IT-67 ไปผูกกับ Admin หรือถามขอรหัสนักศึกษาโดยเด็ดขาด
+- **รองรับสถานะนักศึกษาปี 5+ ครบทุกหลักสูตร**: ผสานระบบคำนวณสถานะความคืบหน้าของนักศึกษาที่เรียนเกินระยะเวลามาตรฐานของหลักสูตร (เช่น นักศึกษาปี 5 ภาคปกติที่เหลือเก็บวิชาโปรเจกต์) โดยรายงานทั้งจำนวนวิชาที่ผ่าน หน่วยกิตสะสม วิชาที่กำลังศึกษา ชั้นปีจริง และหน่วยกิตคงเหลือสู่การสำเร็จการศึกษาตามระเบียบมหาวิทยาลัย พร้อมระบบป้องกัน Role Truth Lock ใน AI Agent
+- **ระบบคำนวณชั้นปีและสถานะขยายเวลาเรียน (Universal Student Year Engine)**: คำนวณและระบุชั้นปีและภาคการศึกษาจริงของนักศึกษาจากวิชาที่กำลังศึกษา (`in_progress`) หรือประวัติวิชาสอบผ่าน รองรับตั้งแต่ชั้นปีที่ 1 ถึงปี 8+ พร้อมตรวจจับสภาวะนักศึกษาเกินระยะเวลาเรียนมาตรฐานของหลักสูตร (`isExtendedYears` เช่น ปี 5 สำหรับหลักสูตร 4 ปี, ปี 3 สำหรับหลักสูตรเทียบโอน 2 ปี, ปี 4 สำหรับหลักสูตร 3 ปี)
+- **ระบบดักจับคำถามสถานะและประวัติการเรียนแบบ Deterministic (Personal Study Status Router)**: ตรวจจับคำถามสอบถามประวัติการเรียน สถานะชั้นปี รายวิชาที่ผ่าน และรายวิชาที่กำลังเรียน (เช่น *"ผมเรียนผ่านแล้วกี่วิชา กำลังเรียนกี่วิชา และกำลังเรียนปีอะไร"*, *"ตอนนี้ผมอยู่ปีไหน"*) แล้วคืนสรุปประวัติวิชาผ่าน วิชาที่กำลังเรียน ชั้นปีปัจจุบัน และความคืบหน้าหน่วยกิตจาก Realtime Database โดยตรงด้วยความแม่นยำ 100%
+- **ระบบบันทึกและซิงก์โปรไฟล์ชั้นปีอัตโนมัติ (Automated Firebase RTDB Student Year Sync)**: บันทึกรายวิชาในชั้นปีที่ 1 ถึง 8+ ลง `studyPlans/{planId}/courses` พร้อมคำนวณและอัปเดตชั้นปีจริง (`studentYear` / `year`) ลงในโปรไฟล์ผู้ใช้ `users/{userId}` และ `studyPlans/{planId}` ใน Firebase Realtime Database โดยอัตโนมัติเมื่อนักศึกษาจัดตารางเรียนหรือเข้าใช้งาน Dashboard
+- **ระเบียบการตั้งค่าเริ่มต้นสำหรับผู้ใช้ใหม่ (New User Student Onboarding)**: เมื่อผู้ใช้สมัครสมาชิกใหม่ ระบบจะกำหนดสิทธิ์เริ่มต้นเป็นนักศึกษา (`student`) โดยไม่มีการเลือกสาขาวิชาล่วงหน้าจนกว่านักศึกษาจะเลือกที่หน้าโปรไฟล์หรือเริ่มจัดทำแผนการเรียน ป้องกันการระบุสาขาวิชาไม่ตรงกับความเป็นจริง
+- **ฐานข้อมูลหลักสูตรแม่บท 13 ฉบับ (Authoritative 13 Curricula Master Catalog & Whitelist)**: รวบรวมข้อมูลหลักสูตรครบถ้วนทั้ง 13 ฉบับใน [MASTER_CURRICULUM_CATALOG.md](MASTER_CURRICULUM_CATALOG.md) และ [N8N_PREREQUISITES_GUIDE.md](N8N_PREREQUISITES_GUIDE.md) พร้อมรหัสวิชา 8 หลัก และชื่อวิชาภาษาไทยทางการ ควบคุมเงื่อนไขสหกิจศึกษาและฝึกงานภาคฤดูร้อนตามข้อเท็จจริง ป้องกัน AI แนะนำวิชาหรือเทอมที่ไม่มีอยู่จริง (เช่น ป้องกันการแนะนำ Co-op หรือ ซัมเมอร์ ใน ITT-67)
+- **การคงบริบทหลักสูตรต่อเนื่อง (Multi-Turn Curriculum Persistence)**: ระบบจดจำหลักสูตรที่กำลังสนทนา (`ActiveConversationCurriculum`) ข้ามเทิร์นคำถาม แม้ผู้ใช้จะไม่ได้พิมพ์ชื่อหลักสูตรซ้ำในข้อความถัดไป
+- **ระบบควบคุมระยะเวลาศึกษา (CurriculumDurationGuard)**: ป้องกันความผิดพลาดของ AI ในการสร้างข้อมูลปี 3 และปี 4 สำหรับหลักสูตรต่อเนื่อง/เทียบโอน 2 ปี (เช่น `ITT-67` มี 28 วิชา 84 หน่วยกิต เรียนเฉพาะปี 1 และปี 2)
+- **กฎการแนะนำลงทะเบียนกรณีติด F (RetakePrerequisiteBlock & PassedCourseExclusion)**: คัดแยกวิชาที่สอบผ่านแล้วออกจากแผนลงทะเบียนใหม่อัตโนมัติ พร้อมตรวจจับและบล็อกการลงวิชาต่อเนื่องที่ยังติดวิชาบังคับก่อน (Prerequisite) จนกว่าจะลงทะเบียนเรียนซ้ำวิชาที่ติด F
+- **นโยบายให้คำแนะนำทันที (Direct Advising Response Policy)**: บังคับให้บอทแสดงข้อมูล ตารางรายวิชา และคำแนะนำการลงทะเบียนที่สมบูรณ์ทันทีโดยไม่ถามย้อนเพื่อขออนุญาตแสดงผล
+- **การป้อนบริบทอัตโนมัติ (Context Injection)**: ส่งรหัสหลักสูตรที่นักศึกษาศึกษาอยู่ (`EnrolledCurriculum`) และแคตตาล็อกรวม 13 ฉบับ เข้าสู่ Prompt แชทบอท เพื่อให้ได้คำตอบที่ถูกต้องตรงกับโครงสร้างจริง 100%
+- **มาตรฐานชื่อวิชา (CoursePresentationFormat)**: คำตอบจากบอทจะประกอบด้วย `[รหัสวิชา] [ชื่อวิชาภาษาไทย]` เสมอ ไม่ปล่อยรหัสวิชาลอยๆ ให้นักศึกษาสับสน
+- **ระบบสำรวจความพึงพอใจ 3 ระดับ (FeedbackScale)**: แสดงป้ายประเมินความพึงพอใจ (👎 ไม่ชอบ, 😐 ปานกลาง, 👍 ชอบ) ทุกๆ 5 ข้อความ พร้อมบันทึกสถิติเข้าสู่ Realtime Database
+- **กฎการชี้ขาดวิชาค้างเรียนตามหลักสูตร (Uncompleted Courses Truth Directives)**: เมื่อนักศึกษาถามว่า *"ผมเหลือวิชาที่ยังไม่ได้เรียนคือวิชาไร"* หรือ *"ขาดวิชาอะไรบ้าง"* แชทบอทจะอ้างอิงรายการวิชาจาก `uncompletedCurriculumCourses` ที่คำนวณผ่าน Deduplication Engine เป็น Single Source of Truth โดยตอบเฉพาะวิชาที่ยังไม่ได้เรียนจริงและไม่แสดงรหัส Wildcard ที่ผ่านครบตามโควตาแล้วเด็ดขาด
+- **การให้คำปรึกษาหมวดวิชาและวิชาเลือก (Category Credit Audit Single Source of Truth)**: ป้อนข้อมูล `categoryCreditAudit` และ `electiveAuditSummary` เข้าสู่ metadata ของ n8n Chatbot ทำให้นักศึกษาสามารถสอบถามสถานะวิชาเลือกได้โดยตรง (เช่น *"วิชาเลือกเสรีผมครบยัง ขาดอีกกี่หน่วยกิต"*, *"วิชาเลือกกลุ่มวิชาชีพเรียนครบหรือยัง"*) โดย AI จะตอบโครงสร้างหน่วยกิตที่ต้องเรียน, ที่เรียนผ่านแล้ว, ที่ขาดอยู่, และสถานะว่าครบแล้วหรือไม่ พร้อมแจ้งการส่งต่อหน่วยกิตส่วนเกิน (Waterfall Overflow) อย่างแม่นยำ 100%
+- **แถบเวลาการแจ้งเตือน (Alert Timeout Progress)**: Toast, inline error และข้อความขอบคุณหลังส่ง feedback ที่ปิดอัตโนมัติจะแสดงแถบบางที่ขอบล่างเพื่อบอกเวลาคงเหลือ โดยแถบและการปิดใช้ตัวจับเวลาเดียวกัน
+
+### 📑 4. รายงานและการบริหารจัดการระดับองค์กร (Reporting & Admin Controls)
+> `PDF/Excel Exporters` · `Dual-Layer Persistence` · `Analytics Dashboard`
+
+- **ส่งออกเอกสารคุณภาพสูง**: พิมพ์หรือดาวน์โหลดแผนการเรียนและใบสรุปหน่วยกิตเป็นไฟล์ PDF (jsPDF + html2canvas) และตาราง Excel (SheetJS)
+- **สถาปัตยกรรมข้อมูล 2 ชั้น**: จัดเก็บแยกส่วนระหว่าง `curriculum/` (โครงสร้างตามแผน) และ `courses/` (ดัชนีสืบค้นข้ามสาย) เพื่อป้องกันข้อมูลสูญหาย
+- **แดชบอร์ดสถิติแชทบอท (Chat Analytics)**: ผู้ดูแลระบบสามารถตรวจสอบคำถามยอดนิยม อัตราความพึงพอใจ และความถี่ในการใช้งานระบบได้แบบเรียลไทม์
+
+---
+
+## บทบาทและสิทธิ์ผู้ใช้งาน
+
+| บทบาท (Role) | สิทธิ์และการใช้งานหลัก |
+| :--- | :--- |
+| **🎓 นักศึกษา (Student)** | • วางแผนการเรียน บันทึกผลการเรียน และตรวจสอบสถานะหน่วยกิตของตนเอง<br />• ใช้งานแชทบอทเพื่อสอบถามข้อมูลหลักสูตรและการลงทะเบียน โดยระบบจะวิเคราะห์ประวัติและสถานะชั้นปีจริง (รองรับปี 1 ถึงปี 8+)<br />• ส่งออกเอกสารแผนการเรียนในรูปแบบ PDF และ Excel<br />*(หมายเหตุ: ผู้สมัครสมาชิกใหม่จะได้รับบทบาทเป็นนักศึกษา และต้องเลือกสาขาวิชาด้วยตนเองในหน้าโปรไฟล์หรือแผนการเรียน)* |
+| **👨‍🏫 อาจารย์ที่ปรึกษา (Instructor)** | • เรียกดูรายชื่อและค้นหาข้อมูลนักศึกษาในความดูแล<br />• ตรวจสอบแผนการเรียนและประวัติการลงทะเบียนของนักศึกษาเพื่อให้คำปรึกษา<br />• ใช้งานแชทบอทในฐานะอาจารย์ผู้สอน (ระบบจะไม่ผูกหลักสูตรนักศึกษาหรือประวัติการเรียน) |
+| **🏢 เจ้าหน้าที่ภาควิชา (Staff)** | • จัดการฐานข้อมูลรายวิชา เงื่อนไขวิชา และหลักสูตรในระบบ<br />• ตรวจสอบภาพรวมข้อมูลหลักสูตรและการลงทะเบียน<br />• ใช้งานแชทบอทในฐานะเจ้าหน้าที่ภาควิชา (ไม่มีหลักสูตรนักศึกษาผูกมัด) |
+| **⚙️ ผู้ดูแลระบบ (Admin)** | • จัดการบัญชีผู้ใช้งานและกำหนดสิทธิ์ (Role Assignment)<br />• ตรวจสอบภาพรวมระบบและวิเคราะห์ผลตอบรับของแชทบอท (Chat Analytics)<br />• ใช้งานแชทบอทในฐานะผู้ดูแลระบบสูงสุด ปราศจากการผูกหลักสูตรเรียนของนักศึกษา |
+
+---
+
+## เทคโนโลยีและเครื่องมือ
+
+- **Frontend Core:** React 18.3, TypeScript 5.8 (Strict Mode & TS 7.0 Ready: Modern Bundler Resolution), Vite 5.4
+- **UI & Styling:** Tailwind CSS 3.4, shadcn/ui, Radix UI Primitives, Lucide Icons
+- **State & Data Synchronization:** TanStack React Query 5.83, React Router 6.30
+- **Database & Authentication:** Firebase Authentication, Firebase Realtime Database
+- **AI & Automation Workflow:** n8n Workflow Orchestration, Pinecone Vector Database, OpenAI GPT-5 nano
+- **Document & Export Services:** jsPDF 3.0, html2canvas 1.4, SheetJS (xlsx) 0.18
+- **Data Validation & Forms:** Zod 3.25, React Hook Form 7.61
+
+---
+
+## การติดตั้งและเริ่มใช้งาน
+
+### 1. ความต้องการของระบบ (Prerequisites)
+
+- **Node.js**: เวอร์ชัน 18.x หรือสูงกว่า
+- **npm** หรือ **bun**: ตัวจัดการแพ็กเกจ
+- **Firebase Project**: ที่เปิดใช้งาน Authentication (Email/Password) และ Realtime Database
+- **n8n Instance / Webhook URL**: สำหรับรองรับการประมวลผลของแชทบอท
+
+### 2. การติดตั้งโปรเจกต์ (Installation)
+
 ```bash
-git clone <repository-url>
+# โคลนคลังข้อมูล
+git clone https://github.com/kainapatkmutnb/it-course-chatbot-main.git
 cd it-course-chatbot-main
+
+# ติดตั้งแพ็กเกจและ dependencies
+npm ci
 ```
 
-2. **ติดตั้ง Dependencies**
+### 3. การตั้งค่าตัวแปรสภาพแวดล้อม (Environment Configuration)
+
+สร้างไฟล์ `.env` จากตัวอย่าง `.env.example`:
+
 ```bash
-npm install
+# macOS / Linux
+cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
-3. **ตั้งค่า Environment Variables**
-สร้างไฟล์ `.env` ในโฟลเดอร์ root และเพิ่มข้อมูล Firebase Configuration:
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_DATABASE_URL=your_database_url
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
+#### ตารางแจกแจงตัวแปรใน `.env`
 
-4. **เริ่มต้นข้อมูลใน Firebase (ถ้าจำเป็น)**
+| ตัวแปร | ความจำเป็น | คำอธิบาย |
+| :--- | :---: | :--- |
+| `VITE_FIREBASE_API_KEY` | **จำเป็น** | Firebase Web API Key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | **จำเป็น** | Firebase Authentication Domain (เช่น `<project>.firebaseapp.com`) |
+| `VITE_FIREBASE_DATABASE_URL` | **จำเป็น** | Firebase Realtime Database URL (เช่น `https://<project>-default-rtdb.asia-southeast1.firebasedatabase.app/`) |
+| `VITE_FIREBASE_PROJECT_ID` | **จำเป็น** | Firebase Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | **จำเป็น** | Firebase Storage Bucket URL |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID`| **จำเป็น** | Firebase Cloud Messaging Sender ID |
+| `VITE_FIREBASE_APP_ID` | **จำเป็น** | Firebase Web App ID |
+| `VITE_N8N_WEBHOOK_URL` | **จำเป็น** | Production Webhook URL ของ n8n สำหรับรับ-ส่งข้อความแชทบอท |
+| `VITE_N8N_SUMMARY_WEBHOOK_URL` | ทางเลือก | Webhook URL สำหรับ workflow สรุปข้อมูลการสนทนา |
+
+> [!WARNING]
+> ห้าม Commit ไฟล์ `.env` หรือส่งต่อ Private Key เข้าสู่ Git Repository โดยเด็ดขาด ตรวจสอบ URL ของฐานข้อมูลและ Project ID ให้ตรงกับ Environment ก่อนทำการบันทึกข้อมูลเสมอ
+
+### 4. การรันระบบในเครื่อง (Local Development)
+
 ```bash
-node initialize-firebase-data.cjs
-```
-
-5. **เริ่มต้น Development Server**
-```bash
+# เริ่มต้น Development Server
 npm run dev
 ```
 
-6. **Build สำหรับ Production**
+เปิดเว็บเบราว์เซอร์ที่ [http://localhost:8080](http://localhost:8080) (หรือตาม Port ที่ Vite ระบุใน Terminal)
+
+### 5. การทดสอบด้วย Firebase Emulator
+
+โปรเจกต์มีระบบจำลอง Firebase ในเครื่องเพื่อความปลอดภัยในการทดสอบ CRUD:
+
 ```bash
-npm run build
+# Terminal 1: เริ่มต้น Firebase Local Emulator (Auth + Database)
+npm run firebase:emulators
+
+# Terminal 2: รันเว็บแอปใน Test Mode ที่เชื่อมกับ Emulator
+npm run dev:emulator
 ```
 
-7. **Preview Production Build**
+> [!NOTE]
+> การรันในโหมด Emulator ต้องใช้ `.env.test` ที่มี Project ID ในรูปแบบ `demo-*` (เช่น `demo-it-course-chatbot`) ระบบจะปฏิเสธการเชื่อมต่อไปยังฐานข้อมูลจริงเพื่อป้องกันข้อมูลเสียหาย
+
+### 6. การนำเข้าข้อมูลหลักสูตร (Curriculum Data Migration)
+
+หากต้องการตั้งค่าข้อมูลรายวิชาและโครงสร้างหลักสูตรเริ่มต้นเข้าสู่ Realtime Database:
+
 ```bash
+npm run migrate:curriculum
+```
+
+### 7. การตรวจสอบโค้ดและการทดสอบ (Testing & Production Build)
+
+ชุดทดสอบด้านล่างตรวจตรรกะในเครื่อง ผลผ่านไม่ได้ยืนยันผลตอบกลับจริงจาก n8n หรือการแสดงผลในเบราว์เซอร์ ซึ่งต้องตรวจแยกเมื่อแก้ส่วนที่เกี่ยวข้อง
+
+```bash
+# ตรวจสอบการประเมินสถานภาพวิทยาทัณฑ์และการพ้นสภาพนักศึกษา (Academic Standing Engine)
+npx tsx --test tests/study-plan/academicStanding.test.ts
+
+# ตรวจสอบการจัดโครงสร้าง Metadata ส่งเข้า n8n Workflow v19.19 (Case A - G, StudyMode, Credit Limits)
+npx tsx --test tests/study-plan/n8nWorkflowMetadata.test.ts
+
+# ตรวจสอบการตัดยอดโควตาวิชาเลือกและ Wildcard ครบทั้ง 13 หลักสูตร (Category-Quota Deduplication)
+npx tsx --test tests/study-plan/curriculumDeduplicationAllCurricula.test.ts
+
+# ตรวจสอบการหักลบวิชาค้างเรียนของนักศึกษาตัวอย่าง (INE-62)
+npx tsx --test tests/study-plan/curriculumDeduplication.test.ts
+
+# ตรวจข้อมูลความคืบหน้าและตัวตนรายวิชาของนักศึกษา
+npx tsx --test tests/study-plan/progress.test.ts
+
+# ตรวจเงื่อนไขระยะเวลาเรียน ฝึกงาน และสหกิจของ 13 หลักสูตร
+npx tsx --test tests/curriculum/curriculumGuard.test.ts
+
+# ตรวจสอบ Linting
+npm run lint
+
+# สร้าง Production Bundle
+npm run build
+
+# ทดสอบรัน Production Bundle ในเครื่อง
 npm run preview
 ```
 
-แอปพลิเคชันจะทำงานที่ `http://localhost:5173`
+---
 
-## 👥 บทบาทผู้ใช้และสิทธิ์การเข้าถึง
+## โครงสร้างไดเรกทอรี
 
-### นักศึกษา (Student)
-- อีเมล: `s[รหัสนักศึกษา]@email.kmutnb.ac.th`
-- สิทธิ์: ดูแผนการเรียน, จัดการรายวิชาส่วนตัว, บันทึกปีการศึกษา
-
-### อาจารย์ (Instructor)
-- อีเมล: `instructor@kmutnb.ac.th`
-- สิทธิ์: ดูข้อมูลนักศึกษา, จัดการรายวิชาที่สอน, ดูรายละเอียดนักศึกษา, แก้ไขข้อมูลนักศึกษา
-
-### บุคลากร (Staff)
-- อีเมล: `staff@kmutnb.ac.th`
-- สิทธิ์: จัดการข้อมูลรายวิชา, กำหนดเงื่อนไข
-
-### ผู้ดูแลระบบ (Admin)
-- อีเมล: `admin@kmutnb.ac.th`
-- สิทธิ์: จัดการผู้ใช้, ดูสถิติระบบ, ประวัติการใช้งาน, จัดการข้อมูลรายวิชา, จัดการเงื่อนไขรายวิชา
-
-## 📁 โครงสร้างโปรเจกต์
-
-```
-src/
-├── components/          # React Components
-│   ├── ProtectedRoute.tsx       # Route Protection Component
-│   ├── RoleBasedRoute.tsx       # Role-based Access Control
-│   ├── chat/                    # Chatbot Components
-│   │   └── ChatBot.tsx          # AI Chatbot Interface
-│   ├── curriculum/              # Curriculum Components
-│   │   ├── CurriculumFlowchart.tsx      # Grid-style Flowchart
-│   │   └── CurriculumTimelineFlowchart.tsx  # Timeline-style Flowchart
-│   ├── dashboard/               # Dashboard Components สำหรับแต่ละบทบาท
-│   │   ├── StudentDashboard.tsx         # Dashboard นักศึกษา
-│   │   ├── InstructorDashboard.tsx      # Dashboard อาจารย์
-│   │   ├── StaffDashboard.tsx           # Dashboard บุคลากร
-│   │   ├── AdminDashboard.tsx           # Dashboard ผู้ดูแลระบบ
-│   │   ├── StudentDetailView.tsx        # รายละเอียดนักศึกษา
-│   │   └── CourseManagement.tsx         # จัดการรายวิชา
-│   ├── study-plan/              # Study Plan Management Components
-│   │   └── StudyPlanManager.tsx         # จัดการแผนการเรียน
-│   ├── layout/                  # Layout Components
-│   │   ├── Header.tsx           # Header Component
-│   │   └── Footer.tsx           # Footer Component
-│   └── ui/                      # UI Components (shadcn/ui)
-├── pages/                       # Page Components
-│   ├── Home.tsx                 # หน้าแรก
-│   ├── Login.tsx                # หน้าเข้าสู่ระบบ
-│   ├── Register.tsx             # หน้าสมัครสมาชิก
-│   ├── Courses.tsx              # หน้ารายวิชา
-│   ├── CurriculumDashboard.tsx  # หน้าแผนภูมิหลักสูตร
-│   ├── DashboardRouter.tsx      # Router สำหรับ Dashboard
-│   ├── Index.tsx                # หน้าหลัก
-│   └── NotFound.tsx             # หน้า 404
-├── contexts/                    # React Contexts
-│   └── AuthContext.tsx          # Authentication Context
-├── hooks/                       # Custom Hooks
-│   ├── useFirebaseData.ts       # Firebase Data Hooks
-│   ├── use-toast.ts             # Toast Hook
-│   └── use-mobile.tsx           # Mobile Detection Hook
-├── services/                    # API Services
-│   ├── firebaseService.ts       # Firebase Service
-│   ├── courseService.ts         # Course Service
-│   ├── departmentService.ts     # Department Service
-│   ├── hybridCourseService.ts   # Hybrid Course Service
-│   └── completeCurriculumData.ts # Complete Curriculum Data
-├── types/                       # TypeScript Types
-│   ├── auth.ts                  # Authentication Types
-│   ├── course.ts                # Course Types
-│   └── chat.ts                  # Chat Types
-├── utils/                       # Utility Functions
-│   ├── gradeUtils.ts            # Grade Calculation Utils
-│   ├── pdfExport.ts             # PDF Export Utils
-│   └── firestoreUtils.ts        # Firestore Utils
-├── config/                      # Configuration Files
-│   └── firebase.ts              # Firebase Configuration
-└── lib/                         # Library Functions
-    └── utils.ts                 # General Utilities
+```text
+it-course-chatbot-main/
+├── diagrams/                # แผนภาพสถาปัตยกรรม (Context, DFD, Component, Sequence)
+├── docs/
+│   ├── adr/                 # Architecture Decision Records (ADR-001 ถึง ADR-012)
+│   ├── audits/              # รายงานผลการตรวจสอบระบบ (CRUD Audit, Navigation QA)
+│   └── superpowers/         # บันทึกแผนการพัฒนาและแบบร่างระบบ
+├── public/                  # Static Assets และฟอนต์ภาษาไทย
+├── src/
+│   ├── components/          # UI Components
+│   │   ├── chat/            # โมดูลแชทบอทและแบนเนอร์ Feedback
+│   │   ├── curriculum/      # ผังหลักสูตรและ Flowchart รายวิชา
+│   │   ├── dashboard/       # แดชบอร์ดตามสิทธิ์ (Admin, Staff, Instructor, Student)
+│   │   ├── layout/          # โครงหน้าเว็บ Header, Footer และ Navigation
+│   │   ├── study-plan/      # ตัวจัดการแผนการเรียน, ระบบคำนวณหน่วยกิต, และ Academic Alert Dialog
+│   │   └── ui/              # shadcn / Radix UI Design System Primitives
+│   ├── contexts/            # Context Providers (Auth, System State)
+│   ├── hooks/               # Custom React Hooks
+│   ├── pages/               # Routing Page Components
+│   ├── services/            # บริการเชื่อมต่อ Firebase, n8n และหลักสูตร
+│   ├── types/               # TypeScript Interfaces และ Type Definitions
+│   └── utils/               # ฟังก์ชันคำนวณหน่วยกิต, Deduplication Engine และโมดูล Export PDF/Excel
+├── tests/
+│   ├── curriculum/          # การทดสอบกฎระยะเวลาและเงื่อนไขหลักสูตร (CurriculumDurationGuard)
+│   ├── regression/          # การทดสอบการปฏิบัติตามระเบียบและโครงสร้าง n8n metadata v19.19
+│   └── study-plan/          # ชุดทดสอบ Regression: Study Plan ViewModel, Academic Standing, Deduplication & Elective Audit (86 tests)
+├── CONTEXT.md               # Ubiquitous Language & Domain Model ของระบบ
+├── database.rules.json      # กฎความปลอดภัย Firebase Realtime Database Rules
+├── MASTER_CURRICULUM_CATALOG.md # คลังหลักสูตรฉบับสมบูรณ์ 13 ฉบับ (Single Source of Truth สำหรับ AI ChatBot)
+├── N8N_PREREQUISITES_GUIDE.md # คู่มือการตั้งค่า n8n Webhook และ Vector Database
+└── package.json             # โปรเจกต์สคริปต์และรายการ Dependencies
 ```
 
-## 🔧 คำสั่งที่สำคัญ
+---
 
-```bash
-# Development
-npm run dev              # เริ่ม development server
-npm run build           # Build สำหรับ production
-npm run preview         # Preview production build
-npm run lint            # ตรวจสอบ code quality
+## มาตรฐานวิศวกรรมและการตัดสินใจ (ADR)
 
-# Firebase
-node initialize-firebase-data.cjs  # เริ่มต้นข้อมูลใน Firebase
-```
+### เงื่อนไขหลักสูตรที่ส่งให้แชทบอท
 
-## 🌐 การ Deploy
+[`CURRICULUM_RULES_CATALOG`](src/services/curriculumCatalogService.ts) เก็บเงื่อนไขแยกตามหลักสูตร 13 ฉบับ พร้อมข้อมูลสำรองระดับสาขา 5 กลุ่ม ได้แก่ ระยะเวลาเรียน ภาคการศึกษาที่รองรับ หน่วยกิต และรายละเอียดฝึกงาน/สหกิจ โดย [`ChatBot.tsx`](src/components/chat/ChatBot.tsx) ส่ง `curriculumDurationGuard` และข้อมูลหลักสูตรที่เลือกไปกับบริบทของคำถาม เพื่อกำหนดให้ใช้ metadata นี้เมื่อข้อมูลจาก RAG ขัดแย้งกัน
 
-### Firebase Hosting
-1. ติดตั้ง Firebase CLI
-```bash
-npm install -g firebase-tools
-```
+เงื่อนไขดังกล่าวเป็นข้อมูลอ้างอิงของหลักสูตร ส่วนตำแหน่งวิชาใน **แผนของฉัน** ใช้ปีและเทอมที่นักศึกษาบันทึกไว้ การย้ายวิชาของนักศึกษาจึงไม่ใช่การเปลี่ยนโครงสร้างหลักสูตรกลาง และสัดส่วนหน่วยกิตที่ผ่านไม่ใช่ผลรับรองว่าครบเงื่อนไขสำเร็จการศึกษา
 
-2. Login และเลือก Project
-```bash
-firebase login
-firebase use --add
-```
+ดูกรณีทดสอบใน [`curriculumGuard.test.ts`](tests/curriculum/curriculumGuard.test.ts) และรายละเอียดการส่งบริบทใน [คู่มือ prerequisite สำหรับ n8n](N8N_PREREQUISITES_GUIDE.md)
 
-3. Build และ Deploy
-```bash
-npm run build
-firebase deploy
-```
+### บันทึกการตัดสินใจ
 
-## 🔒 ความปลอดภัย
+ระบบนี้พัฒนาโดยยึดหลักการออกแบบเชิงสถาปัตยกรรมและบันทึกการตัดสินใจที่สำคัญผ่าน **Architecture Decision Records (ADR)**:
 
-- ระบบจำกัดการเข้าถึงเฉพาะอีเมล @kmutnb.ac.th และ @email.kmutnb.ac.th
-- การยืนยันตัวตนผ่าน Firebase Authentication
-- ระบบ Role-based Access Control
-- บันทึกประวัติการใช้งาน (Audit Logs)
+| รหัสเอกสาร | หัวข้อการตัดสินใจ (Architectural Decision) | สถานะ |
+| :---: | :--- | :---: |
+| [ADR-001](docs/adr/ADR-001-custom-course-code-and-dynamic-years.md) | รองรับรหัสวิชาแบบกำหนดเองและปีหลักสูตรแบบไดนามิก | **Accepted** |
+| [ADR-002](docs/adr/ADR-002-chat-feedback-system-and-admin-analytics.md) | ระบบสำรวจความพึงพอใจการสนทนาและแดชบอร์ดวิเคราะห์ผล | **Accepted** |
+| [ADR-003](docs/adr/ADR-003-chatbot-toggle-ux-and-branding.md) | มาตรฐานปุ่มเปิด-ปิดแชทบอทและการนำเสนอแบรนด์ภาควิชา | **Accepted** |
+| [ADR-004](docs/adr/ADR-004-toast-alert-redesign-and-positioning.md) | การออกแบบการแจ้งเตือน Toast แจ้งเตือนสถานะและตำแหน่งแสดงผล | **Accepted** |
+| [ADR-005](docs/adr/ADR-005-registration-credit-limits-and-probation-rules.md) | ขอบเขตหน่วยกิตการลงทะเบียนและเกณฑ์การควบคุมภาวะวิทยาทัณฑ์ | **Accepted** |
+| [ADR-006](docs/adr/ADR-006-multi-curriculum-context-resolution-and-catalog-injection.md) | กลไกชี้ขาดบริบทหลักสูตรและการป้อนข้อมูลแคตตาล็อกสู่ n8n | **Accepted** |
+| [ADR-007](docs/adr/ADR-007-theme-adaptive-architectural-diagram-standards.md) | มาตรฐานไดอะแกรมสถาปัตยกรรมแบบปรับตามธีม (Dark/Light Mode) และการใช้ Native Mermaid | **Accepted** |
+| [ADR-008](docs/adr/ADR-008-multi-turn-curriculum-persistence-and-advising-prerequisite-guard.md) | การคงบริบทหลักสูตรข้ามข้อความ (Multi-Turn Persistence) และระบบป้องกันเงื่อนไขการแนะนำลงทะเบียนวิชาติด F | **Accepted** |
+| [ADR-009](docs/adr/ADR-009-page-grounded-concise-chat-answers.md) | คำตอบแชทบอทแบบกระชับและการอ้างอิงหลักฐานหน้าเอกสาร PDF (Page-Grounded Concise Chat Answers) | **Accepted** |
+| [ADR-010](docs/adr/ADR-010-non-student-role-isolation-and-deterministic-identity-routing.md) | การแยกบทบาทผู้ใช้ที่ไม่ใช่นักศึกษาและระบบเราต์ตัวตนผู้ใช้แบบ Deterministic (Non-Student Role Isolation & Deterministic Identity Routing) | **Accepted** |
+| [ADR-011](docs/adr/ADR-011-academic-standing-tiers-consecutive-probation-and-retirement.md) | ระบบประเมินสถานภาพทางวิชาการ 4 ระดับ การติดตามภาวะวิทยาทัณฑ์ต่อเนื่อง และเกณฑ์การพ้นสภาพนักศึกษา (Four-Tier Academic Standing, Consecutive Probation Tracking, and Retirement Enforcement) | **Accepted** |
+| [ADR-012](docs/adr/ADR-012-curriculum-wildcard-category-quota-deduplication.md) | ระบบตัดยอดโควตาวิชาเลือกและการหักลบรหัส Wildcard ในหลักสูตร (Curriculum Wildcard Deduplication and Prioritized Category-Quota Matching) | **Accepted** |
+| [ADR-013](docs/adr/ADR-013-n8n-workflow-v19-metadata-and-registration-regulations.md) | การจัดโครงสร้าง Metadata รองรับ n8n Workflow v19.19 และการปรับปรุงระเบียบหน่วยกิตลงทะเบียน (n8n Workflow v19.19 Metadata Alignment & Registration Regulations) | **Accepted** |
+| [ADR-014](docs/adr/ADR-014-category-level-elective-credit-audit-and-waterfall-overflow.md) | ระบบตรวจสอบหน่วยกิตระดับหมวดวิชาและการส่งต่อหน่วยกิตวิชาเลือกเกิน (Category-Level Elective Credit Audit & Waterfall Overflow Engine) | **Accepted** |
 
-## 📞 การสนับสนุน
+### รายงานการตรวจสอบคุณภาพและมาตรฐานการออกแบบ (Quality Assurance & Architecture Specs)
 
-สำหรับข้อสงสัยหรือปัญหาการใช้งาน กรุณาติดต่อ:
-- คณะเทคโนโลยีสารสนเทศ มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ
+- [Automated Regression Test Suite](tests/) — ชุดทดสอบอัตโนมัติ 86 รายการ (Unit Tests) ครอบคลุมทั้ง 13 หลักสูตร, Academic Standing 4 ระดับ, Consecutive Probation Tracking, Wildcard Deduplication, และ Elective Waterfall Overflow Audit (อัตราผ่าน 100%, 86/86 การทดสอบ)
+- [Student Progress Consistency Implementation Plan](docs/superpowers/plans/2026-09-13-student-progress-consistency.md) — แผนปฏิบัติการและผลการปรับปรุงความสอดคล้องของภาพรวมความคืบหน้านักศึกษา (Dual-View Progress, Pure ViewModel Projection, Identity Preservation)
+- [Modern Academic Web Redesign QA Audit](docs/audits/modern-academic-web-redesign-qa.md) — รายงานการตรวจรับส่วนติดต่อผู้ใช้สไตล์วิชาการร่วมสมัย ครอบคลุม 13 มิติการทดสอบและผลการตรวจรับ Protected Files 100%
+- [Modern Academic Web Redesign Specification](docs/superpowers/specs/2026-09-13-modern-academic-web-redesign.md) — ข้อกำหนดรายละเอียดการออกแบบระบบวิชาการร่วมสมัย (Opt-in Architecture, Color Tokens, Typography, Accessibility)
+- [Modern Academic Web Redesign Implementation Plan](docs/superpowers/plans/2026-09-13-modern-academic-web-redesign.md) — แผนปฏิบัติการ 9 ระยะสำหรับการยกระดับ UI และการควบคุมความเสี่ยง
+- [Alert Timeout Progress QA](docs/audits/alert-timeout-progress-qa.md) — รายงานการตรวจสอบแถบเวลาคงเหลือสำหรับ toast, inline error และ feedback confirmation ที่ปิดอัตโนมัติ
+- [Firebase CRUD & Credit Validation Audit](docs/audits/firebase-crud-credit-audit.md) — ผลการตรวจสอบความถูกต้องของการบันทึกข้อมูลและคำนวณหน่วยกิต (อัตราผ่าน 100%, 8/8 การทดสอบ)
+- [Responsive Navigation & Student Flow QA](docs/audits/mobile-navigation-student-qa.md) — ผลการทดสอบการใช้งานบนอุปกรณ์พกพาและการนำทางของผู้ใช้นักศึกษา
 
-## 📄 License
+---
 
-โปรเจกต์นี้พัฒนาขึ้นเพื่อใช้ภายในคณะเทคโนโลยีสารสนเทศ KMUTNB
-# it-course-chatbot-main
+## ความปลอดภัยและการปกป้องข้อมูล
+
+1. **การยืนยันตัวตนและการจำกัดสิทธิ์**: ตรวจสอบบัญชีผู้ใช้ผ่าน Firebase Authentication และจำกัดอีเมลเฉพาะโดเมนที่กำหนดของมหาวิทยาลัย
+2. **การควบคุมการเข้าถึงฐานข้อมูล**: ใช้ Firebase Realtime Database Security Rules (`database.rules.json`) ป้องกันการเขียนข้อมูลข้ามสิทธิ์ โดยมีเฉพาะ Admin และ Staff เท่านั้นที่แก้ไขโครงสร้างรายวิชาได้
+3. **การแยกสิ่งแวดล้อมการพัฒนา**: ป้องกันข้อมูลสูญหายด้วยการบังคับให้โหมดทดสอบรันเฉพาะบน Local Firebase Emulator (`demo-*`)
+4. **ความปลอดภัยของ AI Webhook**: ส่งข้อมูลเฉพาะบริบทที่จำเป็นในการตอบคำถาม และไม่จัดเก็บข้อมูลส่วนตัวที่ไม่เกี่ยวข้องใน Vector Database
+
+---
+
+<div align="center">
+
+**ภาควิชาเทคโนโลยีสารสนเทศ**  
+คณะเทคโนโลยีและการจัดการอุตสาหกรรม · มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ  
+*Department of Information Technology, Faculty of Industrial Technology and Management, KMUTNB*
+
+</div>

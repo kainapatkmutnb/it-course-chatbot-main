@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTimeoutProgress } from '@/components/ui/alert-timeout-progress';
 import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAlertCountdown } from '@/hooks/use-alert-countdown';
 import { RegisterData } from '@/types/auth';
 import { 
   Bot, 
@@ -19,6 +20,9 @@ import {
   IdCard,
   Loader2
 } from 'lucide-react';
+
+const getErrorMessage = (err: unknown, fallback: string) =>
+  err instanceof Error ? err.message : fallback;
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -34,7 +38,15 @@ const Register: React.FC = () => {
   });
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const errorRemaining = useAlertCountdown({
+    active: Boolean(error),
+    duration: 5000,
+    resetKey: error,
+    onExpire: () => setError(''),
+  });
+
   const handleInputChange = (field: keyof RegisterData, value: string) => {
+    if (error) setError('');
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -56,8 +68,8 @@ const Register: React.FC = () => {
     try {
       await register(formData);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'เกิดข้อผิดพลาดในการสมัครสมาชิก'));
     }
   };
 
@@ -67,8 +79,8 @@ const Register: React.FC = () => {
     try {
       await loginWithGoogle();
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'เกิดข้อผิดพลาดในการสมัครสมาชิก'));
     }
   };
 
@@ -76,32 +88,36 @@ const Register: React.FC = () => {
   const isStudentEmail = formData.email.includes('@email.kmutnb.ac.th');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="academic-auth min-h-[calc(100vh-14rem)] flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <Bot className="w-8 h-8 text-white" />
+            <div className="bg-primary/10 p-3 rounded-full border border-primary/20">
+              <Bot className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">IT Course Chatbot</h1>
-          <p className="text-gray-600 mt-2">ระบบแนะนำหลักสูตรและวางแผนการเรียน</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">IT Course Chatbot</h1>
+          <p className="text-sm text-muted-foreground mt-1">ระบบแนะนำหลักสูตรและวางแผนการเรียน</p>
         </div>
 
         {/* Register Card */}
-        <Card className="shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">สมัครสมาชิก</CardTitle>
-            <CardDescription className="text-center">
-              สมัครสมาชิกด้วยบัญชี Google ของมหาวิทยาลัย
+        <Card className="academic-panel">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-xl text-center">สมัครสมาชิก</CardTitle>
+            <CardDescription className="text-center text-xs">
+              สมัครสมาชิกด้วยบัญชี Google ของมหาวิทยาลัย หรืออีเมลสถาบัน
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="overflow-hidden">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
+                <AlertTimeoutProgress
+                  remaining={errorRemaining}
+                  className="!pl-0 text-rose-500 dark:text-rose-400"
+                />
               </Alert>
             )}
 
@@ -109,10 +125,10 @@ const Register: React.FC = () => {
             <Button
               onClick={handleGoogleSignup}
               disabled={isLoading}
-              className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 shadow-sm"
+              className="w-full academic-control bg-background hover:bg-muted text-foreground border border-input shadow-none"
               variant="outline"
             >
-              <Chrome className="w-5 h-5 mr-3 text-blue-500" />
+              <Chrome className="w-5 h-5 mr-3 text-primary" />
               {isLoading ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิกด้วย Google'}
             </Button>
 
@@ -130,14 +146,14 @@ const Register: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="email">อีเมล</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="your.email@kmutnb.ac.th"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="pl-10"
+                    className="academic-control pl-10"
                     required
                     disabled={isLoading}
                   />
@@ -147,14 +163,14 @@ const Register: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="name">ชื่อ-นามสกุล</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
                     placeholder="ชื่อ นามสกุล"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="pl-10"
+                    className="academic-control pl-10"
                     required
                     disabled={isLoading}
                   />
@@ -166,35 +182,31 @@ const Register: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="studentId">รหัสนักศึกษา</Label>
                   <div className="relative">
-                    <IdCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="studentId"
                       type="text"
                       placeholder="รหัสนักศึกษา 13 หลัก"
                       value={formData.studentId}
                       onChange={(e) => handleInputChange('studentId', e.target.value)}
-                      className="pl-10"
+                      className="academic-control pl-10"
                       disabled={isLoading}
                     />
                   </div>
                 </div>
               )}
 
-
-
-
-
               <div className="space-y-2">
                 <Label htmlFor="password">รหัสผ่าน</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="pl-10"
+                    className="academic-control pl-10"
                     required
                     disabled={isLoading}
                   />
@@ -204,21 +216,24 @@ const Register: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type="password"
                     placeholder="ยืนยันรหัสผ่าน"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pl-10"
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      if (error) setError('');
+                    }}
+                    className="academic-control pl-10"
                     required
                     disabled={isLoading}
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full academic-control" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -231,29 +246,18 @@ const Register: React.FC = () => {
             </form>
 
             {/* Domain Info */}
-            <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-              <p className="font-medium">สำหรับบุคลากรและนักศึกษา KMUTNB เท่านั้น</p>
-              <p>ใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th</p>
+            <div className="text-center text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg border border-border">
+              <p className="font-medium text-foreground">สำหรับบุคลากรและนักศึกษา KMUTNB เท่านั้น</p>
+              <p className="mt-0.5">ใช้อีเมล @kmutnb.ac.th หรือ @email.kmutnb.ac.th</p>
             </div>
-
-            {/* Registration Info */}
-            {/* <div className="text-center text-xs text-gray-500 space-y-2">
-              <p className="font-medium">การสมัครสมาชิกจะทำการ:</p>
-              <ul className="text-left space-y-1 bg-gray-50 p-3 rounded-lg">
-                <li>• สร้างโปรไฟล์ผู้ใช้อัตโนมัติ</li>
-                <li>• กำหนดบทบาทตามอีเมล</li>
-                <li>• เข้าสู่ระบบทันที</li>
-                <li>• เริ่มใช้งานระบบได้ทันที</li>
-              </ul>
-            </div> */}
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           <p>
             มีบัญชีอยู่แล้ว?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline">
+            <Link to="/login" className="text-primary hover:underline font-medium">
               เข้าสู่ระบบ
             </Link>
           </p>

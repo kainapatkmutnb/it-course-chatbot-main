@@ -309,3 +309,24 @@ export const extractDepartmentFromStudentInfo = (studentId?: string, email?: str
   // Default to IT
   return 'IT';
 };
+
+// Get required total credits for a specific program and curriculum year
+export const getCurriculumTotalCredits = (program?: string, curriculumYear?: string): number => {
+  if (!program) return 135;
+  const pUpper = program.trim().toUpperCase();
+  const yearClean = (curriculumYear || '').replace(/[^0-9]/g, '');
+
+  const departments = getDepartments();
+  const dept = departments.find(d => d.id.toUpperCase() === pUpper || d.code.toUpperCase() === pUpper);
+  if (dept) {
+    const curr = dept.curricula.find(c => c.id.includes(yearClean) || c.buddhistYear.toString().endsWith(yearClean));
+    if (curr) return curr.totalCredits;
+  }
+
+  // Fallbacks if not matched directly
+  if (pUpper.includes('INE')) return yearClean.includes('67') ? 125 : 135;
+  if (pUpper.includes('INET')) return yearClean.includes('67') ? 102 : 103;
+  if (pUpper.includes('IT')) return yearClean.includes('67') ? 120 : 127;
+
+  return 135;
+};
