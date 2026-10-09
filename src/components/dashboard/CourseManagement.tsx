@@ -450,7 +450,7 @@ const CourseManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="academic-panel">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
@@ -465,7 +465,7 @@ const CourseManagement: React.FC = () => {
             <div>
               <Label htmlFor="program">หลักสูตร</Label>
               <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent>
@@ -485,7 +485,7 @@ const CourseManagement: React.FC = () => {
                 onValueChange={setSelectedCurriculumYear}
                 disabled={!selectedProgram}
               >
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกปีหลักสูตร" />
                 </SelectTrigger>
                 <SelectContent>
@@ -502,7 +502,7 @@ const CourseManagement: React.FC = () => {
             <div>
               <Label htmlFor="year">ชั้นปี</Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกชั้นปี" />
                 </SelectTrigger>
                 <SelectContent>
@@ -517,7 +517,7 @@ const CourseManagement: React.FC = () => {
             <div>
               <Label htmlFor="semester">ภาคเรียน</Label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกภาคเรียน" />
                 </SelectTrigger>
                 <SelectContent>
@@ -539,7 +539,7 @@ const CourseManagement: React.FC = () => {
                       placeholder="ค้นหารายวิชา..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-64"
+                      className="academic-control pl-10 w-64"
                     />
                   </div>
                   <Badge variant="outline">
@@ -549,19 +549,19 @@ const CourseManagement: React.FC = () => {
 
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button onClick={() => resetForm()}>
+                    <Button onClick={() => resetForm()} className="academic-control">
                       <Plus className="h-4 w-4 mr-2" />
                       เพิ่มรายวิชา
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogContent className="academic-dialog max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>เพิ่มรายวิชาใหม่</DialogTitle>
                       <DialogDescription>
                         กรอกข้อมูลรายวิชาที่ต้องการเพิ่ม
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="academic-form-grid grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="code">รหัสวิชา</Label>
                         <Input
@@ -569,6 +569,7 @@ const CourseManagement: React.FC = () => {
                           value={courseForm.code}
                           onChange={(e) => setCourseForm({...courseForm, code: e.target.value})}
                           placeholder="เช่น IT-060243101"
+                          className="academic-control"
                         />
                       </div>
                       <div>
@@ -580,6 +581,7 @@ const CourseManagement: React.FC = () => {
                           max="6"
                           value={courseForm.credits}
                           onChange={(e) => setCourseForm({...courseForm, credits: parseInt(e.target.value)})}
+                          className="academic-control"
                         />
                       </div>
                       <div className="col-span-2">
@@ -589,12 +591,13 @@ const CourseManagement: React.FC = () => {
                           value={courseForm.name}
                           onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                           placeholder="ชื่อรายวิชา"
+                          className="academic-control"
                         />
                       </div>
                       <div>
                         <Label htmlFor="category">ประเภทวิชา</Label>
                         <Select value={courseForm.category} onValueChange={(value: any) => setCourseForm({...courseForm, category: value})}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -609,7 +612,7 @@ const CourseManagement: React.FC = () => {
                       <div>
                         <Label htmlFor="mainCategory">หมวดวิชา</Label>
                         <Select value={courseForm.mainCategory} onValueChange={(value) => setCourseForm({...courseForm, mainCategory: value})}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -624,7 +627,7 @@ const CourseManagement: React.FC = () => {
                       <div className="col-span-2">
                         <Label htmlFor="subCategory">กลุ่มวิชา</Label>
                         <Select value={courseForm.subCategory} onValueChange={(value) => setCourseForm({...courseForm, subCategory: value})}>
-                          <SelectTrigger>
+                          <SelectTrigger className="academic-control">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -644,6 +647,7 @@ const CourseManagement: React.FC = () => {
                           onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                           placeholder="คำอธิบายรายวิชา"
                           rows={3}
+                          className="academic-control"
                         />
                       </div>
                       <div>
@@ -653,6 +657,7 @@ const CourseManagement: React.FC = () => {
                           value={courseForm.prerequisites}
                           onChange={(e) => setCourseForm({...courseForm, prerequisites: e.target.value})}
                           placeholder="คั่นด้วยเครื่องหมายจุลภาค"
+                          className="academic-control"
                         />
                       </div>
                       <div>
@@ -662,14 +667,15 @@ const CourseManagement: React.FC = () => {
                           value={courseForm.corequisites}
                           onChange={(e) => setCourseForm({...courseForm, corequisites: e.target.value})}
                           placeholder="คั่นด้วยเครื่องหมายจุลภาค"
+                          className="academic-control"
                         />
                       </div>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
-                      <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      <Button variant="outline" className="academic-control" onClick={() => setIsAddDialogOpen(false)}>
                         ยกเลิก
                       </Button>
-                      <Button onClick={handleAddCourse}>
+                      <Button className="academic-control" onClick={handleAddCourse}>
                         <Save className="h-4 w-4 mr-2" />
                         บันทึก
                       </Button>
@@ -686,7 +692,7 @@ const CourseManagement: React.FC = () => {
               ) : (
                 <div className="grid gap-4">
                   {filteredCourses.map((course) => (
-                    <Card key={`${course.id}-${forceRender}`} className="hover:shadow-md transition-shadow">
+                    <Card key={`${course.id}-${forceRender}`} className="academic-panel hover:shadow-md transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -725,6 +731,7 @@ const CourseManagement: React.FC = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleEditCourse(course)}
+                              className="academic-control"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -732,7 +739,7 @@ const CourseManagement: React.FC = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeleteCourse(course)}
-                              className="text-red-600 hover:text-red-700"
+                              className="academic-control text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -763,14 +770,14 @@ const CourseManagement: React.FC = () => {
           resetForm();
         }
       }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="academic-dialog max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>แก้ไขรายวิชา</DialogTitle>
             <DialogDescription>
               แก้ไขข้อมูลรายวิชา
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="academic-form-grid grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="edit-code">รหัสวิชา</Label>
               <Input
@@ -778,6 +785,7 @@ const CourseManagement: React.FC = () => {
                 value={courseForm.code}
                 onChange={(e) => setCourseForm({...courseForm, code: e.target.value})}
                 placeholder="เช่น IT-060243101"
+                className="academic-control"
               />
             </div>
             <div>
@@ -789,12 +797,13 @@ const CourseManagement: React.FC = () => {
                 max="6"
                 value={courseForm.credits}
                 onChange={(e) => setCourseForm({...courseForm, credits: parseInt(e.target.value)})}
+                className="academic-control"
               />
             </div>
             <div>
               <Label htmlFor="edit-year">ชั้นปี</Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกชั้นปี" />
                 </SelectTrigger>
                 <SelectContent>
@@ -808,7 +817,7 @@ const CourseManagement: React.FC = () => {
             <div>
               <Label htmlFor="edit-semester">ภาคเรียน</Label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue placeholder="เลือกภาคเรียน" />
                 </SelectTrigger>
                 <SelectContent>
@@ -825,12 +834,13 @@ const CourseManagement: React.FC = () => {
                 value={courseForm.name}
                 onChange={(e) => setCourseForm({...courseForm, name: e.target.value})}
                 placeholder="ชื่อรายวิชา"
+                className="academic-control"
               />
             </div>
             <div>
               <Label htmlFor="edit-category">ประเภทวิชา</Label>
               <Select value={courseForm.category} onValueChange={(value: any) => setCourseForm({...courseForm, category: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -845,7 +855,7 @@ const CourseManagement: React.FC = () => {
             <div>
               <Label htmlFor="edit-mainCategory">หมวดวิชา</Label>
               <Select value={courseForm.mainCategory} onValueChange={(value) => setCourseForm({...courseForm, mainCategory: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -860,7 +870,7 @@ const CourseManagement: React.FC = () => {
             <div className="col-span-2">
               <Label htmlFor="edit-subCategory">กลุ่มวิชา</Label>
               <Select value={courseForm.subCategory} onValueChange={(value) => setCourseForm({...courseForm, subCategory: value})}>
-                <SelectTrigger>
+                <SelectTrigger className="academic-control">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -880,6 +890,7 @@ const CourseManagement: React.FC = () => {
                 onChange={(e) => setCourseForm({...courseForm, description: e.target.value})}
                 placeholder="คำอธิบายรายวิชา"
                 rows={3}
+                className="academic-control"
               />
             </div>
             <div>
@@ -889,6 +900,7 @@ const CourseManagement: React.FC = () => {
                 value={courseForm.prerequisites}
                 onChange={(e) => setCourseForm({...courseForm, prerequisites: e.target.value})}
                 placeholder="คั่นด้วยเครื่องหมายจุลภาค"
+                className="academic-control"
               />
             </div>
             <div>
@@ -898,14 +910,15 @@ const CourseManagement: React.FC = () => {
                 value={courseForm.corequisites}
                 onChange={(e) => setCourseForm({...courseForm, corequisites: e.target.value})}
                 placeholder="คั่นด้วยเครื่องหมายจุลภาค"
+                className="academic-control"
               />
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" className="academic-control" onClick={() => setIsEditDialogOpen(false)}>
               ยกเลิก
             </Button>
-            <Button onClick={handleUpdateCourse}>
+            <Button className="academic-control" onClick={handleUpdateCourse}>
               <Save className="h-4 w-4 mr-2" />
               บันทึกการแก้ไข
             </Button>

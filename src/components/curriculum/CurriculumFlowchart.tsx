@@ -5,6 +5,7 @@ import { Department, Curriculum, Course } from '@/types/course';
 import { getHybridCoursesForSemester } from '@/services/hybridCourseService';
 import { ArrowDown, BookOpen } from 'lucide-react';
 import { useCourses } from '@/hooks/useFirebaseData';
+import { getCurriculumSummaryCatalog } from '@/services/curriculumCatalogService';
 
 interface CurriculumFlowchartProps {
   selectedDepartment: string;
@@ -67,9 +68,9 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
       for (let year = 1; year <= maxYear; year++) {
         grouped[year] = {};
         
-        // Regular semesters (1 and 2)
+        // Regular semesters (1 and 2) - courseCount=0 (NO FALLBACK DUMMY COURSES)
         for (let semester = 1; semester <= 2; semester++) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), semester.toString(), 0);
           if (courses.length > 0) {
             grouped[year][semester] = courses;
           }
@@ -77,21 +78,21 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
         
         // Special semester 3 for specific programs (skip for co-op curricula)
         if (!isCoopCurriculum && (programCode === 'IT' || programCode === 'INE') && year === 3) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 0);
           if (courses.length > 0) {
             grouped[year][3] = courses;
           }
         }
         
         if (programCode === 'INET' && year === 2) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 0);
           if (courses.length > 0) {
             grouped[year][3] = courses;
           }
         }
         
         if (programCode === 'ITI' && year === 1) {
-          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 15);
+          const courses = await getHybridCoursesForSemester(programCode, curriculumYear, year.toString(), '3', 0);
           if (courses.length > 0) {
             grouped[year][3] = courses;
           }
@@ -138,6 +139,27 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
     });
     return total;
   }, [coursesByYear]);
+
+  const officialCurriculum = useMemo(() => {
+    if (!selectedCurriculum) return null;
+    const catalog = getCurriculumSummaryCatalog();
+    return catalog.find(c => {
+      if (selectedCurriculum.includes('สหกิจ')) {
+        const is62 = selectedCurriculum.includes('62');
+        const is67 = selectedCurriculum.includes('67');
+        const isIT = selectedCurriculum.startsWith('IT');
+        const isINE = selectedCurriculum.startsWith('INE');
+        if (isIT && is62) return c.id === 'IT-62-COOP';
+        if (isIT && is67) return c.id === 'IT-67-COOP';
+        if (isINE && is62) return c.id === 'INE-62-COOP';
+        if (isINE && is67) return c.id === 'INE-67-COOP';
+      }
+      const parts = selectedCurriculum.split(' ');
+      const prog = parts[0];
+      const yr = parts[1];
+      return (c.program === prog && c.curriculumYear === yr) || c.id === `${prog}-${yr}`;
+    });
+  }, [selectedCurriculum]);
 
   // Find prerequisites within the curriculum
   const findPrerequisiteConnections = (course: Course) => {
@@ -339,13 +361,13 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
 
       {/* Header */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+        <h2 className="academic-title text-2xl font-bold">
           แผนผังหลักสูตร {departmentName}
         </h2>
-        <p className="text-lg text-muted-foreground">หลักสูตร {selectedCurriculum}</p>
+        <p className="academic-copy text-lg text-muted-foreground">หลักสูตร {selectedCurriculum}</p>
         <div className="flex justify-center space-x-4 text-sm text-muted-foreground">
-          <span>ระยะเวลา: {Object.keys(coursesByYear).length} ปี</span>
-          <span>หน่วยกิต: {totalCredits} หน่วยกิต</span>
+          <span>ระยะเวลา: <span className="academic-number">{Object.keys(coursesByYear).length}</span> ปี</span>
+          <span>หน่วยกิต: <span className="academic-number">{totalCredits}</span> หน่วยกิต</span>
         </div>
       </div>
 
@@ -354,7 +376,7 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
         {Object.entries(coursesByYear)
           .sort(([a], [b]) => Number(a) - Number(b))
           .map(([year, semesters]) => (
-            <Card key={year} className="shadow-medium">
+            <Card key={year} className="academic-panel shadow-medium">
               <CardHeader className="bg-primary/5">
                 <CardTitle className="text-xl text-center">
                   ปีที่ {year}
@@ -372,7 +394,7 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
                             เทอมที่ {semester}
                             {semester === '3' && ' (ฝึกงาน)'}
                           </h3>
-                          <Badge variant="secondary" className="text-sm">
+                          <Badge variant="secondary" className="academic-number text-sm">
                             {calculateSemesterCredits(courses)} หน่วยกิต
                           </Badge>
                         </div>
@@ -391,7 +413,7 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
                               <div key={course.id} className="relative">
                                 <Card 
                                   id={courseId}
-                                  className="shadow-soft hover:shadow-medium transition-all duration-300 border-l-4 border-l-primary/30 h-40 flex flex-col"
+                                  className="academic-panel shadow-soft hover:shadow-medium transition-all duration-300 border-l-4 border-l-primary/30 h-40 flex flex-col"
                                 >
                                   <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
                                     <div className="flex items-start justify-between flex-1">
@@ -408,7 +430,7 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
                                       </div>
                                       <div className="text-right space-y-1 ml-2 flex-shrink-0">
                                         {getCategoryBadge(course.category)}
-                                        <div className="text-xs text-muted-foreground">
+                                        <div className="academic-number text-xs text-muted-foreground">
                                           {course.credits} หน่วยกิต
                                         </div>
                                       </div>
@@ -450,27 +472,27 @@ export const CurriculumFlowchart: React.FC<CurriculumFlowchartProps> = ({
       </div>
 
       {/* Summary */}
-      <Card className="shadow-medium bg-gradient-to-r from-emerald-50 to-blue-50 border-emerald-200">
+      <Card className="academic-panel shadow-medium bg-gradient-to-r from-emerald-50 to-blue-50 border-emerald-200">
         <CardContent className="p-6">
           <div className="text-center space-y-4">
-            <h3 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
+            <h3 className="academic-title text-xl font-bold">
               สรุปหลักสูตร
             </h3>
             <div className="grid md:grid-cols-4 gap-4">
-              <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
-                <div className="text-3xl font-bold text-emerald-600">{totalCredits}</div>
+              <div className="space-y-2 bg-white/80 dark:bg-card/80 rounded-lg p-4 shadow-soft">
+                <div className="academic-number text-3xl font-bold text-emerald-600">{officialCurriculum?.totalCredits || totalCredits}</div>
                 <div className="text-sm text-muted-foreground">หน่วยกิตรวม</div>
               </div>
-              <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
-                <div className="text-3xl font-bold text-blue-600">{Object.keys(coursesByYear).length}</div>
+              <div className="space-y-2 bg-white/80 dark:bg-card/80 rounded-lg p-4 shadow-soft">
+                <div className="academic-number text-3xl font-bold text-blue-600">{officialCurriculum?.duration || Object.keys(coursesByYear).length}</div>
                 <div className="text-sm text-muted-foreground">ปี</div>
               </div>
-              <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
-                <div className="text-3xl font-bold text-purple-600">{totalSemesters}</div>
+              <div className="space-y-2 bg-white/80 dark:bg-card/80 rounded-lg p-4 shadow-soft">
+                <div className="academic-number text-3xl font-bold text-purple-600">{totalSemesters}</div>
                 <div className="text-sm text-muted-foreground">เทอม</div>
               </div>
-              <div className="space-y-2 bg-white/80 rounded-lg p-4 shadow-soft">
-                <div className="text-3xl font-bold text-orange-600">{totalCourses}</div>
+              <div className="space-y-2 bg-white/80 dark:bg-card/80 rounded-lg p-4 shadow-soft">
+                <div className="academic-number text-3xl font-bold text-orange-600">{totalCourses}</div>
                 <div className="text-sm text-muted-foreground">รายวิชา</div>
               </div>
             </div>

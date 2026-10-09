@@ -53,7 +53,7 @@ export const getCoursesByProgramSync = (program: string, curriculumYear: string)
   
   // Get static courses from generateCoursesForSemester for all years and semesters
   for (let year = 1; year <= 4; year++) {
-    for (let semester = 1; semester <= 2; semester++) {
+    for (let semester = 1; semester <= 3; semester++) {
       const semesterCourses = generateCoursesForSemester(
         program, 
         curriculumYear, 
@@ -84,7 +84,7 @@ export const getCoursesByProgram = async (program: string, curriculumYear: strin
   
   // Get static courses from generateCoursesForSemester for all years and semesters
   for (let year = 1; year <= 4; year++) {
-    for (let semester = 1; semester <= 2; semester++) {
+    for (let semester = 1; semester <= 3; semester++) {
       const semesterCourses = generateCoursesForSemester(
         program, 
         curriculumYear, 
@@ -223,7 +223,8 @@ export const filterCourses = (courses: CourseWithProgram[], filter: CourseFilter
  * Get unique programs available
  */
 export const getAvailablePrograms = (): string[] => {
-  return Object.keys(courseDatabase);
+  const valid = ['IT', 'INE', 'INET', 'ITI', 'ITT'];
+  return Object.keys(courseDatabase).filter(p => valid.includes(p) && p !== 'INE-COOP');
 };
 
 /**

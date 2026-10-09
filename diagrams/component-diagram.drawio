@@ -1,158 +1,108 @@
-<mxfile host="65bd71144e">
-    <diagram name="Component Diagram" id="component-diagram">
-        <mxGraphModel dx="978" dy="683" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
-            <root>
-                <mxCell id="0"/>
-                <mxCell id="1" parent="0"/>
-                <mxCell id="title" value="แผนภาพส่วนประกอบ (Component Diagram)&lt;br&gt;ระบบแนะนำหลักสูตรภาควิชาเทคโนโลยี สารสนเทศด้วย Chatbot" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="300" y="30" width="570" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="client-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1f5fe;strokeColor=#01579b;strokeWidth=2;dashed=1;" parent="1" vertex="1">
-                    <mxGeometry x="80" y="120" width="1000" height="280" as="geometry"/>
-                </mxCell>
-                <mxCell id="client-label" value="Client Layer (React + TypeScript)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#01579b;" parent="1" vertex="1">
-                    <mxGeometry x="90" y="130" width="250" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="app-component" value="App.tsx&#xa;(Main Router &amp; Layout)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="120" y="170" width="140" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="auth-context" value="AuthContext.tsx&#xa;(Authentication)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffecb3;strokeColor=#ff8f00;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="300" y="170" width="140" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="chatbot-component" value="ChatBot.tsx&#xa;(n8n Integration)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8bbd9;strokeColor=#e91e63;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="480" y="170" width="140" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="dashboard-component" value="CurriculumDashboard.tsx&#xa;(Main Dashboard)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d1c4e9;strokeColor=#7b1fa2;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="660" y="170" width="140" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="flowchart-component" value="CurriculumFlowchart.tsx&#xa;(Course Visualization)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#b39ddb;strokeColor=#512da8;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="850" y="170" width="140" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="timeline-component" value="CurriculumTimelineFlowchart.tsx&#xa;(Timeline View)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#9c27b0;strokeColor=#4a148c;fontSize=12;fontStyle=1;fontColor=white;" parent="1" vertex="1">
-                    <mxGeometry x="720" y="300" width="180" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="protected-routes" value="ProtectedRoute.tsx&#xa;RoleBasedRoute.tsx&#xa;(Access Control)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcdd2;strokeColor=#d32f2f;fontSize=11;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="120" y="280" width="140" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="pages-component" value="Pages&#xa;(Login, Register, Home,&#xa;Courses, etc.)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e8;strokeColor=#4caf50;fontSize=11;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="380" y="280" width="140" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="service-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;strokeWidth=2;dashed=1;" parent="1" vertex="1">
-                    <mxGeometry x="80" y="440" width="1000" height="120" as="geometry"/>
-                </mxCell>
-                <mxCell id="service-label" value="Service Layer" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#e65100;" parent="1" vertex="1">
-                    <mxGeometry x="90" y="450" width="150" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="firebase-service" value="firebaseService.ts&#xa;(Data Operations)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="200" y="490" width="160" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="course-service" value="courseService.ts&#xa;(Course Management)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=12;fontStyle=1;arcSize=13;" parent="1" vertex="1">
-                    <mxGeometry x="400" y="490" width="160" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="department-service" value="departmentService.ts&#xa;(Department Data)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="600" y="490" width="160" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="external-layer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;dashed=1;" parent="1" vertex="1">
-                    <mxGeometry x="80" y="600" width="1000" height="120" as="geometry"/>
-                </mxCell>
-                <mxCell id="external-label" value="External Services" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#7b1fa2;" parent="1" vertex="1">
-                    <mxGeometry x="90" y="610" width="150" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="firebase-external" value="Firebase&#xa;Authentication &amp;&#xa;Realtime Database" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="200" y="650" width="160" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="n8n-external" value="n8n Chatbot&#xa;Webhook Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="600" y="650" width="160" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn1" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="app-component" target="auth-context" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn2" value="includes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="app-component" target="protected-routes" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn3" value="protects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.615;exitY=1.019;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;exitPerimeter=0;" parent="1" source="auth-context" target="pages-component" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn4" value="renders" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="dashboard-component" target="flowchart-component" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn5" value="renders" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="dashboard-component" target="timeline-component" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn6" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.208;exitY=1.013;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;exitPerimeter=0;" parent="1" source="auth-context" target="firebase-service" edge="1">
-                    <mxGeometry x="-0.161" relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="329" y="250"/>
-                            <mxPoint x="330" y="250"/>
-                            <mxPoint x="330" y="420"/>
-                            <mxPoint x="280" y="420"/>
-                        </Array>
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="conn7" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="dashboard-component" target="course-service" edge="1">
-                    <mxGeometry x="0.1766" relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="700" y="230"/>
-                            <mxPoint x="700" y="420"/>
-                            <mxPoint x="480" y="420"/>
-                        </Array>
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="conn8" value="calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="flowchart-component" target="department-service" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="910" y="430"/>
-                            <mxPoint x="680" y="430"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="conn9" value="connects" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" source="firebase-service" target="firebase-external" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="conn10" value="integrates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=10;" parent="1" target="n8n-external" edge="1">
-                    <mxGeometry x="-0.1273" relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="570" y="230"/>
-                            <mxPoint x="570" y="580"/>
-                            <mxPoint x="680" y="580"/>
-                        </Array>
-                        <mxPoint x="570" y="230" as="sourcePoint"/>
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="2" value="" style="group" vertex="1" connectable="0" parent="1">
-                    <mxGeometry x="80" y="740" width="220" height="140" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#dee2e6;strokeWidth=2;" parent="2" vertex="1">
-                    <mxGeometry width="220" height="140" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-title" value="คำอธิบาย (Legend)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;" parent="2" vertex="1">
-                    <mxGeometry x="10" y="10" width="120" height="20" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-component" value="Component" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c8e6c9;strokeColor=#388e3c;fontSize=10;" parent="2" vertex="1">
-                    <mxGeometry x="10" y="40" width="80" height="25" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-service" value="Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc02;strokeColor=#d84315;fontSize=10;" parent="2" vertex="1">
-                    <mxGeometry x="10" y="75" width="80" height="25" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-external" value="External" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" parent="2" vertex="1">
-                    <mxGeometry x="10" y="110" width="80" height="25" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-layer" value="Layer Boundary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#666666;strokeWidth=2;dashed=1;fontSize=10;" parent="2" vertex="1">
-                    <mxGeometry x="110" y="40" width="100" height="25" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-relation" value="Relationship" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="2" vertex="1">
-                    <mxGeometry x="110" y="75" width="80" height="15" as="geometry"/>
-                </mxCell>
-                <mxCell id="legend-arrow" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" parent="2" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="110" y="100" as="sourcePoint"/>
-                        <mxPoint x="170" y="100" as="targetPoint"/>
-                    </mxGeometry>
-                </mxCell>
-            </root>
-        </mxGraphModel>
-    </diagram>
+<mxfile host="app.diagrams.net" modified="2026-09-15T00:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="ComponentDiagram" name="Modular Component Diagram">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <mxCell id="header" value="&lt;b style='font-size: 22px;'&gt;🏗️ IT Assistant — Modular Component Architecture&lt;/b&gt;&lt;br/&gt;&lt;span style='color: #475569; font-size: 13px;'&gt;โครงสร้างโมดูล การแยกหน้าที่ (Separation of Concerns) ระหว่าง Presentation Layer, Business Services, และ Cloud Integrations&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fillColor=#F8FAFC;strokeColor=#CBD5E1;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="20" width="1480" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 1: Client Presentation -->
+        <mxCell id="l1_box" value="🖥️ Presentation &amp; UI Layer (React 18 + TypeScript + Vite + Tailwind CSS)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0F9FF;strokeColor=#0284C7;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#0369A1;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="1480" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c_app" value="&lt;b&gt;App.tsx&lt;/b&gt;&lt;br/&gt;Router, Layout &amp; Theme" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="20" y="50" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_auth" value="&lt;b&gt;AuthContext.tsx&lt;/b&gt;&lt;br/&gt;Session &amp; RBAC Guards" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="210" y="50" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_dashboards" value="&lt;b&gt;Role Dashboards&lt;/b&gt;&lt;br/&gt;Student, Advisor, Staff, Admin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="400" y="50" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_courses_page" value="&lt;b&gt;Courses.tsx&lt;/b&gt;&lt;br/&gt;13-Curriculum Catalog Explorer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="620" y="50" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_chatbot_ui" value="&lt;b&gt;ChatBot.tsx + FeedbackBanner&lt;/b&gt;&lt;br/&gt;#n8n-chat Surface with Rating" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="840" y="50" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_course_mgmt" value="&lt;b&gt;CourseManagement.tsx&lt;/b&gt;&lt;br/&gt;Admin/Staff CRUD &amp; Sync Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;strokeWidth=1.5;" vertex="1" parent="l1_box">
+          <mxGeometry x="1110" y="50" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Sub-components in Presentation -->
+        <mxCell id="sub_plan_box" value="🎓 Study Plan &amp; Flowchart Feature Components" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0369A1;strokeWidth=1.5;fontSize=12;fontColor=#0369A1;startSize=26;" vertex="1" parent="l1_box">
+          <mxGeometry x="20" y="130" width="1440" height="190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="c_sp_progress" value="&lt;b&gt;StudyPlanProgress.tsx&lt;/b&gt;&lt;br/&gt;Dual-View Tabs Container&lt;br/&gt;Auto-Track Switcher (Normal/Co-op)&lt;br/&gt;14-Arrow Orthogonal SVG Renderer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="20" y="40" width="300" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sp_timeline" value="&lt;b&gt;StudentPlanTimeline.tsx&lt;/b&gt;&lt;br/&gt;Personal Recorded Plan View&lt;br/&gt;Transcript Projection &amp; Grade Badges&lt;br/&gt;Passing/Failing Grade Styling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="340" y="40" width="270" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sp_manager" value="&lt;b&gt;StudyPlanManager.tsx&lt;/b&gt;&lt;br/&gt;Create/Edit/Reset Plan&lt;br/&gt;Prerequisite Cascade Clear&lt;br/&gt;Drag-and-Drop Term Rescheduling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="630" y="40" width="270" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_flowcharts" value="&lt;b&gt;CurriculumTimelineFlowchart.tsx&lt;/b&gt;&lt;br/&gt;&lt;b&gt;CurriculumFlowchart.tsx&lt;/b&gt;&lt;br/&gt;Public Flowchart Explorer on /courses&lt;br/&gt;Hybrid Data Sync with Blue Arrows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="920" y="40" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sp_report" value="&lt;b&gt;StudyPlanReport.tsx&lt;/b&gt;&lt;br/&gt;PDF Export &amp; Grade Report&lt;br/&gt;Advisor Review Sheet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDFA;strokeColor=#14B8A6;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="sub_plan_box">
+          <mxGeometry x="1220" y="40" width="200" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 2: Business & Domain Services -->
+        <mxCell id="l2_box" value="⚙️ Service &amp; Domain Logic Layer (Pure Business Functions &amp; Data Access)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FFFBEB;strokeColor=#D97706;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#B45309;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="500" width="1480" height="230" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s_identity" value="&lt;b&gt;studyPlanIdentity.ts&lt;/b&gt;&lt;br/&gt;• normalizeCodeForMatching()&lt;br/&gt;• serializeStudentCourse()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="20" y="50" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_vm" value="&lt;b&gt;studyPlanViewModel.ts&lt;/b&gt;&lt;br/&gt;• buildStudyPlanView()&lt;br/&gt;• resolveResult()&lt;br/&gt;• KPI Passed Credits Engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="260" y="50" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_hybrid" value="&lt;b&gt;hybridCourseService.ts&lt;/b&gt;&lt;br/&gt;• getHybridCurriculumData()&lt;br/&gt;• Data Sanitization Filter&lt;br/&gt;• Firebase Corrupt Cleanup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="500" y="50" width="230" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_master" value="&lt;b&gt;completeCurriculumData.ts&lt;/b&gt;&lt;br/&gt;• courseDatabase (13 ฉบับ)&lt;br/&gt;• IT, INE, INET, ITI, ITT&lt;br/&gt;• Prerequisite Map" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="750" y="50" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_dept" value="&lt;b&gt;departmentService.ts&lt;/b&gt;&lt;br/&gt;• Summary Catalog (13 ฉบับ)&lt;br/&gt;• Total Credits (120-135)&lt;br/&gt;• Department Metadata" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="1010" y="50" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="s_firebase" value="&lt;b&gt;firebaseService.ts&lt;/b&gt;&lt;br/&gt;• Firestore CRUD Operations&lt;br/&gt;• getStudyPlanByStudentId()&lt;br/&gt;• chatLogService Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=1.5;align=left;spacingLeft=10;" vertex="1" parent="l2_box">
+          <mxGeometry x="1250" y="50" width="210" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- Layer 3: External Infrastructure -->
+        <mxCell id="l3_box" value="☁️ External Infrastructure &amp; AI Cloud Services" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7E22CE;strokeWidth=2;fontStyle=1;fontSize=14;fontColor=#6B21A8;startSize=32;" vertex="1" parent="1">
+          <mxGeometry x="60" y="770" width="1480" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_fb_all" value="&lt;b style='font-size:14px;'&gt;🔥 Firebase Cloud Platform&lt;/b&gt;&lt;br/&gt;Firebase Authentication · Cloud Firestore · Security Rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=1.5;" vertex="1" parent="l3_box">
+          <mxGeometry x="100" y="45" width="550" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_n8n_all" value="&lt;b style='font-size:14px;'&gt;🤖 n8n AI Workflow &amp; Vector Search Engine&lt;/b&gt;&lt;br/&gt;Pinecone Vector Store (มคอ.2 Handbook Chunks) · OpenAI GPT-5 nano LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=1.5;" vertex="1" parent="l3_box">
+          <mxGeometry x="830" y="45" width="550" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Explicit Inter-Layer Connecting Arrows -->
+        <mxCell id="ea1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="c_app" target="c_auth" />
+        <mxCell id="ea2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="c_auth" target="c_dashboards" />
+        <mxCell id="ea3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="1" source="c_dashboards" target="c_sp_progress" />
+        
+        <mxCell id="ea4" value="Resolve Code &amp; Origin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_sp_progress" target="s_identity" />
+        <mxCell id="ea5" value="Compute View &amp; KPI" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_sp_timeline" target="s_vm" />
+        <mxCell id="ea6" value="Fetch Hybrid Curricula" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_flowcharts" target="s_hybrid" />
+        <mxCell id="ea7" value="Master Catalog (13)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_courses_page" target="s_master" />
+        <mxCell id="ea8" value="Manage &amp; Sync" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0369A1;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="c_course_mgmt" target="s_firebase" />
+        <mxCell id="ea9" value="AI Query Prompt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7E22CE;strokeWidth=2.5;fontSize=10;" edge="1" parent="1" source="c_chatbot_ui" target="ext_n8n_all" />
+        <mxCell id="ea10" value="Sync Realtime" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D97706;strokeWidth=2.5;fontSize=10;" edge="1" parent="1" source="s_firebase" target="ext_fb_all" />
+
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
